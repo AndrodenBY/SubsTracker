@@ -1,0 +1,6 @@
+﻿services:
+  substracker:
+    image: substracker
+    build:
+      context: .
+      dockerfile: Dockerfile
