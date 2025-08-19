@@ -6,6 +6,6 @@ public class User: BaseModel
     public string? LastName { get; set; }
     public string? Email { get; set; }
     public int SubsCount { get; set; }
-    //public List<Subscription.Subscription>? Subs { get; set; } = new();
+    public List<Subscription.Subscription>? Subs { get; set; } = new();
     public List<UserGroup>? Groups { get; set; } = new();
 }
