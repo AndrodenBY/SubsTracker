@@ -1,7 +1,11 @@
+using SubsTracker.DAL;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>()
     .AddEnvironmentVariables();
+
+builder.Services.RegisterContext(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
 
