@@ -2,9 +2,9 @@ namespace SubsTracker.Domain;
 
 public interface IRepository<TModel> where TModel : IBaseModel
 {
-    Task<IEnumerable<TModel>?> GetAllAsync();
-    Task<TModel?> GetByIdAsync(Guid id);
-    Task<bool> CreateAsync(TModel entityToCreate);
-    Task<bool> UpdateAsync(TModel entityToUpdate);
-    Task<bool> DeleteAsync(Guid id);
+    Task<IEnumerable<TModel>?> GetAll(CancellationToken cancellationToken);
+    Task<TModel?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<bool> Create(TModel entityToCreate, CancellationToken cancellationToken);
+    Task<bool> Update(TModel entityToUpdate, CancellationToken cancellationToken);
+    Task<bool> Delete(Guid id, CancellationToken cancellationToken);
 }
