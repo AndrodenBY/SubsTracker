@@ -17,12 +17,12 @@ public class Repository<TModel> : IRepository<TModel> where TModel : class, IBas
     
     public async Task<IEnumerable<TModel>?> GetAll(CancellationToken cancellationToken)
     {
-        return await _dbSet.ToListAsync();
+        return await _dbSet.ToListAsync(cancellationToken);
     }
     
     public async Task<TModel?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbSet.FindAsync(id);
+        return await _dbSet.FindAsync(id, cancellationToken);
     }
     
     public async Task<bool> Create(TModel entityToCreate, CancellationToken cancellationToken)
