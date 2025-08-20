@@ -39,7 +39,6 @@ public class SubsDbContext : DbContext
             {
                 entry.Entity.CreatedAt = DateTime.UtcNow;
                 entry.Entity.ModifiedAt = DateTime.UtcNow;
-                entry.Entity.Id = Guid.NewGuid();
             }
             else if (entry.State is EntityState.Modified)
             {
