@@ -7,8 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Folder Include="DTOs\" />
-      <Folder Include="Services\" />
+      <ProjectReference Include="..\SubsTracker.DAL\SubsTracker.DAL.csproj" />
+      <ProjectReference Include="..\SubsTracker.Domain\SubsTracker.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Automapper" Version="12.0.1" />
+      <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
     </ItemGroup>
 
 </Project>
