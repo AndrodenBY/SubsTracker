@@ -15,7 +15,7 @@ public class Repository<TModel> : IRepository<TModel> where TModel : class, IBas
         _dbSet = context.Set<TModel>();
     }
     
-    public async Task<IEnumerable<TModel>?> GetAll(CancellationToken cancellationToken)
+    public async Task<IEnumerable<TModel>> GetAll(CancellationToken cancellationToken)
     {
         return await _dbSet.ToListAsync(cancellationToken);
     }
@@ -25,19 +25,21 @@ public class Repository<TModel> : IRepository<TModel> where TModel : class, IBas
         return await _dbSet.FindAsync(id, cancellationToken);
     }
     
-    public async Task<bool> Create(TModel entityToCreate, CancellationToken cancellationToken)
+    public async Task<TModel> Create(TModel entityToCreate, CancellationToken cancellationToken)
     {
         await _dbSet.AddAsync(entityToCreate, cancellationToken);
-        return await _context.SaveChangesAsync(cancellationToken) > 0;
+        await _context.SaveChangesAsync(cancellationToken);
+        return entityToCreate;
     }
     
-    public async Task<bool> Update(TModel entityToUpdate, CancellationToken cancellationToken)
+    public async Task<TModel?> Update(TModel entityToUpdate, CancellationToken cancellationToken)
     {
-        var existingEntity = await _dbSet.FindAsync(entityToUpdate.Id, cancellationToken);
+        var existingEntity = await _dbSet.FindAsync(entityToUpdate.Id, cancellationToken)
+            ?? throw new NullReferenceException($"Entity {entityToUpdate.Id} not found");
         
-        if (existingEntity is null) return false;
         _context.Update(existingEntity);
-        return await _context.SaveChangesAsync(cancellationToken) > 0;
+        await _context.SaveChangesAsync(cancellationToken);
+        return existingEntity;
     }
     
     public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
