@@ -20,7 +20,7 @@ public static class ServicesRegister
         services.AddDbContext<SubsDbContext>(options =>
             options.UseNpgsql(postgreConnectionString));
 
-        services.AddScoped<IRepository<BaseModel>, Repository<BaseModel>>();
+        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         
         return services;
     }
