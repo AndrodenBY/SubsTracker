@@ -1,5 +1,5 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using SubsTracker.DAL.Models;
 using SubsTracker.Domain;
 
 namespace SubsTracker.DAL.Repository;
@@ -45,5 +45,10 @@ public class Repository<TModel> : IRepository<TModel> where TModel : class, IBas
         var existingEntity = await _dbSet.FindAsync(id, cancellationToken);
         _dbSet.Remove(existingEntity);
         return await _context.SaveChangesAsync(cancellationToken) > 0;
+    }
+    
+    public async Task<TModel?> FindByCondition(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken)
+    {
+        return await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 }

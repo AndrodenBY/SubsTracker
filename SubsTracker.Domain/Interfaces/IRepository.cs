@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+
 namespace SubsTracker.Domain;
 
 public interface IRepository<TModel> where TModel : IBaseModel
@@ -7,4 +9,5 @@ public interface IRepository<TModel> where TModel : IBaseModel
     Task<bool> Create(TModel entityToCreate, CancellationToken cancellationToken);
     Task<bool> Update(TModel entityToUpdate, CancellationToken cancellationToken);
     Task<bool> Delete(Guid id, CancellationToken cancellationToken);
+    Task<TModel?> FindByCondition(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
 }
