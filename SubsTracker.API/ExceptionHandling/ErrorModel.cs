@@ -1,4 +1,4 @@
-namespace SubsTracker.BLL.DTOs;
+namespace SubsTracker.API.ExceptionHandling;
 
 public class ErrorModel(int statusCode, string? message, string? details = null)
 {

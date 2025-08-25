@@ -1,11 +1,11 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using SubsTracker.BLL.Exceptions;
+using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain;
 
 namespace SubsTracker.DAL.Repository;
 
-public class Repository<TModel>(SubsDbContext context): IRepository<TModel> where TModel : class, IBaseModel
+public class Repository<TModel>(SubsDbContext context) : IRepository<TModel> where TModel : class, IBaseModel
 {
     private readonly DbSet<TModel> _dbSet = context.Set<TModel>();
     

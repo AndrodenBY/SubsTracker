@@ -1,6 +1,6 @@
 using SubsTracker.Domain.Enums;
 
-namespace SubsTracker.BLL.DTOs;
+namespace SubsTracker.BLL.DTOs.User;
 
 public class GroupMemberDto : BaseDto
 {

@@ -1,9 +1,8 @@
 using System.Net;
 using System.Net.Mime;
-using SubsTracker.BLL.Exceptions;
-using SubsTracker.BLL.DTOs;
+using SubsTracker.Domain.Exceptions;
 
-namespace SubsTracker.Domain;
+namespace SubsTracker.API.ExceptionHandling;
 
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {

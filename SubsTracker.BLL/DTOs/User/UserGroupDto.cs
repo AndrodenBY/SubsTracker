@@ -1,4 +1,4 @@
-namespace SubsTracker.BLL.DTOs;
+namespace SubsTracker.BLL.DTOs.User;
 
 public class UserGroupDto : BaseDto
 {

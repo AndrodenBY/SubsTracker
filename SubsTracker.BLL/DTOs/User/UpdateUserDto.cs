@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-using SubsTracker.DAL.Models.User;
-
-namespace SubsTracker.BLL.DTOs;
+namespace SubsTracker.BLL.DTOs.User;
 
 public class UpdateUserDto: BaseDto
 {

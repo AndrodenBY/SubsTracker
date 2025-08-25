@@ -1,4 +1,4 @@
-namespace SubsTracker.Domain;
+namespace SubsTracker.Domain.Interfaces;
 
 public interface IService<TEntity, TDto, TCreateDto, TUpdateDto>
     where TEntity : IBaseModel

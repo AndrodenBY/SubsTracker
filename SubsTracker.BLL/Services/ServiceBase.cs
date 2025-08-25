@@ -1,8 +1,9 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using SubsTracker.BLL.DTOs;
-using SubsTracker.BLL.Exceptions;
+using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain;
+using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Services;
 
@@ -48,12 +49,11 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
         return await repository.Delete(id, cancellationToken);
     }
     
-    protected async Task<TEntity?> FindByCondition(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+    protected async Task<TDto?> FindByCondition(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        var entity = await repository.FindByCondition(predicate, cancellationToken);
-    
-        if (entity == null) throw new NotFoundException($"Entity with predicate {predicate} not found");
-    
-        return entity;
+        var entity = await repository.FindByCondition(predicate, cancellationToken)
+                     ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
+
+        return mapper.Map<TDto>(entity);
     }
 }

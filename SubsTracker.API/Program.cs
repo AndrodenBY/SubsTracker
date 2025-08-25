@@ -1,3 +1,4 @@
+using SubsTracker.API.ExceptionHandling;
 using SubsTracker.DAL;
 using SubsTracker.Domain;
 

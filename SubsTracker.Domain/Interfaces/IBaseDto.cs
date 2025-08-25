@@ -1,4 +1,4 @@
-namespace SubsTracker.BLL.DTOs;
+namespace SubsTracker.Domain.Interfaces;
 
 public interface IBaseDto
 {
