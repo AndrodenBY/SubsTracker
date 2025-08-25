@@ -1,4 +1,5 @@
 using SubsTracker.DAL;
+using SubsTracker.Domain;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,6 +16,8 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
 }
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
