@@ -3,13 +3,11 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.BLL.DTOs.Subscription;
 
-public class UpdateSubscriptionDto: BaseDto
+public class UpdateSubscriptionDto : BaseDto
 {
-    [MaxLength(50)]
     public string? Name { get; set; } = string.Empty;
-    [Range(0.1, (double)decimal.MaxValue)]
     public decimal? Price { get; set; }
     public DateOnly? DueDate { get; set; }
-    public SubscriptionType? Type { get; set; }
-    public SubscriptionContent? Content { get; set; }
+    public SubscriptionType? Type { get; set; } = SubscriptionType.None;
+    public SubscriptionContent? Content { get; set; } = SubscriptionContent.None;
 }
