@@ -10,6 +10,7 @@ public class SubsDbContext : DbContext
 {
     public DbSet<User> Users {get; set;}
     public DbSet<Subscription> Subscriptions {get; set;}
+    public DbSet<SubscriptionHistory> SubscriptionHistory {get; set;}
     public DbSet<UserGroup> UserGroups {get; set;}
     public DbSet<GroupMember> Members {get; set;}
 
@@ -24,7 +25,7 @@ public class SubsDbContext : DbContext
         return base.SaveChanges();
     }
     
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         OnBeforeSaving();
         return base.SaveChangesAsync(cancellationToken);
