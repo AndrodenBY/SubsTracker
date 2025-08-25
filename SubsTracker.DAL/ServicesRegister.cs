@@ -12,10 +12,6 @@ public static class ServicesRegister
     public static IServiceCollection RegisterContext(this IServiceCollection services, IConfiguration configuration)
     {
         var postgreConnectionString = configuration["PostgreConnectionString"];
-        if (string.IsNullOrEmpty(postgreConnectionString))
-        {
-            throw new InvalidOperationException("Connection string 'PostgreConnectionString' not found.");
-        }
         
         services.AddDbContext<SubsDbContext>(options =>
             options.UseNpgsql(postgreConnectionString));
