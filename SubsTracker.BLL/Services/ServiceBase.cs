@@ -1,0 +1,60 @@
+using System.Linq.Expressions;
+using AutoMapper;
+using SubsTracker.BLL.DTOs;
+using SubsTracker.Domain.Exceptions;
+using SubsTracker.Domain;
+using SubsTracker.Domain.Interfaces;
+
+namespace SubsTracker.BLL.Services;
+
+public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEntity> repository, IMapper mapper) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
+    where TEntity : class, IBaseModel
+    where TDto : class
+    where TCreateDto : class
+    where TUpdateDto : class
+{
+    public async Task<IEnumerable<TDto>> GetAll(CancellationToken cancellationToken)
+    {
+        var entities = await repository.GetAll(cancellationToken);
+        return mapper.Map<IEnumerable<TDto>>(entities);
+    }
+    
+    public async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var entity = await repository.GetById(id, cancellationToken) 
+            ?? throw new NotFoundException($"Entity with id {id} not found");
+        return mapper.Map<TDto>(entity);
+    }
+    
+    public async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)
+    {
+        var entity = mapper.Map<TEntity>(createDto);
+        var createdEntity = await repository.Create(entity, cancellationToken);
+        return mapper.Map<TDto>(createdEntity);
+    }
+    
+    public async Task<TDto> Update(TUpdateDto updateDto, CancellationToken cancellationToken)
+    {
+        var existingEntity = await repository.GetById((updateDto as IBaseDto).Id, cancellationToken);
+        if (existingEntity == null) throw new NotFoundException($"Entity with id {existingEntity.Id} not found");;
+        
+        mapper.Map(updateDto, existingEntity);
+        var updatedEntity = await repository.Update(existingEntity, cancellationToken)
+                            ?? throw new NotFoundException($"Entity {existingEntity.Id} not found");;
+        
+        return mapper.Map<TDto>(updatedEntity);
+    }
+    
+    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        return await repository.Delete(id, cancellationToken);
+    }
+    
+    protected async Task<TDto?> FindByCondition(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    {
+        var entity = await repository.FindByCondition(predicate, cancellationToken)
+                     ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
+
+        return mapper.Map<TDto>(entity);
+    }
+}
