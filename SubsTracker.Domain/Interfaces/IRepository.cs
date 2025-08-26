@@ -9,5 +9,5 @@ public interface IRepository<TModel> where TModel : IBaseModel
     Task<TModel> Create(TModel entityToCreate, CancellationToken cancellationToken);
     Task<TModel> Update(TModel entityToUpdate, CancellationToken cancellationToken);
     Task<bool> Delete(Guid id, CancellationToken cancellationToken);
-    Task<TModel?> FindByCondition(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
+    Task<TModel?> GetByPredicate(Expression<Func<TModel, bool>> predicate, CancellationToken cancellationToken);
 }

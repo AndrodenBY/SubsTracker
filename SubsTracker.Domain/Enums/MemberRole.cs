@@ -2,6 +2,7 @@ namespace SubsTracker.Domain.Enums;
 
 public enum MemberRole
 {
-    Admin = 1,
-    Member = 2,
+    None = 0,
+    Member = 1,
+    Admin = 2,
 }

@@ -36,11 +36,10 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
     public async Task<TDto> Update(TUpdateDto updateDto, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById((updateDto as IBaseDto).Id, cancellationToken);
-        if (existingEntity == null) throw new NotFoundException($"Entity with id {existingEntity.Id} not found");;
+        if (existingEntity == null) throw new NotFoundException($"Entity with id {(updateDto as IBaseDto).Id} not found");
         
         mapper.Map(updateDto, existingEntity);
-        var updatedEntity = await repository.Update(existingEntity, cancellationToken)
-                            ?? throw new NotFoundException($"Entity {existingEntity.Id} not found");;
+        var updatedEntity = await repository.Update(existingEntity, cancellationToken);
         
         return mapper.Map<TDto>(updatedEntity);
     }
