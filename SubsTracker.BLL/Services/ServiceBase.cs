@@ -13,7 +13,6 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
     where TCreateDto : class
     where TUpdateDto : class
 {
-    protected readonly IMapper mapper = mapper;
     public async Task<IEnumerable<TDto>> GetAll(CancellationToken cancellationToken)
     {
         var entities = await repository.GetAll(cancellationToken);
