@@ -1,5 +1,4 @@
 using AutoMapper;
-using SubsTracker.BLL.DTOs;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.DAL.Models.Subscription;

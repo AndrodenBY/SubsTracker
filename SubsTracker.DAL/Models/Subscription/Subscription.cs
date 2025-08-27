@@ -2,7 +2,7 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.DAL.Models.Subscription;
 
-public class Subscription: BaseModel
+public class Subscription : BaseModel
 {
     public string Name { get; set; } = string.Empty;
     public decimal Price { get; set; }

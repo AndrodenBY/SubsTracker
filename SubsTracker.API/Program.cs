@@ -1,6 +1,5 @@
 using SubsTracker.API.ExceptionHandling;
-using SubsTracker.DAL;
-using SubsTracker.Domain;
+using SubsTracker.BLL;
 
 var builder = WebApplication.CreateBuilder(args);
 
