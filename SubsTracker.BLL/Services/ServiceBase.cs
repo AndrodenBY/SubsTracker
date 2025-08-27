@@ -33,10 +33,10 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
         return mapper.Map<TDto>(createdEntity);
     }
     
-    public async Task<TDto> Update(TUpdateDto updateDto, CancellationToken cancellationToken)
+    public async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
     {
-        var existingEntity = await repository.GetById((updateDto as IBaseDto).Id, cancellationToken);
-        if (existingEntity == null) throw new NotFoundException($"Entity with id {(updateDto as IBaseDto).Id} not found");
+        var existingEntity = await repository.GetById(updateId, cancellationToken);
+        if (existingEntity == null) throw new NotFoundException($"Entity with id {updateId} not found");
         
         mapper.Map(updateDto, existingEntity);
         var updatedEntity = await repository.Update(existingEntity, cancellationToken);
@@ -46,12 +46,15 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
     
     public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
-        return await repository.Delete(id, cancellationToken);
+        var existingEntity = await repository.GetById(id, cancellationToken)
+            ?? throw new NotFoundException($"Entity with id {id} not found");
+        
+        return await repository.Delete(existingEntity, cancellationToken);
     }
     
-    protected async Task<TDto?> FindByCondition(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    protected async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
-        var entity = await repository.FindByCondition(predicate, cancellationToken)
+        var entity = await repository.GetByPredicate(predicate, cancellationToken)
                      ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
 
         return mapper.Map<TDto>(entity);
