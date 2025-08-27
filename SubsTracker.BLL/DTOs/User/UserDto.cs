@@ -1,5 +1,3 @@
-using SubsTracker.BLL.DTOs.Subscription;
-
 namespace SubsTracker.BLL.DTOs.User;
 
 public class UserDto : BaseDto

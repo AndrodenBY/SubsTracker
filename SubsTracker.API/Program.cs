@@ -1,13 +1,13 @@
 using SubsTracker.API.ExceptionHandling;
-using SubsTracker.DAL;
-using SubsTracker.Domain;
+using SubsTracker.BLL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>()
     .AddEnvironmentVariables();
 
-builder.Services.RegisterContext(builder.Configuration);
+builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.RegisterServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
 
