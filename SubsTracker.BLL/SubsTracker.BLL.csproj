@@ -13,7 +13,6 @@
 
     <ItemGroup>
         <PackageReference Include="Automapper" Version="15.0.1" />
-        <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
         <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
     </ItemGroup>
 

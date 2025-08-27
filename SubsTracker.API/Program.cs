@@ -6,7 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>()
     .AddEnvironmentVariables();
 
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly);
 builder.Services.RegisterServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
