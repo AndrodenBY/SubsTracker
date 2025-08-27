@@ -6,7 +6,7 @@ using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.DAL;
 
-public class SubsDbContext : DbContext
+public class SubsDbContext(DbContextOptions<SubsDbContext> options) : DbContext(options)
 {
     public DbSet<User> Users {get; set;}
     public DbSet<Subscription> Subscriptions {get; set;}

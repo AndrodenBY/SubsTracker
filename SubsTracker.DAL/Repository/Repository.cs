@@ -33,10 +33,9 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
         return existingEntity.Entity;
     }
     
-    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken)
     {
-        var existingEntity = await _dbSet.FirstAsync(entity => entity.Id == id, cancellationToken);
-        _dbSet.Remove(existingEntity);
+        _dbSet.Remove(entityToDelete);
         return await context.SaveChangesAsync(cancellationToken) > 0;
     }
     
