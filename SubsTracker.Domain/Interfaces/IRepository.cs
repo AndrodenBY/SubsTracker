@@ -1,10 +1,13 @@
-namespace SubsTracker.Domain;
+using System.Linq.Expressions;
 
-public interface IRepository<TModel> where TModel : IBaseModel
+namespace SubsTracker.Domain.Interfaces;
+
+public interface IRepository<TEntity> where TEntity : IBaseModel
 {
-    Task<IEnumerable<TModel>?> GetAllAsync();
-    Task<TModel?> GetByIdAsync(Guid id);
-    Task<bool> CreateAsync(TModel itemToCreate);
-    Task<bool> UpdateAsync(TModel itemToUpdate);
-    Task<bool> DeleteAsync(Guid id);
+    Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken);
+    Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken);
+    Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken);
+    Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken);
+    Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken);
 }
