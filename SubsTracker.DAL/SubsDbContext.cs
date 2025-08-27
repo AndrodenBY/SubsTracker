@@ -13,11 +13,6 @@ public class SubsDbContext(DbContextOptions<SubsDbContext> options) : DbContext(
     public DbSet<SubscriptionHistory> SubscriptionHistory {get; set;}
     public DbSet<UserGroup> UserGroups {get; set;}
     public DbSet<GroupMember> Members {get; set;}
-
-    public SubsDbContext(DbContextOptions<SubsDbContext> options)
-        : base(options)
-    {
-    }
     
     public override int SaveChanges()
     {
@@ -37,14 +32,17 @@ public class SubsDbContext(DbContextOptions<SubsDbContext> options) : DbContext(
 
         foreach (var entry in entries)
         {
-            if (entry.State is EntityState.Added)
+            switch (entry.State)
             {
-                entry.Entity.CreatedAt = DateTime.UtcNow;
-                entry.Entity.ModifiedAt = DateTime.UtcNow;
-            }
-            else if (entry.State is EntityState.Modified)
-            {
-                entry.Entity.ModifiedAt = DateTime.UtcNow;
+                case EntityState.Added:
+                    entry.Entity.CreatedAt = DateTime.UtcNow;
+                    entry.Entity.ModifiedAt = DateTime.UtcNow;
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.ModifiedAt = DateTime.UtcNow;
+                    break;
+                default:
+                    break;
             }
         }
     }
