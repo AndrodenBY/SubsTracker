@@ -16,11 +16,11 @@ public class GroupMemberService(IRepository<GroupMember> repository, IMapper map
     {
         if (memberDto.UserId != userId)
         {
-            throw new ValidationException($"Expected id {memberDto.UserId}, but received id {userId}");
+            throw new ValidationException($"Expected user with id {memberDto.UserId}, but received id {userId}");
         }
         if (memberDto.GroupId != groupId)
         {
-            throw new ValidationException($"Expected id {memberDto.GroupId}, but received id {groupId}");
+            throw new ValidationException($"Expected group with id {memberDto.GroupId}, but received id {groupId}");
         }
         
         return await Delete(memberDto.Id, cancellationToken);
