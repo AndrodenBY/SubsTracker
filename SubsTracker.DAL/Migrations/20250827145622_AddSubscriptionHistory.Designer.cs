@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SubsTracker.DAL;
@@ -11,9 +12,11 @@ using SubsTracker.DAL;
 namespace SubsTracker.DAL.Migrations
 {
     [DbContext(typeof(SubsDbContext))]
-    partial class SubsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250827145622_AddSubscriptionHistory")]
+    partial class AddSubscriptionHistory
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,7 +56,7 @@ namespace SubsTracker.DAL.Migrations
                     b.Property<Guid?>("UserGroupId")
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -149,9 +152,6 @@ namespace SubsTracker.DAL.Migrations
                     b.Property<DateTime>("ModifiedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<int>("SubscriptionCount")
-                        .HasColumnType("integer");
-
                     b.HasKey("Id");
 
                     b.ToTable("Users");
@@ -173,7 +173,7 @@ namespace SubsTracker.DAL.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
@@ -192,7 +192,7 @@ namespace SubsTracker.DAL.Migrations
                     b.HasOne("SubsTracker.DAL.Models.User.User", "User")
                         .WithMany("Subscriptions")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -229,7 +229,7 @@ namespace SubsTracker.DAL.Migrations
                     b.HasOne("SubsTracker.DAL.Models.User.User", "User")
                         .WithMany("Groups")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
