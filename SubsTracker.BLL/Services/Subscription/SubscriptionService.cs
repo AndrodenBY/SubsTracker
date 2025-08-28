@@ -48,6 +48,8 @@ public class SubscriptionService(ISubscriptionRepository repository, IMapper map
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew,
         CancellationToken cancellationToken)
     {
+        if (monthsToRenew <= 0) throw new ValidationException("Cannot renew subscription for less than one month");
+        
         var subscriptionToRenew = await repository.GetById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
         

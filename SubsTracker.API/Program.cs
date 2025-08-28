@@ -1,5 +1,6 @@
 using SubsTracker.API.ExceptionHandling;
 using SubsTracker.BLL;
+using SubsTracker.BLL.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,12 +19,18 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
-
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
