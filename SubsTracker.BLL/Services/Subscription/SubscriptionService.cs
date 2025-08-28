@@ -45,17 +45,17 @@ public class SubscriptionService(ISubscriptionRepository repository, IMapper map
         return subscriptionDeleted;
     }
 
-    public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId,
+    public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew,
         CancellationToken cancellationToken)
     {
         var subscriptionToRenew = await repository.GetById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
         
-        subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(1);
+        subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
         var renewedSubscription = await repository.Update(subscriptionToRenew, cancellationToken);
         await history.Create(renewedSubscription.Id, SubscriptionAction.Renewal, renewedSubscription.Price, cancellationToken);
         
-        var subscriptionDto = mapper.Map<SubscriptionDto>(subscriptionToRenew);
+        var subscriptionDto = mapper.Map<SubscriptionDto>(renewedSubscription);
         return subscriptionDto;
     }
 
