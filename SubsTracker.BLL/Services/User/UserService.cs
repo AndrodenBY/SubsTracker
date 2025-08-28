@@ -17,6 +17,3 @@ public class UserService(IRepository<UserModel> repository, IMapper mapper)
         return mapper.Map<UserDto>(user);
     }
 }
-
-
-
