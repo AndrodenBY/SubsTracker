@@ -1,8 +1,8 @@
 using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.DTOs.User;
-using SubsTracker.BLL.DTOs.User.Create;
-using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.API.ViewModels.Subscription;
+using SubsTracker.API.ViewModels.User;
 
 namespace SubsTracker.API.Mapper;
 

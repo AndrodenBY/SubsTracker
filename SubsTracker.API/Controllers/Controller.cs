@@ -3,7 +3,6 @@ using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Interfaces;
 using System.Net;
 using AutoMapper;
-using SubsTracker.API.Interfaces;
 using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.API.Controllers;
@@ -12,14 +11,14 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class Controller<TEntity, TDto, TCreateDto, TUpdateDto, TViewModel>
     (IService<TEntity, TDto, TCreateDto, TUpdateDto> service, IMapper mapper)
-    : ControllerBase, IController<TViewModel, TCreateDto, TUpdateDto>
+    : ControllerBase
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class
     where TViewModel : class
 {
-    [HttpGet]
+    [HttpGet("{id:guid}")]
     public async Task<TViewModel?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var dtoToGet = await service.GetById(id, cancellationToken);
@@ -40,14 +39,14 @@ public class Controller<TEntity, TDto, TCreateDto, TUpdateDto, TViewModel>
         return mapper.Map<TViewModel>(dtoToCreate);
     }
 
-    [HttpPut]
+    [HttpPut("{id:guid}")]
     public async Task<TViewModel> Update(Guid id, TUpdateDto updateDto, CancellationToken cancellationToken)
     { 
         var dtoToUpdate = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<TViewModel>(dtoToUpdate);
     }
     
-    [HttpDelete]
+    [HttpDelete("{id:guid}")]
     public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var isDeleted = await service.Delete(id, cancellationToken);
