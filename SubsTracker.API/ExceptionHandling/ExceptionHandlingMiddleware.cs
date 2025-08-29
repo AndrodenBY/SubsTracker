@@ -27,9 +27,12 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
     {
         context.Response.ContentType = MediaTypeNames.Application.Json;
 
-        var errorModel = exception is NotFoundException
-            ? new ErrorModel((int)HttpStatusCode.NotFound, exception.Message)
-            : new ErrorModel((int)HttpStatusCode.InternalServerError, "An unexpected error occurred");
+        var errorModel = exception switch
+        {
+            NotFoundException ex => new ErrorModel((int)HttpStatusCode.NotFound, ex.Message),
+            ValidationException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
+            _ => new ErrorModel((int)HttpStatusCode.InternalServerError, "An unexpected error occurred")
+        };
 
         context.Response.StatusCode = errorModel.StatusCode;
         await context.Response.WriteAsJsonAsync(errorModel);
