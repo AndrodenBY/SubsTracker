@@ -21,29 +21,29 @@ public class Controller<TEntity, TDto, TCreateDto, TUpdateDto, TViewModel>
     [HttpGet("{id:guid}")]
     public async Task<TViewModel?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var dtoToGet = await service.GetById(id, cancellationToken);
-        return mapper.Map<TViewModel>(dtoToGet);
+        var getById = await service.GetById(id, cancellationToken);
+        return mapper.Map<TViewModel>(getById);
     }
     
     [HttpGet]
     public async Task<IEnumerable<TViewModel>> GetAll(CancellationToken cancellationToken)
     {
-        var all = await service.GetAll(cancellationToken);
-        return mapper.Map<IEnumerable<TViewModel>>(all);
+        var getAll = await service.GetAll(cancellationToken);
+        return mapper.Map<IEnumerable<TViewModel>>(getAll);
     }
 
     [HttpPost]
-    public async Task<TViewModel> Create([FromBody] TCreateDto createDto, CancellationToken cancellationToken)
+    public async Task<TViewModel> Create(TCreateDto createDto, CancellationToken cancellationToken)
     {
-        var dtoToCreate = await service.Create(createDto, cancellationToken);
-        return mapper.Map<TViewModel>(dtoToCreate);
+        var create = await service.Create(createDto, cancellationToken);
+        return mapper.Map<TViewModel>(create);
     }
 
     [HttpPut("{id:guid}")]
     public async Task<TViewModel> Update(Guid id, TUpdateDto updateDto, CancellationToken cancellationToken)
     { 
-        var dtoToUpdate = await service.Update(id, updateDto, cancellationToken);
-        return mapper.Map<TViewModel>(dtoToUpdate);
+        var update = await service.Update(id, updateDto, cancellationToken);
+        return mapper.Map<TViewModel>(update);
     }
     
     [HttpDelete("{id:guid}")]
