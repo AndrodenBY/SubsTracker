@@ -22,4 +22,9 @@
         <ProjectReference Include="..\SubsTracker.DAL\SubsTracker.DAL.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Controllers\" />
+      <Folder Include="Interfaces\" />
+    </ItemGroup>
+
 </Project>
