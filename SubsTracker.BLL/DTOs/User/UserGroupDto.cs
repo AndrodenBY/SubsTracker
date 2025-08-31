@@ -1,7 +1,7 @@
 namespace SubsTracker.BLL.DTOs.User;
 
-public class UserGroupDto : BaseDto
+public class UserGroupDto
 {
+    public Guid Id { get; set; }
     public string Name { get; set; } = string.Empty;
-    public List<GroupMemberDto>? Members { get; set; }
 }
