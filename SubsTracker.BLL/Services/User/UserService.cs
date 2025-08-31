@@ -1,5 +1,6 @@
 using AutoMapper;
 using SubsTracker.BLL.Interfaces;
+using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Interfaces;
 using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
@@ -13,7 +14,8 @@ public class UserService(IRepository<UserModel> repository, IMapper mapper)
 {
     public async Task<UserDto?> GetByEmail(string email, CancellationToken cancellationToken)
     {
-        var user = await repository.GetByPredicate(u => u.Email == email, cancellationToken);
+        var user = await repository.GetByPredicate(u => u.Email == email, cancellationToken)
+            ?? throw new NotFoundException($"User with email {email} not found");
         return mapper.Map<UserDto>(user);
     }
 }
