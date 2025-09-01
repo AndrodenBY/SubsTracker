@@ -16,7 +16,7 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
         return mapper.Map<SubscriptionViewModel>(getById);
     }
 
-    [HttpGet("bills/user/{userId:guid}")]
+    [HttpGet("bills/users/{userId:guid}")]
     public async Task<IEnumerable<SubscriptionViewModel>> GetUpcomingBills(Guid userId,
         CancellationToken cancellationToken)
     {
@@ -58,6 +58,4 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
         var renew = await service.RenewSubscription(subscriptionId, monthsToRenew, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(renew);
     }
-    
-    
 }
