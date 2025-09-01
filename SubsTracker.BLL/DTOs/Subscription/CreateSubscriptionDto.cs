@@ -3,9 +3,9 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.BLL.DTOs.Subscription;
 
-public class CreateSubscriptionDto : BaseDto 
+public class CreateSubscriptionDto
 {
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
     public decimal Price { get; set; }
     public DateOnly DueDate { get; set; }
     public SubscriptionType Type { get; set; }
