@@ -6,7 +6,7 @@ namespace SubsTracker.BLL.DTOs.Subscription;
 public class SubscriptionDto
 {
     public Guid Id { get; set; }
-    public string Name { get; set; } = string.Empty;
+    public required string Name { get; set; }
     public decimal Price { get; set; }
     public DateOnly DueDate { get; set; }
     public SubscriptionType Type { get; set; }
