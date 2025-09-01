@@ -11,14 +11,14 @@ namespace SubsTracker.API.Controllers;
 public class UsersController(IUserService service, IMapper mapper) : ControllerBase
 {
     [HttpGet("{id:guid}")]
-    public async Task<UserViewModel?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<UserViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
         var getById = await service.GetById(id, cancellationToken);
         return mapper.Map<UserViewModel>(getById);
     }
     
-    [HttpGet]
-    public async Task<UserViewModel?> GetByEmail(string email, CancellationToken cancellationToken)
+    [HttpGet("email/{email}")]
+    public async Task<UserViewModel> GetByEmail(string email, CancellationToken cancellationToken)
     {
         var user = await service.GetByEmail(email, cancellationToken);
         return mapper.Map<UserViewModel>(user);
@@ -46,9 +46,8 @@ public class UsersController(IUserService service, IMapper mapper) : ControllerB
     }
     
     [HttpDelete("{id:guid}")]
-    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
     {
-        var isDeleted = await service.Delete(id, cancellationToken);
-        return isDeleted;
+        await service.Delete(id, cancellationToken);
     }
 }
