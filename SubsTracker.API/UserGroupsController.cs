@@ -1,21 +1,22 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.API.ViewModel.User;
-using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.DAL.Models.User;
-using SubsTracker.Domain.Interfaces;
+using SubsTracker.BLL.Interfaces;
 
 namespace SubsTracker.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class Controller(IService<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto> service, IMapper mapper)
+public class UserGroupsController(
+    IUserGroupService service, 
+    IMapper mapper)
     : ControllerBase
 {
     [HttpGet("{id:guid}")]
-    public async Task<UserGroupViewModel?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<UserGroupViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
         var getById = await service.GetById(id, cancellationToken);
         return mapper.Map<UserGroupViewModel>(getById);
@@ -43,9 +44,34 @@ public class Controller(IService<UserGroup, UserGroupDto, CreateUserGroupDto, Up
     }
     
     [HttpDelete("{id:guid}")]
-    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
+    { 
+        await service.Delete(id, cancellationToken);
+    }
+
+    [HttpDelete("leave/{groupId:guid}/{userId:guid}")]
+    public async Task LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
     {
-        var isDeleted = await service.Delete(id, cancellationToken);
-        return isDeleted;
+        await service.LeaveGroup(groupId, userId, cancellationToken);
+    }
+
+    [HttpPost("join")]
+    public async Task JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
+    {
+        await service.JoinGroup(createDto, cancellationToken);
+    }
+
+    [HttpPost("share/{groupId:guid}/{subscriptionId:guid}")]
+    public async Task<UserGroupViewModel> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
+    {
+        var updatedGroup = await service.ShareSubscription(groupId, subscriptionId, cancellationToken);
+        return mapper.Map<UserGroupViewModel>(updatedGroup);
+    }
+    
+    [HttpPost("unshare/{groupId:guid}/{subscriptionId:guid}")]
+    public async Task<UserGroupViewModel> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
+    {
+        var updatedGroup = await service.UnshareSubscription(groupId, subscriptionId, cancellationToken);
+        return mapper.Map<UserGroupViewModel>(updatedGroup);
     }
 }
