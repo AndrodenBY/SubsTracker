@@ -85,9 +85,11 @@ public class UserGroupService(
     
     private async Task EnsureExist(Guid userId, Guid groupId, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetById(userId, cancellationToken)
-            ?? throw new NotFoundException($"User with id {userId} not found.");
-        var existingGroup = await repository.GetById(groupId, cancellationToken)
-            ?? throw new NotFoundException($"Group with id {groupId} not found.");
+        var existingUser = userRepository.GetById(userId, cancellationToken);
+        var existingGroup = repository.GetById(groupId, cancellationToken);
+        
+        await Task.WhenAll(existingUser, existingGroup);
+        _ = await existingUser ?? throw new NotFoundException($"User with id {userId} not found");
+        _ = await existingGroup ?? throw new NotFoundException($"Group with id {groupId} not found");
     }
 }
