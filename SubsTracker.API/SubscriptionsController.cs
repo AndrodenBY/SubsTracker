@@ -16,7 +16,7 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
         return mapper.Map<SubscriptionViewModel>(getById);
     }
 
-    [HttpGet]
+    [HttpGet("bills/user/{userId:guid}")]
     public async Task<IEnumerable<SubscriptionViewModel>> GetUpcomingBills(Guid userId,
         CancellationToken cancellationToken)
     {
@@ -46,13 +46,12 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
     }
     
     [HttpDelete("{id:guid}")]
-    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
     {
-        var isDeleted = await service.Delete(id, cancellationToken);
-        return isDeleted;
+        await service.Delete(id, cancellationToken);
     }
 
-    [HttpPatch]
+    [HttpPut("{subscriptionId:guid}/renew")]
     public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, int monthsToRenew,
         CancellationToken cancellationToken)
     {
