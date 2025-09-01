@@ -24,7 +24,7 @@ public class SubscriptionService(ISubscriptionRepository repository, IMapper map
         return subscriptionDto;
     }
 
-    public new async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
+    public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
         var originalSubscription = await repository.GetById(updateDto.Id, cancellationToken);
         if (originalSubscription == null)
@@ -37,7 +37,7 @@ public class SubscriptionService(ISubscriptionRepository repository, IMapper map
         return updatedSubscription;
     }
 
-    public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public override async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var subscriptionDeleted = await base.Delete(id, cancellationToken);
         
