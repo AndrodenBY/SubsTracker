@@ -4,9 +4,9 @@ using SubsTracker.API.ViewModel.User.Create;
 
 namespace SubsTracker.API.Validators.GroupMember;
 
-public class CreateGroupMemberViewModelValidator : AbstractValidator<CreateGroupMemberViewModel>
+public class CreateGroupMemberDtoValidator : AbstractValidator<CreateGroupMemberViewModel>
 {
-    public CreateGroupMemberViewModelValidator()
+    public CreateGroupMemberDtoValidator()
     {
         RuleFor(model => model.UserId)
             .NotEmpty().WithMessage(ValidatorMessages.Required("UserId"))

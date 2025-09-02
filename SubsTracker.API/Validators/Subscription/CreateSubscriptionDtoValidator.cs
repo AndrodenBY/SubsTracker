@@ -5,9 +5,9 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.API.Validators.Subscription;
 
-public class CreateSubscriptionViewModelValidator : AbstractValidator<CreateSubscriptionViewModel>
+public class CreateSubscriptionDtoValidator : AbstractValidator<CreateSubscriptionViewModel>
 {
-    public CreateSubscriptionViewModelValidator()
+    public CreateSubscriptionDtoValidator()
     {
         RuleFor(model => model.Name)
             .NotEmpty().WithMessage(ValidatorMessages.Required("Name"))

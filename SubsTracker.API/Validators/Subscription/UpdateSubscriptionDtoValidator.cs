@@ -5,9 +5,9 @@ using SubsTracker.API.ViewModel.Subscription;
 
 namespace SubsTracker.API.Validators.Subscription;
 
-public class UpdateSubscriptionViewModelValidator : AbstractValidator<UpdateSubscriptionViewModel>
+public class UpdateSubscriptionDtoValidator : AbstractValidator<UpdateSubscriptionViewModel>
 {
-    public UpdateSubscriptionViewModelValidator()
+    public UpdateSubscriptionDtoValidator()
     {
         RuleFor(model => model.Id)
             .NotEmpty().WithMessage(ValidatorMessages.Required("Id"))
