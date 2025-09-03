@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Repository;
 using SubsTracker.Domain.Interfaces;
 
@@ -16,7 +17,8 @@ public static class ServiceRegisterDAL
             options.UseNpgsql(postgreConnectionString));
 
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        
+        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+        services.AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>();
         return services;
     }
 }
