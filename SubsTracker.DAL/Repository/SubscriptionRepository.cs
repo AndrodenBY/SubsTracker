@@ -5,7 +5,7 @@ using SubsTracker.DAL.Models.Subscription;
 
 namespace SubsTracker.DAL.Repository;
 
-public class SubscriptionRepository(SubsDbContext context, SubscriptionHistoryRepository history) : Repository<Subscription>(context), ISubscriptionRepository
+public class SubscriptionRepository(SubsDbContext context, ISubscriptionHistoryRepository history) : Repository<Subscription>(context), ISubscriptionRepository
 {
     private readonly DbSet<Subscription> _dbSet = context.Set<Subscription>();
     
