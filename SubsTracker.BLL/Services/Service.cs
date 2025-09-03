@@ -4,36 +4,41 @@ using SubsTracker.BLL.DTOs;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain;
 using SubsTracker.Domain.Interfaces;
+using LinqKit;
 
 namespace SubsTracker.BLL.Services;
 
-public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEntity> repository, IMapper mapper) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
+public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
+    IRepository<TEntity> repository, 
+    IMapper mapper) 
+    : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class
+    where TFilterDto : class
 {
-    public async Task<IEnumerable<TDto>> GetAll(CancellationToken cancellationToken)
+    public virtual async Task<IEnumerable<TDto>> GetAll(Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetAll(cancellationToken);
+        var entities = await repository.GetAll(predicate, cancellationToken);
         return mapper.Map<IEnumerable<TDto>>(entities);
     }
     
-    public async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
+    public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var entity = await repository.GetById(id, cancellationToken) 
             ?? throw new NotFoundException($"Entity with id {id} not found");
         return mapper.Map<TDto>(entity);
     }
     
-    public async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)
+    public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)
     {
         var entity = mapper.Map<TEntity>(createDto);
         var createdEntity = await repository.Create(entity, cancellationToken);
         return mapper.Map<TDto>(createdEntity);
     }
     
-    public async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
+    public virtual async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById(updateId, cancellationToken);
         if (existingEntity == null) throw new NotFoundException($"Entity with id {updateId} not found");
@@ -44,7 +49,7 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
         return mapper.Map<TDto>(updatedEntity);
     }
     
-    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public virtual async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById(id, cancellationToken)
             ?? throw new NotFoundException($"Entity with id {id} not found");
@@ -52,11 +57,27 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
         return await repository.Delete(existingEntity, cancellationToken);
     }
     
-    protected async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
         var entity = await repository.GetByPredicate(predicate, cancellationToken)
                      ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
 
         return mapper.Map<TDto>(entity);
+    }
+    
+    protected static Expression<Func<TModel, bool>> AddFilterCondition<TModel, TValue>(
+        Expression<Func<TModel, bool>> predicate,
+        TValue? filterValue,
+        Expression<Func<TModel, bool>> expression) where TValue : struct
+    { 
+        return filterValue.HasValue ? predicate.And(expression) : predicate;
+    }
+    
+    protected static Expression<Func<TModel, bool>> AddFilterCondition<TModel>(
+        Expression<Func<TModel, bool>> predicate,
+        string? filterValue,
+        Expression<Func<TModel, bool>> expression)
+    {
+        return !string.IsNullOrWhiteSpace(filterValue) ? predicate.And(expression) : predicate;
     }
 }

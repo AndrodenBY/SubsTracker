@@ -1,17 +1,59 @@
+using System.Linq.Expressions;
 using AutoMapper;
+using LinqKit;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Repository;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
+using SubsTracker.Domain.Filter;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
 namespace SubsTracker.BLL.Services.Subscription;
 
-public class SubscriptionService(ISubscriptionRepository repository, IMapper mapper, SubscriptionHistoryRepository history)
-    : ServiceBase<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto>(repository, mapper), ISubscriptionService
+public class SubscriptionService(ISubscriptionRepository repository, IMapper mapper, ISubscriptionHistoryRepository history)
+    : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilter>(repository, mapper), ISubscriptionService
 {
+    public async Task<IEnumerable<SubscriptionDto>> GetAll(SubscriptionFilter? filter, CancellationToken cancellationToken)
+    {
+        var predicate = CreatePredicate(filter);
+        
+        var entities = await base.GetAll(predicate, cancellationToken);
+        return entities;
+    }
+
+    private static Expression<Func<SubscriptionModel, bool>> CreatePredicate(SubscriptionFilter filter)
+    {
+        var predicate = PredicateBuilder.New<SubscriptionModel>(true);
+        
+        predicate = AddFilterCondition<SubscriptionModel>(
+            predicate, 
+            filter.Name, 
+            subscription => subscription.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
+        );
+        
+        predicate = AddFilterCondition<SubscriptionModel, decimal>(
+            predicate, 
+            filter.Price, 
+            subscription => subscription.Price == filter.Price!.Value
+        );
+        
+        predicate = AddFilterCondition<SubscriptionModel, SubscriptionType>(
+            predicate, 
+            filter.Type, 
+            subscription => subscription.Type == filter.Type!.Value
+        );
+        
+        predicate = AddFilterCondition<SubscriptionModel, SubscriptionContent>(
+            predicate, 
+            filter.Content, 
+            subscription => subscription.Content == filter.Content!.Value
+        );
+
+        return predicate;
+    }
+    
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
         var entityToCreate = mapper.Map<SubscriptionModel>(createDto);
@@ -24,7 +66,7 @@ public class SubscriptionService(ISubscriptionRepository repository, IMapper map
         return subscriptionDto;
     }
 
-    public new async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
+    public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
         var originalSubscription = await repository.GetById(updateDto.Id, cancellationToken);
         if (originalSubscription == null)
@@ -37,7 +79,7 @@ public class SubscriptionService(ISubscriptionRepository repository, IMapper map
         return updatedSubscription;
     }
 
-    public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public override async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var subscriptionDeleted = await base.Delete(id, cancellationToken);
         
