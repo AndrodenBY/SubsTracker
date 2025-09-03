@@ -4,7 +4,7 @@ namespace SubsTracker.Domain.Interfaces;
 
 public interface IRepository<TEntity> where TEntity : IBaseModel
 {
-    Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken);
+    Task<IEnumerable<TEntity>> GetAll(Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken);
     Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken);
     Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken);
     Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken);
