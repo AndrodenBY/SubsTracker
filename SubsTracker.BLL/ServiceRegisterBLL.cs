@@ -11,7 +11,7 @@ public static class ServiceRegisterBLL
     public static IServiceCollection RegisterServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.RegisterContext(configuration);
-        services.AddScoped(typeof(IService<,,,>), typeof(ServiceBase<,,,>));
+        services.AddScoped(typeof(IService<,,,>), typeof(Service<,,,>));
         return services;
     }
 }
