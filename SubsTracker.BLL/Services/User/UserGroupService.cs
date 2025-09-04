@@ -22,9 +22,8 @@ public class UserGroupService(
     public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
     {
         var memberToDelete = await memberService.GetByPredicate(
-            m => m.GroupId == groupId && m.UserId == userId, cancellationToken);
-
-        if (memberToDelete == null) return true;
+            member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
+            ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}.");
         
         return await memberService.Delete(memberToDelete.Id, cancellationToken);
     }
