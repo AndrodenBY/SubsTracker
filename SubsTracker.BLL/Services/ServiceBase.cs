@@ -33,7 +33,7 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
         return mapper.Map<TDto>(createdEntity);
     }
     
-    public async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
+    public virtual async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById(updateId, cancellationToken);
         if (existingEntity == null) throw new NotFoundException($"Entity with id {updateId} not found");
@@ -44,7 +44,7 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
         return mapper.Map<TDto>(updatedEntity);
     }
     
-    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public virtual async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById(id, cancellationToken)
             ?? throw new NotFoundException($"Entity with id {id} not found");
