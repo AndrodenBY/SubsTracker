@@ -30,14 +30,14 @@ public class UserGroupsController(
     }
 
     [HttpPost]
-    public async Task<UserGroupViewModel> Create(CreateUserGroupDto createDto, CancellationToken cancellationToken)
+    public async Task<UserGroupViewModel> Create([FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
         var create = await service.Create(createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<UserGroupViewModel> Update(Guid id, UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
+    public async Task<UserGroupViewModel> Update(Guid id, [FromBody] UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
     { 
         var update = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(update);
@@ -49,27 +49,27 @@ public class UserGroupsController(
         await service.Delete(id, cancellationToken);
     }
 
-    [HttpDelete("leave/{groupId:guid}/{userId:guid}")]
-    public async Task LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
+    [HttpDelete("leave")]
+    public async Task LeaveGroup([FromQuery] Guid groupId, [FromQuery] Guid userId, CancellationToken cancellationToken)
     {
         await service.LeaveGroup(groupId, userId, cancellationToken);
     }
 
     [HttpPost("join")]
-    public async Task JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
+    public async Task JoinGroup([FromBody] CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
         await service.JoinGroup(createDto, cancellationToken);
     }
 
-    [HttpPost("share/{groupId:guid}/{subscriptionId:guid}")]
-    public async Task<UserGroupViewModel> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
+    [HttpPost("share")]
+    public async Task<UserGroupViewModel> ShareSubscription([FromQuery] Guid groupId, [FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
     {
         var updatedGroup = await service.ShareSubscription(groupId, subscriptionId, cancellationToken);
         return mapper.Map<UserGroupViewModel>(updatedGroup);
     }
     
-    [HttpPost("unshare/{groupId:guid}/{subscriptionId:guid}")]
-    public async Task<UserGroupViewModel> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
+    [HttpPost("unshare")]
+    public async Task<UserGroupViewModel> UnshareSubscription([FromQuery] Guid groupId, [FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
     {
         var updatedGroup = await service.UnshareSubscription(groupId, subscriptionId, cancellationToken);
         return mapper.Map<UserGroupViewModel>(updatedGroup);
