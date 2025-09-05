@@ -12,8 +12,8 @@ using SubsTracker.DAL;
 namespace SubsTracker.DAL.Migrations
 {
     [DbContext(typeof(SubsDbContext))]
-    [Migration("20250827145622_AddSubscriptionHistory")]
-    partial class AddSubscriptionHistory
+    [Migration("20250902130042_Initial_Migration")]
+    partial class Initial_Migration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -114,15 +114,12 @@ namespace SubsTracker.DAL.Migrations
                     b.Property<int>("Role")
                         .HasColumnType("integer");
 
-                    b.Property<Guid?>("UserGroupId")
-                        .HasColumnType("uuid");
-
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("UserGroupId");
+                    b.HasIndex("GroupId");
 
                     b.HasIndex("UserId");
 
@@ -191,9 +188,7 @@ namespace SubsTracker.DAL.Migrations
 
                     b.HasOne("SubsTracker.DAL.Models.User.User", "User")
                         .WithMany("Subscriptions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });
@@ -211,15 +206,19 @@ namespace SubsTracker.DAL.Migrations
 
             modelBuilder.Entity("SubsTracker.DAL.Models.User.GroupMember", b =>
                 {
-                    b.HasOne("SubsTracker.DAL.Models.User.UserGroup", null)
+                    b.HasOne("SubsTracker.DAL.Models.User.UserGroup", "Group")
                         .WithMany("Members")
-                        .HasForeignKey("UserGroupId");
+                        .HasForeignKey("GroupId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("SubsTracker.DAL.Models.User.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Group");
 
                     b.Navigation("User");
                 });
@@ -228,9 +227,7 @@ namespace SubsTracker.DAL.Migrations
                 {
                     b.HasOne("SubsTracker.DAL.Models.User.User", "User")
                         .WithMany("Groups")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .HasForeignKey("UserId");
 
                     b.Navigation("User");
                 });

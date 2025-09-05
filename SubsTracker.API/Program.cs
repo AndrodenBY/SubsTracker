@@ -1,4 +1,5 @@
 using SubsTracker.API.ExceptionHandling;
+using SubsTracker.API.Mapper;
 using SubsTracker.BLL;
 using SubsTracker.BLL.Mapper;
 
@@ -7,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Configuration.AddUserSecrets<Program>()
     .AddEnvironmentVariables();
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly, typeof(ViewModelMappingProfile).Assembly);
 builder.Services.RegisterServices(builder.Configuration);
 
 builder.Services.AddControllersWithViews();
