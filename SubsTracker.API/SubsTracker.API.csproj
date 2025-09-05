@@ -27,6 +27,10 @@
 
     <ItemGroup>
         <Folder Include="Controllers\" />
+        <Folder Include="Validators\GroupMember\" />
+        <Folder Include="Validators\Subscription\" />
+        <Folder Include="Validators\UserGroup\" />
+        <Folder Include="Validators\User\" />
     </ItemGroup>
 
 </Project>
