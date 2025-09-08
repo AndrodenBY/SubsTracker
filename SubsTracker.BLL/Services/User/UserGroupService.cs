@@ -45,17 +45,17 @@ public class UserGroupService(
     
     public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var isShared = await IsShared(groupId, subscriptionId, cancellationToken);
-        if (isShared)
-        {
-            throw new ValidationException($"Subscription {subscriptionId} is already shared");
-        }
-
         var group = await repository.GetById(groupId, cancellationToken);
-        var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken);
+        if (group?.SharedSubscriptions?.Any(s => s.Id == subscriptionId) == true)
+        {
+            throw new ValidationException($"Subscription {subscriptionId} is already shared with group {groupId}.");
+        }
+        
+        var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
+                           ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found.");
         
         group.SharedSubscriptions.Add(subscription);
-        
+    
         var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
     }
@@ -84,11 +84,10 @@ public class UserGroupService(
     
     private async Task EnsureExist(Guid userId, Guid groupId, CancellationToken cancellationToken)
     {
-        var existingUser = userRepository.GetById(userId, cancellationToken);
-        var existingGroup = repository.GetById(groupId, cancellationToken);
+        var userTask = userRepository.GetById(userId, cancellationToken);
+        var groupTask = repository.GetById(groupId, cancellationToken);
         
-        await Task.WhenAll(existingUser, existingGroup);
-        _ = await existingUser ?? throw new NotFoundException($"User with id {userId} not found");
-        _ = await existingGroup ?? throw new NotFoundException($"Group with id {groupId} not found");
+        _ = await userTask ?? throw new NotFoundException($"User with id {userId} not found.");
+        _ = await groupTask ?? throw new NotFoundException($"Group with id {groupId} not found.");
     }
 }
