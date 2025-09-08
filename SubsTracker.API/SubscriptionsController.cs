@@ -13,8 +13,8 @@ namespace SubsTracker.API.Controllers;
 public class SubscriptionsController(
     ISubscriptionService service, 
     IMapper mapper, 
-    CreateSubscriptionDtoValidator createValidator, 
-    UpdateSubscriptionDtoValidator updateValidator
+    IValidator<CreateSubscriptionDto> createValidator, 
+    IValidator<UpdateSubscriptionDto> updateValidator
     ) : ControllerBase
 {
     [HttpGet("{id:guid}")]
