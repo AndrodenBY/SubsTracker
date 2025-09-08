@@ -7,27 +7,25 @@ namespace SubsTracker.API.Validators.User;
 
 public class UpdateUserDtoValidator : AbstractValidator<UpdateUserDto>
 {
-    public UpdateUserViewModelValidator()
+    public UpdateUserDtoValidator()
     {
         RuleFor(model => model.Id)
             .NotEmpty()
-            .WithMessage(ValidatorMessages.Required("Id"))
-            .NotEqual(Guid.Empty)
-            .WithMessage(ValidatorMessages.CannotBeEmpty("Id"));
+            .WithMessage(ValidatorMessages.Required(nameof(UpdateUserDto.Id)));
 
         RuleFor(model => model.FirstName)
             .MaximumLength(ValidatorConstants.MaximumNameLength)
-            .WithMessage(ValidatorMessages.Length("FirstName"))
-            .When(model => !string.IsNullOrEmpty(model.FirstName));
+            .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.FirstName)))
+            .When(model => !string.IsNullOrEmpty(nameof(UpdateUserDto.FirstName)));
         
         RuleFor(model => model.LastName)
             .MaximumLength(ValidatorConstants.MaximumNameLength)
-            .WithMessage(ValidatorMessages.Length("LastName"))
+            .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.LastName)))
             .When(model => !string.IsNullOrEmpty(model.LastName));
 
         RuleFor(model => model.Email)
             .EmailAddress()
-            .WithMessage(ValidatorMessages.MustBeValid("Email"))
+            .WithMessage(ValidatorMessages.MustBeValid(nameof(UpdateUserDto.Email)))
             .When(model => !string.IsNullOrEmpty(model.Email));
     }
 }
