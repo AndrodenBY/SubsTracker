@@ -1,5 +1,7 @@
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
+using SubsTracker.API.Validators.Subscription;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.BLL.Interfaces;
@@ -8,7 +10,12 @@ namespace SubsTracker.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class SubscriptionsController(ISubscriptionService service, IMapper mapper) : ControllerBase
+public class SubscriptionsController(
+    ISubscriptionService service, 
+    IMapper mapper, 
+    CreateSubscriptionDtoValidator createValidator, 
+    UpdateSubscriptionDtoValidator updateValidator
+    ) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<SubscriptionViewModel> GetById(Guid id, CancellationToken cancellationToken)
@@ -21,7 +28,7 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
     public async Task<IEnumerable<SubscriptionViewModel>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var getUpcomingBills = await service.GetUpcomingBills(userId, cancellationToken);
-        return mapper.Map<SubscriptionViewModel>(getUpcomingBills);
+        return mapper.Map<IEnumerable<SubscriptionViewModel>>(getUpcomingBills);
     }
     
     [HttpGet]
@@ -34,6 +41,7 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
     [HttpPost("{userId:guid}")]
     public async Task<SubscriptionViewModel> Create(Guid userId, [FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
+        await createValidator.ValidateAndThrowAsync(createDto, cancellationToken);
         var create = await service.Create(userId, createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
     }
@@ -41,6 +49,7 @@ public class SubscriptionsController(ISubscriptionService service, IMapper mappe
     [HttpPut("{id:guid}")]
     public async Task<SubscriptionViewModel> Update(Guid id, [FromBody] UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     { 
+        await updateValidator.ValidateAndThrowAsync(updateDto, cancellationToken);
         var update = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(update);
     }
