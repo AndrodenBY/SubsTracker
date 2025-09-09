@@ -1,17 +1,18 @@
+using FluentValidation.AspNetCore;
 using SubsTracker.API.ExceptionHandling;
 using SubsTracker.API.Mapper;
 using SubsTracker.BLL;
-using SubsTracker.BLL.Mapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>()
     .AddEnvironmentVariables();
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly, typeof(ViewModelMappingProfile).Assembly);
+builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
 builder.Services.RegisterServices(builder.Configuration);
 
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllers()
+    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining(typeof(Program)));
 
 var app = builder.Build();
 
