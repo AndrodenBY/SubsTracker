@@ -7,7 +7,10 @@ using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Services;
 
-public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEntity> repository, IMapper mapper) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
+public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(
+    IRepository<TEntity> repository, 
+    IMapper mapper
+    ) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
@@ -22,7 +25,7 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var entity = await repository.GetById(id, cancellationToken) 
-            ?? throw new NotFoundException($"Entity with id {id} not found");
+                     ?? throw new NotFoundException($"Entity with id {id} not found");
         return mapper.Map<TDto>(entity);
     }
     
@@ -35,8 +38,8 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
     
     public virtual async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
     {
-        var existingEntity = await repository.GetById(updateId, cancellationToken);
-        if (existingEntity == null) throw new NotFoundException($"Entity with id {updateId} not found");
+        var existingEntity = await repository.GetById(updateId, cancellationToken) 
+                             ?? throw new NotFoundException($"Entity with id {updateId} not found");
         
         mapper.Map(updateDto, existingEntity);
         var updatedEntity = await repository.Update(existingEntity, cancellationToken);
@@ -46,8 +49,8 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(IRepository<TEnt
     
     public virtual async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var existingEntity = await repository.GetById(id, cancellationToken)
-            ?? throw new NotFoundException($"Entity with id {id} not found");
+        var existingEntity = await repository.GetById(id, cancellationToken) 
+                             ?? throw new NotFoundException($"Entity with id {id} not found");
         
         return await repository.Delete(existingEntity, cancellationToken);
     }

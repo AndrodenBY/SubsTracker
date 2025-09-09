@@ -41,6 +41,6 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
     
     public async Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
-        return await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+        return await _dbSet.FirstAsync(predicate, cancellationToken);
     }
 }
