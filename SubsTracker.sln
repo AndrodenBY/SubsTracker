@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubsTracker.BLL", "SubsTrac
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubsTracker.Domain", "SubsTracker.Domain\SubsTracker.Domain.csproj", "{D5715381-24D5-4C23-9063-8CC37AB2C71E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubsTracker.UnitTests", "SubsTracker.UnitTests\SubsTracker.UnitTests.csproj", "{0406CAD5-303B-4E67-9DAE-449E8209BE10}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,5 +37,9 @@ Global
 		{D5715381-24D5-4C23-9063-8CC37AB2C71E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5715381-24D5-4C23-9063-8CC37AB2C71E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5715381-24D5-4C23-9063-8CC37AB2C71E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0406CAD5-303B-4E67-9DAE-449E8209BE10}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0406CAD5-303B-4E67-9DAE-449E8209BE10}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0406CAD5-303B-4E67-9DAE-449E8209BE10}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0406CAD5-303B-4E67-9DAE-449E8209BE10}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
