@@ -1,4 +1,5 @@
 using AutoMapper;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.API.ViewModel.User;
@@ -12,8 +13,10 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class UserGroupsController(
     IUserGroupService service, 
-    IMapper mapper)
-    : ControllerBase
+    IMapper mapper,
+    IValidator<CreateUserGroupDto> createValidator,
+    IValidator<UpdateUserGroupDto> updateValidator
+    ) : ControllerBase
 {
     [HttpGet("{id:guid}")]
     public async Task<UserGroupViewModel> GetById(Guid id, CancellationToken cancellationToken)
@@ -32,6 +35,7 @@ public class UserGroupsController(
     [HttpPost]
     public async Task<UserGroupViewModel> Create([FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
+        await createValidator.ValidateAndThrowAsync(createDto, cancellationToken);
         var create = await service.Create(createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
     }
@@ -39,6 +43,7 @@ public class UserGroupsController(
     [HttpPut("{id:guid}")]
     public async Task<UserGroupViewModel> Update(Guid id, [FromBody] UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
     { 
+        await updateValidator.ValidateAndThrowAsync(updateDto, cancellationToken);
         var update = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(update);
     }
