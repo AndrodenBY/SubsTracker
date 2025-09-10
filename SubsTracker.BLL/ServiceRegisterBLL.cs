@@ -17,6 +17,7 @@ public static class ServiceRegisterBLL
     {
         services.RegisterContext(configuration);
         services.AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>));
+        services.AddScoped(typeof(IService<,,,>), typeof(Service<,,,>));
         services.AddScoped<ISubscriptionService, SubscriptionService>();
         services.AddScoped<IGroupMemberService, GroupMemberService>();
         services.AddScoped<IUserService, UserService>();

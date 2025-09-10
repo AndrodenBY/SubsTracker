@@ -7,7 +7,7 @@ using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Services;
 
-public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(
+public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
     IRepository<TEntity> repository, 
     IMapper mapper
     ) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
@@ -22,7 +22,7 @@ public class ServiceBase<TEntity, TDto, TCreateDto, TUpdateDto>(
         return mapper.Map<IEnumerable<TDto>>(entities);
     }
     
-    public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
+    public virtual async Task<TDto> GetById(Guid id, CancellationToken cancellationToken)
     {
         var entity = await repository.GetById(id, cancellationToken) 
                      ?? throw new NotFoundException($"Entity with id {id} not found");
