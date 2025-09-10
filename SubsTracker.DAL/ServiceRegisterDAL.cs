@@ -9,7 +9,7 @@ namespace SubsTracker.DAL;
 
 public static class ServiceRegisterDAL
 {
-    public static IServiceCollection RegisterContext(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterServicesDal(this IServiceCollection services, IConfiguration configuration)
     {
         var postgreConnectionString = configuration["PostgreConnectionString"];
         
