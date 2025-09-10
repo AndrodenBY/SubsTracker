@@ -1,17 +1,17 @@
-using FluentValidation.AspNetCore;
+using SubsTracker.API;
 using SubsTracker.API.Middlewares.ExceptionHandling;
-using SubsTracker.BLL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Configuration.AddUserSecrets<Program>()
     .AddEnvironmentVariables();
 
-builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly);
-builder.Services.RegisterServices(builder.Configuration);
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-builder.Services.AddControllers()
-    .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining(typeof(Program)));
+builder.Services.RegisterServicesApi(builder.Configuration);
+
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -33,10 +33,4 @@ app.UseStaticFiles();
 app.UseRouting();
 app.MapControllers();
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller}/{action=Index}/{id?}");
-
-app.MapFallbackToFile("index.html");
-
-app.Run();
+await app.RunAsync();
