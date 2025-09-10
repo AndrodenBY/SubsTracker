@@ -46,17 +46,23 @@ public class UserGroupService(
     
     public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var group = await repository.GetById(groupId, cancellationToken);
-        if (group?.SharedSubscriptions?.Any(s => s.Id == subscriptionId) == true)
+        var group = await repository.GetByPredicate(
+            group => group.Id == groupId && group.SharedSubscriptions.Any(sub => sub.Id == subscriptionId),
+            cancellationToken);
+
+        if (group is not null)
         {
-            throw new ValidationException($"Subscription {subscriptionId} is already shared with group {groupId}.");
+            throw new ValidationException($"Subscription with id {subscriptionId} is already shared with group {groupId}.");
         }
+        
+        group = await repository.GetById(groupId, cancellationToken)
+                ?? throw new NotFoundException($"Group with id {groupId} not found.");
         
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
                            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found.");
         
         group.SharedSubscriptions.Add(subscription);
-    
+
         var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
     }

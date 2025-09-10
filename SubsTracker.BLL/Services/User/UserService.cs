@@ -12,7 +12,7 @@ namespace SubsTracker.BLL.Services.User;
 public class UserService(IRepository<UserModel> repository, IMapper mapper) 
     : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto>(repository, mapper), IUserService
 {
-    public async Task<UserDto?> GetByEmail(string email, CancellationToken cancellationToken)
+    public async Task<UserDto> GetByEmail(string email, CancellationToken cancellationToken)
     {
         var user = await repository.GetByPredicate(u => u.Email == email, cancellationToken)
             ?? throw new NotFoundException($"User with email {email} not found");
