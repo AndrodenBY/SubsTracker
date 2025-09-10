@@ -2,6 +2,7 @@ using AutoMapper;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Exceptions;
@@ -12,9 +13,10 @@ public class UserGroupService(
     IRepository<UserGroup> repository,
     IRepository<DAL.Models.User.User> userRepository,
     ISubscriptionRepository subscriptionRepository,
-    ServiceBase<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto> memberService, 
-    IMapper mapper) 
-    : ServiceBase<UserGroup, CreateUserGroupDto, CreateUserGroupDto, UpdateUserGroupDto>(repository, mapper)
+    IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto> memberService, 
+    IMapper mapper
+    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto>(repository, mapper), 
+    IUserGroupService
 {
     public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
     {
