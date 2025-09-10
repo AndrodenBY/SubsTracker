@@ -1,4 +1,4 @@
-namespace SubsTracker.API.ExceptionHandling;
+namespace SubsTracker.API.Middlewares.ExceptionHandling;
 
 public class ErrorModel(int statusCode, string? message, string? details = null)
 {

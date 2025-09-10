@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Mime;
 using SubsTracker.Domain.Exceptions;
 
-namespace SubsTracker.API.ExceptionHandling;
+namespace SubsTracker.API.Middlewares.ExceptionHandling;
 
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {

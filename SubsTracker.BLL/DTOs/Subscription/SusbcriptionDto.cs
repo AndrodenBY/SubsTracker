@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.BLL.DTOs.Subscription;
