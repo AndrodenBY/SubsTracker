@@ -29,11 +29,8 @@ public class SubscriptionService(
 
     public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var originalSubscription = await repository.GetById(updateDto.Id, cancellationToken);
-        if (originalSubscription == null)
-        {
-            throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
-        }
+        var originalSubscription = await repository.GetById(updateDto.Id, cancellationToken)
+            ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
         
         var updatedSubscription = await base.Update(updateDto.Id, updateDto, cancellationToken);
         await history.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id, updatedSubscription.Price, cancellationToken);
@@ -51,7 +48,10 @@ public class SubscriptionService(
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew,
         CancellationToken cancellationToken)
     {
-        if (monthsToRenew <= 0) throw new ValidationException("Cannot renew subscription for less than one month");
+        if (monthsToRenew <= 0)
+        {
+            throw new ValidationException("Cannot renew subscription for less than one month");
+        }
         
         var subscriptionToRenew = await repository.GetById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
@@ -69,6 +69,7 @@ public class SubscriptionService(
     {
         var billsToPay = await repository.GetUpcomingBills(userId, cancellationToken)
             ?? throw new NotFoundException($"User with id {userId} not found");
+        
         return mapper.Map<IEnumerable<SubscriptionDto>>(billsToPay);
     }
 }

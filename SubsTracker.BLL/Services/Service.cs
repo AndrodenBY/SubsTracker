@@ -24,8 +24,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
     
     public virtual async Task<TDto> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, cancellationToken) 
-                     ?? throw new NotFoundException($"Entity with id {id} not found");
+        var entity = await repository.GetById(id, cancellationToken);
         return mapper.Map<TDto>(entity);
     }
     
@@ -57,9 +56,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
     
     public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetByPredicate(predicate, cancellationToken)
-                     ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
-
+        var entity = await repository.GetByPredicate(predicate, cancellationToken);
         return mapper.Map<TDto>(entity);
     }
 }
