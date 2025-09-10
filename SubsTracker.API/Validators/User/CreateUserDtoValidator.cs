@@ -21,6 +21,6 @@ public class CreateUserDtoValidator : AbstractValidator<CreateUserDto>
         
         RuleFor(model => model.Email)
             .NotEmpty().WithMessage(ValidatorMessages.Required(nameof(CreateUserDto.Email)))
-            .EmailAddress().WithMessage(ValidatorMessages.Required(nameof(CreateUserDto.Email)));
+            .EmailAddress().WithMessage(ValidatorMessages.MustBeValid(nameof(CreateUserDto.Email)));
     }
 }
