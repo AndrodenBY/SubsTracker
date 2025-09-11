@@ -2,15 +2,18 @@ using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Repository;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
 namespace SubsTracker.BLL.Services.Subscription;
 
-public class SubscriptionService(ISubscriptionRepository repository, IMapper mapper, SubscriptionHistoryRepository history)
-    : ServiceBase<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto>(repository, mapper), ISubscriptionService
+public class SubscriptionService(
+    ISubscriptionRepository repository, 
+    IMapper mapper, 
+    ISubscriptionHistoryRepository history
+    ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto>(repository, mapper), 
+    ISubscriptionService
 {
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
