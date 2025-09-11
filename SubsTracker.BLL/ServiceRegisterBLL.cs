@@ -13,12 +13,12 @@ public static class ServiceRegisterBLL
 {
     public static IServiceCollection RegisterServicesBll(this IServiceCollection services, IConfiguration configuration)
     {
-        services.RegisterServicesDal(configuration);
-        services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly);
-        services.AddScoped(typeof(IService<,,,>), typeof(Service<,,,>));
-        services.AddScoped<ISubscriptionService, SubscriptionService>()
-        services.AddScoped<IUserService, UserService>();
-        services.AddScoped<IUserGroupService, UserGroupService>();
+        services.RegisterServicesDal(configuration)
+        .AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly)
+        .AddScoped(typeof(IService<,,,>), typeof(Service<,,,>))
+        .AddScoped<ISubscriptionService, SubscriptionService>()
+        .AddScoped<IUserService, UserService>()
+        .AddScoped<IUserGroupService, UserGroupService>();
         return services;
     }
 }

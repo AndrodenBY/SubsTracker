@@ -10,10 +10,10 @@ public static class ServiceRegisterAPI
 {
     public static IServiceCollection RegisterServicesApi(this IServiceCollection services, IConfiguration configuration)
     {
-        services.RegisterServicesBll(configuration);
-        services.AddAutoMapper(cfg => { }, typeof(ViewModelMappingProfile).Assembly);
-        services.AddFluentValidationAutoValidation()
-            .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
+        services.RegisterServicesBll(configuration)
+        .AddAutoMapper(cfg => { }, typeof(ViewModelMappingProfile).Assembly)
+        .AddFluentValidationAutoValidation()
+        .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
         return services;
     }
 }

@@ -13,11 +13,10 @@ public static class ServiceRegisterDAL
         var postgreConnectionString = configuration["PostgreConnectionString"];
         
         services.AddDbContext<SubsDbContext>(options =>
-            options.UseNpgsql(postgreConnectionString));
-
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-        services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
-        services.AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>();
+            options.UseNpgsql(postgreConnectionString))
+        .AddScoped(typeof(IRepository<>), typeof(Repository<>))
+        .AddScoped<ISubscriptionRepository, SubscriptionRepository>()
+        .AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>();
         return services;
     }
 }
