@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Models.Subscription;
 using SubsTracker.DAL.Models.User;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.DAL;
 

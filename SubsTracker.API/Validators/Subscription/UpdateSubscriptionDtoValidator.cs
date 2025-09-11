@@ -1,7 +1,6 @@
 using FluentValidation;
 using SubsTracker.API.Constants;
 using SubsTracker.Domain.Enums;
-using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.BLL.DTOs.Subscription;
 
 namespace SubsTracker.API.Validators.Subscription;

@@ -1,6 +1,5 @@
 using FluentValidation.AspNetCore;
-using SubsTracker.API.ExceptionHandling;
-using SubsTracker.API.Mapper;
+using SubsTracker.API.Middlewares.ExceptionHandling;
 using SubsTracker.BLL;
 
 var builder = WebApplication.CreateBuilder(args);

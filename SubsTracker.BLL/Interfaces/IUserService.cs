@@ -2,7 +2,6 @@ using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.DAL.Models.User;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Interfaces;
 

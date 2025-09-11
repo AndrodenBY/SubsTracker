@@ -1,7 +1,7 @@
 using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Interfaces;
-using SubsTracker.DAL.Interfaces;
+using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Repository;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;

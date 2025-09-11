@@ -1,6 +1,5 @@
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Interfaces;
 
