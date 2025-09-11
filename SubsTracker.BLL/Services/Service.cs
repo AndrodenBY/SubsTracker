@@ -22,10 +22,9 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
         return mapper.Map<IEnumerable<TDto>>(entities);
     }
     
-    public virtual async Task<TDto> GetById(Guid id, CancellationToken cancellationToken)
+    public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetById(id, cancellationToken) 
-                     ?? throw new NotFoundException($"Entity with id {id} not found");
+        var entity = await repository.GetById(id, cancellationToken);
         return mapper.Map<TDto>(entity);
     }
     
