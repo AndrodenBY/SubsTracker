@@ -9,9 +9,12 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
 {
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     
-    public async Task<IEnumerable<TEntity>> GetAll(CancellationToken cancellationToken)
+    public async Task<IEnumerable<TEntity>> GetAll(
+        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        return await _dbSet.ToListAsync(cancellationToken);
+        return predicate == null
+            ? await _dbSet.ToListAsync(cancellationToken)
+            : await _dbSet.Where(predicate).ToListAsync(cancellationToken);
     }
     
     public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)

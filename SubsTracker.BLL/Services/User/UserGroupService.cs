@@ -1,4 +1,5 @@
 using AutoMapper;
+using SubsTracker.BLL.DTOs.Filter;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;

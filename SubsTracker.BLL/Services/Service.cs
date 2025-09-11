@@ -7,18 +7,20 @@ using SubsTracker.Domain.Exceptions;
 
 namespace SubsTracker.BLL.Services;
 
-public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
+public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IRepository<TEntity> repository, 
     IMapper mapper
-    ) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
+    ) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class
+    where TFilterDto : class
 {
-    public virtual async Task<IEnumerable<TDto>> GetAll(CancellationToken cancellationToken)
+    public virtual async Task<IEnumerable<TDto>> GetAll(
+        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetAll(cancellationToken);
+        var entities = await repository.GetAll(predicate, cancellationToken);
         return mapper.Map<IEnumerable<TDto>>(entities);
     }
     
