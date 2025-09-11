@@ -16,8 +16,7 @@ public static class ServiceRegisterBLL
         services.RegisterServicesDal(configuration);
         services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly);
         services.AddScoped(typeof(IService<,,,>), typeof(Service<,,,>));
-        services.AddScoped<ISubscriptionService, SubscriptionService>();
-        //services.AddScoped<IGroupMemberService, GroupMemberService>();
+        services.AddScoped<ISubscriptionService, SubscriptionService>()
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserGroupService, UserGroupService>();
         return services;
