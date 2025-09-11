@@ -1,8 +1,6 @@
 using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.Domain;
-using SubsTracker.Domain.Interfaces;
 
-namespace SubsTracker.DAL.Interfaces;
+namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface ISubscriptionRepository : IRepository<Subscription>
 {

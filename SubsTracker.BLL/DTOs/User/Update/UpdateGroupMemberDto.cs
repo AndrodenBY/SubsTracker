@@ -1,5 +1,4 @@
 using SubsTracker.Domain.Enums;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.DTOs.User.Update;
 

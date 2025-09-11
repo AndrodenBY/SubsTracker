@@ -1,6 +1,5 @@
 using FluentValidation;
 using SubsTracker.API.Constants;
-using SubsTracker.API.ViewModel.User.Update;
 using SubsTracker.BLL.DTOs.User.Update;
 
 namespace SubsTracker.API.Validators.User;

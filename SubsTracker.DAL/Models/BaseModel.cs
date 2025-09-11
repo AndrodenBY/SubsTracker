@@ -1,5 +1,4 @@
-using SubsTracker.Domain;
-using SubsTracker.Domain.Interfaces;
+using SubsTracker.DAL.Interfaces;
 
 namespace SubsTracker.DAL.Models;
 

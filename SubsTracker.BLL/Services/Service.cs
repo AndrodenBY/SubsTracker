@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using AutoMapper;
-using SubsTracker.BLL.DTOs;
+using SubsTracker.BLL.Interfaces;
+using SubsTracker.DAL.Interfaces;
+using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Services;
 

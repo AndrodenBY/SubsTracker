@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-
-using SubsTracker.Domain.Interfaces;
+using SubsTracker.DAL.Interfaces;
+using SubsTracker.DAL.Interfaces.Repositories;
 
 namespace SubsTracker.DAL.Repository;
 

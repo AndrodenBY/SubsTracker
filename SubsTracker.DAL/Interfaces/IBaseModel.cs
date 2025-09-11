@@ -1,4 +1,4 @@
-namespace SubsTracker.Domain.Interfaces;
+namespace SubsTracker.DAL.Interfaces;
 
 public interface IBaseModel
 {

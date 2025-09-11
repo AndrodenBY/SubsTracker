@@ -6,9 +6,6 @@ using SubsTracker.BLL.Services;
 using SubsTracker.BLL.Services.Subscription;
 using SubsTracker.BLL.Services.User;
 using SubsTracker.DAL;
-using SubsTracker.DAL.Interfaces;
-using SubsTracker.DAL.Repository;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL;
 

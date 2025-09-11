@@ -5,9 +5,7 @@ using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
-using SubsTracker.DAL.Repository;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Interfaces;
 
 namespace SubsTracker.BLL.Services.User;
 

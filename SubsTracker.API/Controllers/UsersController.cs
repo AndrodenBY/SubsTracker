@@ -2,7 +2,6 @@ using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.User;
-using SubsTracker.API.ViewModel.User.Create;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces;

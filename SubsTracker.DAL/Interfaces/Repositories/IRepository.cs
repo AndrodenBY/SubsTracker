@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 
-namespace SubsTracker.Domain.Interfaces;
+namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface IRepository<TEntity> where TEntity : IBaseModel
 {

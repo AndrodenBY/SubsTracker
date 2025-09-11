@@ -1,8 +1,7 @@
 using SubsTracker.DAL.Models.Subscription;
 using SubsTracker.Domain.Enums;
-using SubsTracker.Domain.Interfaces;
 
-namespace SubsTracker.DAL.Interfaces;
+namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface ISubscriptionHistoryRepository : IRepository<SubscriptionHistory>
 {
