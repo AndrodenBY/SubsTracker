@@ -6,11 +6,11 @@ using SubsTracker.BLL;
 
 namespace SubsTracker.API;
 
-public static class ServiceRegisterAPI
+public static class ApplicationLayerServiceRegister
 {
-    public static IServiceCollection RegisterServicesApi(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterApplicationLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
-        services.RegisterServicesBll(configuration)
+        services.RegisterBusinessLayerDependencies(configuration)
         .AddAutoMapper(cfg => { }, typeof(ViewModelMappingProfile).Assembly)
         .AddFluentValidationAutoValidation()
         .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();

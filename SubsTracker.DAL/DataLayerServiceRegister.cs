@@ -6,9 +6,9 @@ using SubsTracker.DAL.Repository;
 
 namespace SubsTracker.DAL;
 
-public static class ServiceRegisterDAL
+public static class DataLayerServiceRegister
 {
-    public static IServiceCollection RegisterServicesDal(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterDataLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         var postgreConnectionString = configuration["PostgreConnectionString"];
         

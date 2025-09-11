@@ -9,7 +9,7 @@ builder.Configuration.AddUserSecrets<Program>()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.RegisterServicesApi(builder.Configuration);
+builder.Services.RegisterApplicationLayerDependencies(builder.Configuration);
 
 builder.Services.AddControllers();
 

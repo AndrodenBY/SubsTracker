@@ -9,11 +9,11 @@ using SubsTracker.DAL;
 
 namespace SubsTracker.BLL;
 
-public static class ServiceRegisterBLL
+public static class BusinessLayerServiceRegister
 {
-    public static IServiceCollection RegisterServicesBll(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
-        services.RegisterServicesDal(configuration)
+        services.RegisterDataLayerDependencies(configuration)
         .AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly)
         .AddScoped(typeof(IService<,,,>), typeof(Service<,,,>))
         .AddScoped<ISubscriptionService, SubscriptionService>()
