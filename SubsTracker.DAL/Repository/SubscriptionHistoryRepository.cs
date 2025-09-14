@@ -26,6 +26,9 @@ public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<S
     public async Task UpdateType(SubscriptionType originalType, SubscriptionType updatedType, 
         Guid subscriptionId, decimal? price, CancellationToken cancellationToken)
     {
-        if (originalType != updatedType) await Create(subscriptionId, SubscriptionAction.TypeChange, price, cancellationToken);
+        if (originalType != updatedType)
+        {
+            await Create(subscriptionId, SubscriptionAction.ChangeType, price, cancellationToken);
+        }
     }
 }
