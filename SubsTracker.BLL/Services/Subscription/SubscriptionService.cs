@@ -24,7 +24,7 @@ public class SubscriptionService(
         var createdEntity = await repository.Create(entityToCreate, cancellationToken);
         var subscriptionDto = mapper.Map<SubscriptionDto>(createdEntity);
 
-        await history.Create(createdEntity.Id, SubscriptionAction.Activation, createDto.Price, cancellationToken);
+        await history.Create(createdEntity.Id, SubscriptionAction.Activate, createDto.Price, cancellationToken);
         return subscriptionDto;
     }
 
@@ -40,26 +40,33 @@ public class SubscriptionService(
         await history.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id, updatedSubscription.Price, cancellationToken);
         return updatedSubscription;
     }
-
-    public override async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    
+    public async Task<SubscriptionDto> CancelSubscription(Guid id, CancellationToken cancellationToken)
     {
-        var subscriptionDeleted = await base.Delete(id, cancellationToken);
+        var subscription = await repository.GetById(id, cancellationToken)
+                           ?? throw new NotFoundException($"Subscription with id {id} not found");
         
-        await history.Create(id, SubscriptionAction.Cancellation, null, cancellationToken);
-        return subscriptionDeleted;
+        subscription.Active = false;
+        var updatedSubscription = await repository.Update(subscription, cancellationToken);
+        
+        await history.Create(updatedSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
+        return mapper.Map<SubscriptionDto>(updatedSubscription);
     }
 
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew,
         CancellationToken cancellationToken)
     {
-        if (monthsToRenew <= 0) throw new ValidationException("Cannot renew subscription for less than one month");
+        if (monthsToRenew <= 0)
+        {
+            throw new ValidationException("Cannot renew subscription for less than one month");
+        }
         
         var subscriptionToRenew = await repository.GetById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
         
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
         var renewedSubscription = await repository.Update(subscriptionToRenew, cancellationToken);
-        await history.Create(renewedSubscription.Id, SubscriptionAction.Renewal, renewedSubscription.Price, cancellationToken);
+        await history.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price, cancellationToken);
         
         var subscriptionDto = mapper.Map<SubscriptionDto>(renewedSubscription);
         return subscriptionDto;
