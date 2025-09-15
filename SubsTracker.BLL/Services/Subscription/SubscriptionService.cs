@@ -45,11 +45,6 @@ public class SubscriptionService(
         var subscription = await repository.GetById(id, cancellationToken)
                            ?? throw new NotFoundException($"Subscription with id {id} not found");
         
-        if (!subscription.Active)
-        {
-            throw new ValidationException($"Subscription with id {id} is already cancelled");
-        } // TODO: Is It Really Exception?
-        
         subscription.Active = false;
         var updatedSubscription = await repository.Update(subscription, cancellationToken);
         
