@@ -1,5 +1,5 @@
-using SubsTracker.BLL.DTOs.Filter;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.Domain.Filter;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
 namespace SubsTracker.BLL.Interfaces.Subscription;
