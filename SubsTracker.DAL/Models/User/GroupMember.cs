@@ -8,5 +8,5 @@ public class GroupMember : BaseModel
     public User User { get; set; }
     public Guid GroupId { get; set; }
     public UserGroup Group { get; set; }
-    public MemberRole Role { get; set; } = MemberRole.Member;
+    public MemberRole Role { get; set; } = MemberRole.Participant;
 }

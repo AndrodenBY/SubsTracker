@@ -6,5 +6,5 @@ public class CreateGroupMemberDto
 {
     public Guid UserId { get; set; }
     public Guid GroupId { get; set; }
-    public MemberRole Role { get; set; } = MemberRole.Member;
+    public MemberRole Role { get; set; } = MemberRole.Participant;
 }
