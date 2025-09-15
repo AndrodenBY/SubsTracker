@@ -1,4 +1,5 @@
 using AutoMapper;
+using SubsTracker.BLL.DTOs.Filter;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
