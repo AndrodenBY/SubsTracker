@@ -4,21 +4,24 @@ using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
+using LinqKit;
 
 namespace SubsTracker.BLL.Services;
 
-public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
+public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IRepository<TEntity> repository, 
     IMapper mapper
-    ) : IService<TEntity, TDto, TCreateDto, TUpdateDto>
+    ) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class
+    where TFilterDto : class
 {
-    public virtual async Task<IEnumerable<TDto>> GetAll(CancellationToken cancellationToken)
+    public virtual async Task<IEnumerable<TDto>> GetAll(
+        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetAll(cancellationToken);
+        var entities = await repository.GetAll(predicate, cancellationToken);
         return mapper.Map<IEnumerable<TDto>>(entities);
     }
     
@@ -60,5 +63,21 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto>(
                      ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
 
         return mapper.Map<TDto>(entity);
+    }
+    
+    protected static Expression<Func<TModel, bool>> AddFilterCondition<TModel, TValue>(
+        Expression<Func<TModel, bool>> predicate,
+        TValue? filterValue,
+        Expression<Func<TModel, bool>> expression) where TValue : struct
+    { 
+        return filterValue.HasValue ? predicate.And(expression) : predicate;
+    }
+
+    protected static Expression<Func<TModel, bool>> AddFilterCondition<TModel>(
+        Expression<Func<TModel, bool>> predicate,
+        string? filterValue,
+        Expression<Func<TModel, bool>> expression)
+    {
+        return !string.IsNullOrWhiteSpace(filterValue) ? predicate.And(expression) : predicate;
     }
 }
