@@ -1,6 +1,9 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Interfaces.Subscription;
+using SubsTracker.BLL.Interfaces.user;
+using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.Mapper;
 using SubsTracker.BLL.Services;
 using SubsTracker.BLL.Services.Subscription;
@@ -15,9 +18,8 @@ public static class ServiceRegisterBLL
     {
         services.RegisterServicesDal(configuration);
         services.AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly);
-        services.AddScoped(typeof(IService<,,,>), typeof(Service<,,,>));
+        services.AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>));
         services.AddScoped<ISubscriptionService, SubscriptionService>();
-        //services.AddScoped<IGroupMemberService, GroupMemberService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserGroupService, UserGroupService>();
         return services;
