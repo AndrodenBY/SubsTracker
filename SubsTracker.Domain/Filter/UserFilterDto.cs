@@ -1,4 +1,4 @@
-namespace SubsTracker.BLL.DTOs.Filter;
+namespace SubsTracker.Domain.Filter;
 
 public class UserFilterDto
 {
