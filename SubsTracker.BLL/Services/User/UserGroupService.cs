@@ -1,33 +1,45 @@
+using System.Linq.Expressions;
 using AutoMapper;
-using SubsTracker.BLL.DTOs.Filter;
+using LinqKit;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Interfaces.user;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
+using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
+using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Services.User;
 
 public class UserGroupService(
     IRepository<UserGroup> repository,
     IRepository<DAL.Models.User.User> userRepository,
+    IRepository<GroupMember> memberRepository,
     ISubscriptionRepository subscriptionRepository,
-    IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto> memberService, 
+    IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto> memberService, 
     IMapper mapper
-    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto>(repository, mapper), 
+    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(repository, mapper), 
     IUserGroupService
 {
-    public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
+    public async Task<IEnumerable<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
     {
-        var memberToDelete = await memberService.GetByPredicate(
-            member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
-            ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}.");
-        
-        return await memberService.Delete(memberToDelete.Id, cancellationToken);
+        var predicate = CreatePredicate(filter);
+
+        var entities = await base.GetAll(predicate, cancellationToken);
+        return entities;
     }
-    
+
+    public async Task<IEnumerable<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
+    {
+        var predicate = CreatePredicate(filter);
+        
+        var entities = await memberService.GetAll(predicate, cancellationToken);
+        return entities;
+    }
+
     public async Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
         await EnsureExist(createDto.UserId, createDto.GroupId, cancellationToken);
@@ -41,6 +53,27 @@ public class UserGroupService(
         }
         
         return await memberService.Create(createDto, cancellationToken);
+    }
+    
+    public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
+    {
+        var memberToDelete = await memberService.GetByPredicate(
+            member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
+            ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}.");
+        
+        return await memberService.Delete(memberToDelete.Id, cancellationToken);
+    }
+    
+    public async Task<GroupMemberDto> MakeModerator(Guid memberId, CancellationToken cancellationToken)
+    {
+        var memberToUpdate = await memberRepository.GetById(memberId, cancellationToken)
+                             ?? throw new NotFoundException($"Member with id {memberId} not found.");
+        
+        var updateDto = new UpdateGroupMemberDto();
+        mapper.Map(memberToUpdate, updateDto);
+        updateDto.Role = MemberRole.Moderator;
+        
+        return await memberService.Update(memberToUpdate.Id, updateDto, cancellationToken);
     }
     
     public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
@@ -79,6 +112,38 @@ public class UserGroupService(
         
         var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
+    }
+    
+    private static Expression<Func<UserGroup, bool>> CreatePredicate(UserGroupFilterDto filter)
+    {
+        var predicate = PredicateBuilder.New<UserGroup>(true);
+
+        predicate = AddFilterCondition<UserGroup>(
+            predicate, 
+            filter.Name, 
+            group => group.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
+        );
+
+        return predicate;
+    }
+    
+    private static Expression<Func<GroupMember, bool>> CreatePredicate(GroupMemberFilterDto filter)
+    {
+        var predicate = PredicateBuilder.New<GroupMember>(true);
+
+        predicate = AddFilterCondition<GroupMember, Guid>(
+            predicate,
+            filter.Id,
+            member => member.Id == filter.Id!.Value
+        );
+        
+        predicate = AddFilterCondition<GroupMember, MemberRole>(
+            predicate,
+            filter.Role,
+            member => member.Role == filter.Role!.Value
+        );
+        
+        return predicate;
     }
     
     private async Task<bool> IsShared(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
