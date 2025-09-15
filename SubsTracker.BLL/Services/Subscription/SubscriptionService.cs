@@ -1,10 +1,12 @@
+using System.Linq.Expressions;
 using AutoMapper;
+using LinqKit;
 using SubsTracker.BLL.DTOs.Subscription;
-using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Subscription;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
+using SubsTracker.Domain.Filter;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
 namespace SubsTracker.BLL.Services.Subscription;
@@ -16,6 +18,45 @@ public class SubscriptionService(
     ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(repository, mapper), 
     ISubscriptionService
 {
+    public async Task<IEnumerable<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
+    {
+        var predicate = CreatePredicate(filter);
+
+        var entities = await base.GetAll(predicate, cancellationToken);
+        return entities;
+    }
+    
+    private static Expression<Func<SubscriptionModel, bool>> CreatePredicate(SubscriptionFilterDto filter)
+    {
+        var predicate = PredicateBuilder.New<SubscriptionModel>(true);
+
+        predicate = AddFilterCondition<SubscriptionModel>(
+            predicate, 
+            filter.Name, 
+            subscription => subscription.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
+        );
+
+        predicate = AddFilterCondition<SubscriptionModel, decimal>(
+            predicate, 
+            filter.Price, 
+            subscription => subscription.Price == filter.Price!.Value
+        );
+
+        predicate = AddFilterCondition<SubscriptionModel, SubscriptionType>(
+            predicate, 
+            filter.Type, 
+            subscription => subscription.Type == filter.Type!.Value
+        );
+
+        predicate = AddFilterCondition<SubscriptionModel, SubscriptionContent>(
+            predicate, 
+            filter.Content, 
+            subscription => subscription.Content == filter.Content!.Value
+        );
+
+        return predicate;
+    }
+
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
         var entityToCreate = mapper.Map<SubscriptionModel>(createDto);
