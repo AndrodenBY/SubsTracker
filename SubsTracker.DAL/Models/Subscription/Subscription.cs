@@ -5,7 +5,7 @@ namespace SubsTracker.DAL.Models.Subscription;
 public class Subscription : BaseModel
 {
     public string Name { get; set; } = string.Empty;
-    public decimal Price { get; set; } 
+    public decimal Price { get; set; }
     public Guid? UserId { get; set; }
     public User.User? User { get; set; }
     public DateOnly DueDate { get; set; }

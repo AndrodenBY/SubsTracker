@@ -7,4 +7,4 @@ public class User : BaseModel
     public string Email { get; set; } = string.Empty;
     public List<Subscription.Subscription>? Subscriptions { get; set; } = new();
     public List<UserGroup>? Groups { get; set; } = new();
-}    
+}

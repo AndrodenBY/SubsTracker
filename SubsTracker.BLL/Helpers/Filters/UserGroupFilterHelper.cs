@@ -12,8 +12,8 @@ public static class UserGroupFilterHelper
         var predicate = PredicateBuilder.New<UserGroup>(true);
 
         predicate = FilterHelper.AddFilterCondition<UserGroup>(
-            predicate, 
-            filter.Name, 
+            predicate,
+            filter.Name,
             group => group.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
         );
 

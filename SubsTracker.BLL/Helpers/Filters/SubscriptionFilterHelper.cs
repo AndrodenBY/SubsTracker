@@ -13,29 +13,29 @@ public static class SubscriptionFilterHelper
         var predicate = PredicateBuilder.New<Subscription>(true);
 
         predicate = FilterHelper.AddFilterCondition<Subscription>(
-            predicate, 
-            filter.Name, 
+            predicate,
+            filter.Name,
             subscription => subscription.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
         );
 
         predicate = FilterHelper.AddFilterCondition<Subscription, decimal>(
-            predicate, 
-            filter.Price, 
+            predicate,
+            filter.Price,
             subscription => subscription.Price == filter.Price!.Value
         );
 
         predicate = FilterHelper.AddFilterCondition<Subscription, SubscriptionType>(
-            predicate, 
-            filter.Type, 
+            predicate,
+            filter.Type,
             subscription => subscription.Type == filter.Type!.Value
         );
 
         predicate = FilterHelper.AddFilterCondition<Subscription, SubscriptionContent>(
-            predicate, 
-            filter.Content, 
+            predicate,
+            filter.Content,
             subscription => subscription.Content == filter.Content!.Value
         );
 
         return predicate;
-    }   
+    }
 }

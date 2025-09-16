@@ -7,18 +7,18 @@ namespace SubsTracker.DAL;
 
 public class SubsDbContext(DbContextOptions<SubsDbContext> options) : DbContext(options)
 {
-    public DbSet<User> Users {get; set;}
-    public DbSet<Subscription> Subscriptions {get; set;}
-    public DbSet<SubscriptionHistory> SubscriptionHistory {get; set;}
-    public DbSet<UserGroup> UserGroups {get; set;}
-    public DbSet<GroupMember> Members {get; set;}
-    
+    public DbSet<User> Users { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<SubscriptionHistory> SubscriptionHistory { get; set; }
+    public DbSet<UserGroup> UserGroups { get; set; }
+    public DbSet<GroupMember> Members { get; set; }
+
     public override int SaveChanges()
     {
         OnBeforeSaving();
         return base.SaveChanges();
     }
-    
+
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         OnBeforeSaving();

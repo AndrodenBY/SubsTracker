@@ -9,7 +9,7 @@ public static class FilterHelper
         Expression<Func<TModel, bool>> predicate,
         TValue? filterValue,
         Expression<Func<TModel, bool>> expression) where TValue : struct
-    { 
+    {
         return filterValue.HasValue ? predicate.And(expression) : predicate;
     }
 
