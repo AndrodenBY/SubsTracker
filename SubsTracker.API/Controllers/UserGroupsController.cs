@@ -36,8 +36,8 @@ public class UserGroupsController(
         return mapper.Map<List<GroupMemberViewModel>>(entities);
     }
 
-    [HttpPost("{userId:guid}")]
-    public async Task<UserGroupViewModel> Create(Guid userId, [FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
+    [HttpPost]
+    public async Task<UserGroupViewModel> Create([FromBody] Guid userId, [FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
         var create = await service.Create(userId, createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
