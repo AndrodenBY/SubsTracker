@@ -9,8 +9,8 @@ namespace SubsTracker.DAL.Repository;
 public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<SubscriptionHistory>(context), ISubscriptionHistoryRepository
 {
     private readonly DbSet<SubscriptionHistory> _dbSet = context.Set<SubscriptionHistory>();
-    
-    public async Task<bool> Create(Guid subscriptionId, SubscriptionAction action, 
+
+    public async Task<bool> Create(Guid subscriptionId, SubscriptionAction action,
         decimal? pricePaid, CancellationToken cancellationToken)
     {
         var createHistoryItem = new SubscriptionHistory
@@ -22,8 +22,8 @@ public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<S
         await _dbSet.AddAsync(createHistoryItem, cancellationToken);
         return await context.SaveChangesAsync(cancellationToken) > 0;
     }
-    
-    public async Task UpdateType(SubscriptionType originalType, SubscriptionType updatedType, 
+
+    public async Task UpdateType(SubscriptionType originalType, SubscriptionType updatedType,
         Guid subscriptionId, decimal? price, CancellationToken cancellationToken)
     {
         if (originalType != updatedType)

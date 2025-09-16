@@ -18,7 +18,7 @@ public class CreateSubscriptionDtoValidator : AbstractValidator<CreateSubscripti
         RuleFor(model => model.Price)
             .GreaterThanOrEqualTo(ValidatorConstants.MinimumPrice)
             .WithMessage(ValidatorMessages.PositiveValue(nameof(CreateSubscriptionDto.Price)));
-        
+
         RuleFor(model => model.DueDate)
             .NotNull()
             .WithMessage(ValidatorMessages.Required(nameof(CreateSubscriptionDto.DueDate)));

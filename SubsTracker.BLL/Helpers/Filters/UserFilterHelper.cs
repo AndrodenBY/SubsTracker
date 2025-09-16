@@ -12,20 +12,20 @@ public static class UserFilterHelper
         var predicate = PredicateBuilder.New<User>(true);
 
         predicate = FilterHelper.AddFilterCondition<User>(
-            predicate, 
-            filter.FirstName, 
+            predicate,
+            filter.FirstName,
             user => user.FirstName.Contains(filter.FirstName!, StringComparison.OrdinalIgnoreCase)
         );
 
         predicate = FilterHelper.AddFilterCondition<User>(
-            predicate, 
-            filter.LastName, 
+            predicate,
+            filter.LastName,
             user => user.LastName != null && user.LastName.Contains(filter.LastName!, StringComparison.OrdinalIgnoreCase)
         );
 
         predicate = FilterHelper.AddFilterCondition<User>(
-            predicate, 
-            filter.Email, 
+            predicate,
+            filter.Email,
             user => user.Email.Equals(filter.Email, StringComparison.OrdinalIgnoreCase)
         );
 

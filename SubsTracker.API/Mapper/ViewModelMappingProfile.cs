@@ -16,7 +16,7 @@ public class ViewModelMappingProfile : Profile
         CreateMap<UserGroupDto, UserGroupViewModel>();
         CreateMap<GroupMemberDto, GroupMemberViewModel>();
         CreateMap<SubscriptionDto, SubscriptionViewModel>();
-                
+
         CreateMap<CreateUserViewModel, UserDto>();
         CreateMap<CreateUserGroupViewModel, UserGroupDto>();
         CreateMap<CreateGroupMemberViewModel, GroupMemberDto>();

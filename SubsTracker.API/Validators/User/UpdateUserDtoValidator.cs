@@ -16,7 +16,7 @@ public class UpdateUserDtoValidator : AbstractValidator<UpdateUserDto>
             .MaximumLength(ValidatorConstants.MaximumNameLength)
             .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.FirstName)))
             .When(model => !string.IsNullOrEmpty(nameof(UpdateUserDto.FirstName)));
-        
+
         RuleFor(model => model.LastName)
             .MaximumLength(ValidatorConstants.MaximumNameLength)
             .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.LastName)))
