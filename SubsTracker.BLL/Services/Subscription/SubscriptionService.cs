@@ -18,7 +18,7 @@ public class SubscriptionService(
     ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(repository, mapper), 
     ISubscriptionService
 {
-    public async Task<IEnumerable<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = CreatePredicate(filter);
 
@@ -113,11 +113,11 @@ public class SubscriptionService(
         return subscriptionDto;
     }
 
-    public async Task<IEnumerable<SubscriptionDto>> GetUpcomingBills(Guid userId,
+    public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId,
         CancellationToken cancellationToken)
     {
         var billsToPay = await repository.GetUpcomingBills(userId, cancellationToken)
             ?? throw new NotFoundException($"User with id {userId} not found");
-        return mapper.Map<IEnumerable<SubscriptionDto>>(billsToPay);
+        return mapper.Map<List<SubscriptionDto>>(billsToPay);
     }
 }

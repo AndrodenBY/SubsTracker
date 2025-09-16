@@ -18,11 +18,11 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     where TUpdateDto : class
     where TFilterDto : class
 {
-    public virtual async Task<IEnumerable<TDto>> GetAll(
+    public virtual async Task<List<TDto>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
         var entities = await repository.GetAll(predicate, cancellationToken);
-        return mapper.Map<IEnumerable<TDto>>(entities);
+        return mapper.Map<List<TDto>>(entities);
     }
     
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)

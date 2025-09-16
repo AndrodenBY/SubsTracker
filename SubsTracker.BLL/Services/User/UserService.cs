@@ -22,7 +22,7 @@ public class UserService(
     IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto> memberService
         ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
 {
-    public async Task<IEnumerable<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = CreatePredicate(filter);
         

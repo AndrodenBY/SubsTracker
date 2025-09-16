@@ -22,17 +22,17 @@ public class SubscriptionsController(
     }
 
     [HttpGet("bills/users/{userId:guid}")]
-    public async Task<IEnumerable<SubscriptionViewModel>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionViewModel>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var getUpcomingBills = await service.GetUpcomingBills(userId, cancellationToken);
-        return mapper.Map<IEnumerable<SubscriptionViewModel>>(getUpcomingBills);
+        return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
     }
     
     [HttpGet]
-    public async Task<IEnumerable<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var entities = await service.GetAll(filterDto, cancellationToken);
-        return mapper.Map<IEnumerable<SubscriptionViewModel>>(entities);
+        return mapper.Map<List<SubscriptionViewModel>>(entities);
     }
 
     

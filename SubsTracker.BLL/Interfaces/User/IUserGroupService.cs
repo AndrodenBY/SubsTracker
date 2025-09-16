@@ -9,8 +9,8 @@ namespace SubsTracker.BLL.Interfaces.user;
 public interface IUserGroupService : 
     IService<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>
 {
-    Task<IEnumerable<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken);
-    Task<IEnumerable<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken);
+    Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken);
+    Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken);
     Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken);
     Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken);
     Task<GroupMemberDto> MakeModerator(Guid memberId, CancellationToken cancellationToken);

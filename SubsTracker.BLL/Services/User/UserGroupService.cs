@@ -24,7 +24,7 @@ public class UserGroupService(
     ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(repository, mapper), 
     IUserGroupService
 {
-    public async Task<IEnumerable<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = CreatePredicate(filter);
 
@@ -32,7 +32,7 @@ public class UserGroupService(
         return entities;
     }
 
-    public async Task<IEnumerable<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = CreatePredicate(filter);
         
