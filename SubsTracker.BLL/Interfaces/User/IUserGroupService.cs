@@ -6,11 +6,12 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Interfaces.User;
 
-public interface IUserGroupService : 
+public interface IUserGroupService :
     IService<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>
 {
     Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken);
     Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken);
+    Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken);
     Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken);
     Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken);
     Task<GroupMemberDto> MakeModerator(Guid memberId, CancellationToken cancellationToken);
