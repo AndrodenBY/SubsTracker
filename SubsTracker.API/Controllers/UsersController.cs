@@ -4,7 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
 
@@ -12,9 +13,7 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController(
     IUserService service, 
-    IMapper mapper,
-    IValidator<CreateUserDto> createValidator,
-    IValidator<UpdateUserDto> updateValidator
+    IMapper mapper
     ) : ControllerBase
 {
     [HttpGet("{id:guid}")]
@@ -24,32 +23,23 @@ public class UsersController(
         return mapper.Map<UserViewModel>(getById);
     }
     
-    [HttpGet("email/{email}")]
-    public async Task<UserViewModel> GetByEmail(string email, CancellationToken cancellationToken)
-    {
-        var user = await service.GetByEmail(email, cancellationToken);
-        return mapper.Map<UserViewModel>(user);
-    }
-    
     [HttpGet]
-    public async Task<IEnumerable<UserViewModel>> GetAll(CancellationToken cancellationToken)
+    public async Task<IEnumerable<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, CancellationToken cancellationToken)
     {
-        var getAll = await service.GetAll(cancellationToken);
+        var getAll = await service.GetAll(filterDto, cancellationToken);
         return mapper.Map<IEnumerable<UserViewModel>>(getAll);
     }
     
     [HttpPost]
-    public async Task<UserViewModel> Create(CreateUserDto createDto, CancellationToken cancellationToken)
+    public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        await createValidator.ValidateAndThrowAsync(createDto, cancellationToken);
         var create = await service.Create(createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
     
     [HttpPut("{id:guid}")]
-    public async Task<UserViewModel> Update(Guid id, UpdateUserDto updateDto, CancellationToken cancellationToken)
-    { 
-        await updateValidator.ValidateAndThrowAsync(updateDto, cancellationToken);
+    public async Task<UserViewModel> Update(Guid id, [FromBody] UpdateUserDto updateDto, CancellationToken cancellationToken)
+    {
         var update = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<UserViewModel>(update);
     }

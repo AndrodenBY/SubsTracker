@@ -1,10 +1,9 @@
 using SubsTracker.Domain.Enums;
 
-namespace SubsTracker.BLL.DTOs.Filter;
+namespace SubsTracker.Domain.Filter;
 
 public class GroupMemberFilterDto
 {
-    public Guid? UserId { get; set; }
-    public Guid? GroupId { get; set; }
+    public Guid? Id { get; set; }
     public MemberRole? Role { get; set; }
 }

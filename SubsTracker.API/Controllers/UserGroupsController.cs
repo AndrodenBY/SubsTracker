@@ -1,10 +1,10 @@
 using AutoMapper;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Interfaces.user;
+using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
 
@@ -12,9 +12,7 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class UserGroupsController(
     IUserGroupService service, 
-    IMapper mapper,
-    IValidator<CreateUserGroupDto> createValidator,
-    IValidator<UpdateUserGroupDto> updateValidator
+    IMapper mapper
     ) : ControllerBase
 {
     [HttpGet("{id:guid}")]
@@ -25,16 +23,22 @@ public class UserGroupsController(
     }
     
     [HttpGet]
-    public async Task<IEnumerable<UserGroupViewModel>> GetAll(CancellationToken cancellationToken)
+    public async Task<IEnumerable<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto, CancellationToken cancellationToken)
     {
-        var getAll = await service.GetAll(cancellationToken);
+        var getAll = await service.GetAll(filterDto, cancellationToken);
         return mapper.Map<IEnumerable<UserGroupViewModel>>(getAll);
+    }
+    
+    [HttpGet]
+    public async Task<IEnumerable<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
+    {
+        var entities = await service.GetAll(filterDto, cancellationToken);
+        return mapper.Map<IEnumerable<GroupMemberViewModel>>(entities);
     }
 
     [HttpPost]
     public async Task<UserGroupViewModel> Create([FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
-        await createValidator.ValidateAndThrowAsync(createDto, cancellationToken);
         var create = await service.Create(createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
     }
@@ -42,7 +46,6 @@ public class UserGroupsController(
     [HttpPut("{id:guid}")]
     public async Task<UserGroupViewModel> Update(Guid id, [FromBody] UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
     { 
-        await updateValidator.ValidateAndThrowAsync(updateDto, cancellationToken);
         var update = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(update);
     }
@@ -53,18 +56,25 @@ public class UserGroupsController(
         await service.Delete(id, cancellationToken);
     }
 
-    [HttpDelete("leave")]
-    public async Task LeaveGroup([FromQuery] Guid groupId, [FromQuery] Guid userId, CancellationToken cancellationToken)
-    {
-        await service.LeaveGroup(groupId, userId, cancellationToken);
-    }
-
     [HttpPost("join")]
     public async Task JoinGroup([FromBody] CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
         await service.JoinGroup(createDto, cancellationToken);
     }
-
+    
+    [HttpDelete("leave")]
+    public async Task LeaveGroup([FromQuery] Guid groupId, [FromQuery] Guid userId, CancellationToken cancellationToken)
+    {
+        await service.LeaveGroup(groupId, userId, cancellationToken);
+    }
+    
+    [HttpPut("members/{memberId:guid}/moderator")]
+    public async Task<GroupMemberViewModel> MakeModerator(Guid memberId, CancellationToken cancellationToken)
+    {
+        var newModerator = await service.MakeModerator(memberId, cancellationToken);
+        return mapper.Map<GroupMemberViewModel>(newModerator);
+    }
+    
     [HttpPost("share")]
     public async Task<UserGroupViewModel> ShareSubscription([FromQuery] Guid groupId, [FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
     {
@@ -78,4 +88,6 @@ public class UserGroupsController(
         var updatedGroup = await service.UnshareSubscription(groupId, subscriptionId, cancellationToken);
         return mapper.Map<UserGroupViewModel>(updatedGroup);
     }
+
+
 }
