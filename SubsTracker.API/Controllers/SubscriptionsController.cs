@@ -10,7 +10,7 @@ namespace SubsTracker.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class SubscriptionsController(
-    ISubscriptionService service, 
+    ISubscriptionService service,
     IMapper mapper
     ) : ControllerBase
 {
@@ -21,13 +21,6 @@ public class SubscriptionsController(
         return mapper.Map<SubscriptionViewModel>(getById);
     }
 
-    [HttpGet("bills/users/{userId:guid}")]
-    public async Task<List<SubscriptionViewModel>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
-    {
-        var getUpcomingBills = await service.GetUpcomingBills(userId, cancellationToken);
-        return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
-    }
-    
     [HttpGet]
     public async Task<List<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, CancellationToken cancellationToken)
     {
@@ -35,14 +28,14 @@ public class SubscriptionsController(
         return mapper.Map<List<SubscriptionViewModel>>(entities);
     }
 
-    
+
     [HttpPost("{userId:guid}")]
     public async Task<SubscriptionViewModel> Create(Guid userId, [FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
         var create = await service.Create(userId, createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
     }
-    
+
     [HttpPut("{id:guid}")]
     public async Task<SubscriptionViewModel> Update(Guid id, [FromBody] UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
@@ -50,10 +43,11 @@ public class SubscriptionsController(
         return mapper.Map<SubscriptionViewModel>(update);
     }
     
-    [HttpDelete("{id:guid}")]
-    public async Task Delete(Guid id, CancellationToken cancellationToken)
+    [HttpPut("{id:guid}/cancel")]
+    public async Task<SubscriptionViewModel> CancelSubscription(Guid id, CancellationToken cancellationToken)
     {
-        await service.Delete(id, cancellationToken);
+        var cancelledSubscription = await service.CancelSubscription(id, cancellationToken);
+        return mapper.Map<SubscriptionViewModel>(cancelledSubscription);
     }
 
     [HttpPut("{subscriptionId:guid}/renew")]
@@ -62,5 +56,12 @@ public class SubscriptionsController(
     {
         var renew = await service.RenewSubscription(subscriptionId, monthsToRenew, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(renew);
+    }
+    
+    [HttpGet("bills/users/{userId:guid}")]
+    public async Task<List<SubscriptionViewModel>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
+    {
+        var getUpcomingBills = await service.GetUpcomingBills(userId, cancellationToken);
+        return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
     }
 }
