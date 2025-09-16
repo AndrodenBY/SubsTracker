@@ -4,7 +4,7 @@ using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Filter;
 
-namespace SubsTracker.BLL.Interfaces.user;
+namespace SubsTracker.BLL.Interfaces.User;
 
 public interface IUserGroupService : 
     IService<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>

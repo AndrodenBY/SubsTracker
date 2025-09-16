@@ -2,7 +2,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Subscription;
-using SubsTracker.BLL.Interfaces.user;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.Mapper;
 using SubsTracker.BLL.Services;

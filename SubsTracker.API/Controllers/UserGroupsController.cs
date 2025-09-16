@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.Interfaces.user;
+using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
