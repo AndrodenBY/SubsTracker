@@ -24,10 +24,10 @@ public class UsersController(
     }
     
     [HttpGet]
-    public async Task<IEnumerable<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, CancellationToken cancellationToken)
+    public async Task<List<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var getAll = await service.GetAll(filterDto, cancellationToken);
-        return mapper.Map<IEnumerable<UserViewModel>>(getAll);
+        return mapper.Map<List<UserViewModel>>(getAll);
     }
     
     [HttpPost]

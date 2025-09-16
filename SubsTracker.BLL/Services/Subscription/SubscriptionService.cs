@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using AutoMapper;
 using LinqKit;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Subscription;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
@@ -18,43 +19,12 @@ public class SubscriptionService(
     ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(repository, mapper), 
     ISubscriptionService
 {
-    public async Task<IEnumerable<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = CreatePredicate(filter);
+        var predicate = SubscriptionFilterHelper.CreatePredicate(filter);
 
         var entities = await base.GetAll(predicate, cancellationToken);
         return entities;
-    }
-    
-    private static Expression<Func<SubscriptionModel, bool>> CreatePredicate(SubscriptionFilterDto filter)
-    {
-        var predicate = PredicateBuilder.New<SubscriptionModel>(true);
-
-        predicate = AddFilterCondition<SubscriptionModel>(
-            predicate, 
-            filter.Name, 
-            subscription => subscription.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
-        );
-
-        predicate = AddFilterCondition<SubscriptionModel, decimal>(
-            predicate, 
-            filter.Price, 
-            subscription => subscription.Price == filter.Price!.Value
-        );
-
-        predicate = AddFilterCondition<SubscriptionModel, SubscriptionType>(
-            predicate, 
-            filter.Type, 
-            subscription => subscription.Type == filter.Type!.Value
-        );
-
-        predicate = AddFilterCondition<SubscriptionModel, SubscriptionContent>(
-            predicate, 
-            filter.Content, 
-            subscription => subscription.Content == filter.Content!.Value
-        );
-
-        return predicate;
     }
 
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
@@ -113,11 +83,11 @@ public class SubscriptionService(
         return subscriptionDto;
     }
 
-    public async Task<IEnumerable<SubscriptionDto>> GetUpcomingBills(Guid userId,
+    public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId,
         CancellationToken cancellationToken)
     {
         var billsToPay = await repository.GetUpcomingBills(userId, cancellationToken)
             ?? throw new NotFoundException($"User with id {userId} not found");
-        return mapper.Map<IEnumerable<SubscriptionDto>>(billsToPay);
+        return mapper.Map<List<SubscriptionDto>>(billsToPay);
     }
 }

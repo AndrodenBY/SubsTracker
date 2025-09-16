@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Interfaces.Subscription;
+using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.Mapper;
 using SubsTracker.BLL.Services;
 using SubsTracker.BLL.Services.Subscription;
@@ -15,7 +17,7 @@ public static class BusinessLayerServiceRegister
     {
         services.RegisterDataLayerDependencies(configuration)
         .AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly)
-        .AddScoped(typeof(IService<,,,>), typeof(Service<,,,>))
+        .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
         .AddScoped<ISubscriptionService, SubscriptionService>()
         .AddScoped<IUserService, UserService>()
         .AddScoped<IUserGroupService, UserGroupService>();

@@ -9,7 +9,7 @@ public class SubscriptionRepository(SubsDbContext context, ISubscriptionHistoryR
 {
     private readonly DbSet<Subscription> _dbSet = context.Set<Subscription>();
     
-    public async Task<IEnumerable<Subscription>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
+    public async Task<List<Subscription>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);
         var sevenDaysFromNow = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7));

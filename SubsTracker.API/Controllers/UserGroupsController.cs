@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.Interfaces.user;
+using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
@@ -23,17 +23,17 @@ public class UserGroupsController(
     }
     
     [HttpGet]
-    public async Task<IEnumerable<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto, CancellationToken cancellationToken)
+    public async Task<List<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var getAll = await service.GetAll(filterDto, cancellationToken);
-        return mapper.Map<IEnumerable<UserGroupViewModel>>(getAll);
+        return mapper.Map<List<UserGroupViewModel>>(getAll);
     }
     
     [HttpGet]
-    public async Task<IEnumerable<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
+    public async Task<List<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var entities = await service.GetAll(filterDto, cancellationToken);
-        return mapper.Map<IEnumerable<GroupMemberViewModel>>(entities);
+        return mapper.Map<List<GroupMemberViewModel>>(entities);
     }
 
     [HttpPost]

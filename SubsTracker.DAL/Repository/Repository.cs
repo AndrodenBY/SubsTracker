@@ -9,7 +9,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
 {
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     
-    public async Task<IEnumerable<TEntity>> GetAll(
+    public async Task<List<TEntity>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
         return predicate == null
