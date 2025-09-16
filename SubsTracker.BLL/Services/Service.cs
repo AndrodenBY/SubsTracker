@@ -64,20 +64,4 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 
         return mapper.Map<TDto>(entity);
     }
-    
-    protected static Expression<Func<TModel, bool>> AddFilterCondition<TModel, TValue>(
-        Expression<Func<TModel, bool>> predicate,
-        TValue? filterValue,
-        Expression<Func<TModel, bool>> expression) where TValue : struct
-    { 
-        return filterValue.HasValue ? predicate.And(expression) : predicate;
-    }
-
-    protected static Expression<Func<TModel, bool>> AddFilterCondition<TModel>(
-        Expression<Func<TModel, bool>> predicate,
-        string? filterValue,
-        Expression<Func<TModel, bool>> expression)
-    {
-        return !string.IsNullOrWhiteSpace(filterValue) ? predicate.And(expression) : predicate;
-    }
 }

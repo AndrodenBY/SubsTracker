@@ -4,6 +4,7 @@ using LinqKit;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.DAL.Interfaces.Repositories;
@@ -24,34 +25,9 @@ public class UserService(
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = CreatePredicate(filter);
+        var predicate = UserFilterHelper.CreatePredicate(filter);
         
         var entities = await base.GetAll(predicate, cancellationToken);
         return entities;
-    }
-    
-    private static Expression<Func<UserModel, bool>> CreatePredicate(UserFilterDto filter)
-    {
-        var predicate = PredicateBuilder.New<UserModel>(true);
-
-        predicate = AddFilterCondition<UserModel>(
-            predicate, 
-            filter.FirstName, 
-            user => user.FirstName.Contains(filter.FirstName!, StringComparison.OrdinalIgnoreCase)
-        );
-
-        predicate = AddFilterCondition<UserModel>(
-            predicate, 
-            filter.LastName, 
-            user => user.LastName != null && user.LastName.Contains(filter.LastName!, StringComparison.OrdinalIgnoreCase)
-        );
-
-        predicate = AddFilterCondition<UserModel>(
-            predicate, 
-            filter.Email, 
-            user => user.Email.Equals(filter.Email, StringComparison.OrdinalIgnoreCase)
-        );
-
-        return predicate;
     }
 }
