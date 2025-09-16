@@ -35,8 +35,8 @@ public class UserGroupService(
 
     public async Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = CreatePredicate(filter);
-        
+        var predicate = GroupMemberFilterHelper.CreatePredicate(filter);
+
         var entities = await memberService.GetAll(predicate, cancellationToken);
         return entities;
     }
@@ -114,26 +114,6 @@ public class UserGroupService(
         var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
     }
-    
-    private static Expression<Func<GroupMember, bool>> CreatePredicate(GroupMemberFilterDto filter)
-    {
-        var predicate = PredicateBuilder.New<GroupMember>(true);
-
-        predicate = FilterHelper.AddFilterCondition<GroupMember, Guid>(
-            predicate,
-            filter.Id,
-            member => member.Id == filter.Id!.Value
-        );
-        
-        predicate = FilterHelper.AddFilterCondition<GroupMember, MemberRole>(
-            predicate,
-            filter.Role,
-            member => member.Role == filter.Role!.Value
-        );
-        
-        return predicate;
-    }
-    
     private async Task<bool> IsShared(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var group = await repository.GetByPredicate(
