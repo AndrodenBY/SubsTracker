@@ -29,7 +29,7 @@ public class SubscriptionService(
     {
         var entityToCreate = mapper.Map<SubscriptionModel>(createDto);
         entityToCreate.UserId = userId;
-
+    
         var createdEntity = await repository.Create(entityToCreate, cancellationToken);
         var subscriptionDto = mapper.Map<SubscriptionDto>(createdEntity);
 
