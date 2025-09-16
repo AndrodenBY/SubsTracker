@@ -14,15 +14,15 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Exception at {Method} {Path}{Query}", 
-                httpContext.Request.Method, 
-                httpContext.Request.Path, 
+            logger.LogError(ex, "Exception at {Method} {Path}{Query}",
+                httpContext.Request.Method,
+                httpContext.Request.Path,
                 httpContext.Request.QueryString);
 
             await HandleExceptionResponse(httpContext, ex);
         }
     }
-    
+
     private static async Task HandleExceptionResponse(HttpContext context, Exception exception)
     {
         context.Response.ContentType = MediaTypeNames.Application.Json;

@@ -1,6 +1,4 @@
-using System.Linq.Expressions;
 using AutoMapper;
-using LinqKit;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -18,7 +16,7 @@ using UserModel = SubsTracker.DAL.Models.User.User;
 namespace SubsTracker.BLL.Services.User;
 
 public class UserService(
-    IRepository<UserModel> repository, 
+    IRepository<UserModel> repository,
     IMapper mapper,
     IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto> memberService
         ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
@@ -26,7 +24,7 @@ public class UserService(
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = UserFilterHelper.CreatePredicate(filter);
-        
+
         var entities = await base.GetAll(predicate, cancellationToken);
         return entities;
     }

@@ -11,7 +11,7 @@ public static class DataLayerServiceRegister
     public static IServiceCollection RegisterDataLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         var postgreConnectionString = configuration["PostgreConnectionString"];
-        
+
         services.AddDbContext<SubsDbContext>(options =>
             options.UseNpgsql(postgreConnectionString))
         .AddScoped(typeof(IRepository<>), typeof(Repository<>))

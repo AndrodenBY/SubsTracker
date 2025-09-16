@@ -23,7 +23,7 @@ public class UpdateSubscriptionDtoValidator : AbstractValidator<UpdateSubscripti
             .GreaterThanOrEqualTo(ValidatorConstants.MinimumPrice)
             .When(model => model.Price.HasValue)
             .WithMessage(ValidatorMessages.PositiveValue(nameof(UpdateSubscriptionDto.Price)));
-        
+
         RuleFor(model => model.Type)
             .Must(type => Enum.IsDefined(typeof(SubscriptionType), type))
             .WithMessage(ValidatorMessages.MustBeValid(nameof(UpdateSubscriptionDto.Type)));
