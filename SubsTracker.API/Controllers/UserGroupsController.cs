@@ -29,7 +29,7 @@ public class UserGroupsController(
         return mapper.Map<List<UserGroupViewModel>>(getAll);
     }
 
-    [HttpGet]
+    [HttpGet("members")]
     public async Task<List<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var entities = await service.GetAll(filterDto, cancellationToken);
@@ -37,7 +37,7 @@ public class UserGroupsController(
     }
 
     [HttpPost]
-    public async Task<UserGroupViewModel> Create([FromBody] Guid userId, [FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
+    public async Task<UserGroupViewModel> Create(Guid userId, [FromBody] CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
         var create = await service.Create(userId, createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
