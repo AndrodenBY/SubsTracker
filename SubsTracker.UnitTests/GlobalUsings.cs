@@ -1,0 +1,19 @@
+global using System;
+global using System.Threading;
+global using System.Threading.Tasks;
+global using AutoMapper;
+global using Xunit;
+global using NSubstitute;
+global using Shouldly;
+global using System.Linq.Expressions;
+global using AutoFixture;
+
+global using SubsTracker.BLL.DTOs.User;
+global using SubsTracker.DAL.Models.User;
+global using SubsTracker.DAL.Interfaces.Repositories;
+global using SubsTracker.BLL.DTOs.Subscription;
+global using SubsTracker.DAL.Models.Subscription;
+global using SubsTracker.BLL.DTOs.User.Create;
+global using SubsTracker.BLL.DTOs.User.Update;
+global using SubsTracker.BLL.Interfaces;
+global using SubsTracker.Domain.Filter;
