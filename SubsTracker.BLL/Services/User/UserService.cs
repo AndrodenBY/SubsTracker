@@ -20,7 +20,7 @@ public class UserService(
     IMapper mapper
         ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
 {
-    public async Task<List<UserDto>?> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = UserFilterHelper.CreatePredicate(filter);
 
