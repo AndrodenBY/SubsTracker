@@ -12,8 +12,8 @@ public static class ApplicationLayerServiceRegister
     {
         services.RegisterBusinessLayerDependencies(configuration)
         .AddAutoMapper(cfg => { }, typeof(ViewModelMappingProfile).Assembly)
-        .AddFluentValidationAutoValidation()
-        .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
+        .AddControllers()
+        .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreateUserDtoValidator>());
         return services;
     }
 }

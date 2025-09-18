@@ -12,14 +12,17 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
     public async Task<List<TEntity>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        return predicate == null
-            ? await _dbSet.ToListAsync(cancellationToken)
-            : await _dbSet.Where(predicate).ToListAsync(cancellationToken);
+        var query = _dbSet.AsQueryable();
+        if (predicate is not null)
+        {
+            query = query.Where(predicate);
+        }
+        return await query.ToListAsync(cancellationToken);
     }
 
     public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbSet.FirstAsync(entity => entity.Id == id, cancellationToken);
+        return await _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
     public async Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken)

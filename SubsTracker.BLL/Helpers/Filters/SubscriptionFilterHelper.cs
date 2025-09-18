@@ -15,7 +15,7 @@ public static class SubscriptionFilterHelper
         predicate = FilterHelper.AddFilterCondition<Subscription>(
             predicate,
             filter.Name,
-            subscription => subscription.Name.Contains(filter.Name!, StringComparison.OrdinalIgnoreCase)
+            subscription => subscription.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 
         predicate = FilterHelper.AddFilterCondition<Subscription, decimal>(

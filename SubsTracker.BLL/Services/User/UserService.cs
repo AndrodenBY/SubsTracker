@@ -17,8 +17,7 @@ namespace SubsTracker.BLL.Services.User;
 
 public class UserService(
     IRepository<UserModel> repository,
-    IMapper mapper,
-    IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto> memberService
+    IMapper mapper
         ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
