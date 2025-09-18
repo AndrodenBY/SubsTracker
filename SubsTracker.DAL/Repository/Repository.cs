@@ -9,7 +9,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
 {
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
 
-    public async Task<List<TEntity>> GetAll(
+    public async Task<List<TEntity>?> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
         return predicate == null
@@ -19,7 +19,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
 
     public async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbSet.FirstAsync(entity => entity.Id == id, cancellationToken);
+        return await _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
     public async Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken)
