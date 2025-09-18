@@ -11,8 +11,6 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.RegisterApplicationLayerDependencies(builder.Configuration);
 
-builder.Services.AddControllers();
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
