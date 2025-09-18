@@ -17,3 +17,4 @@ global using SubsTracker.BLL.DTOs.User.Create;
 global using SubsTracker.BLL.DTOs.User.Update;
 global using SubsTracker.BLL.Interfaces;
 global using SubsTracker.Domain.Filter;
+global using SubsTracker.BLL.Services;
