@@ -24,9 +24,9 @@ public class UserGroupServiceTestsBase
         _userRepository = Substitute.For<IRepository<User>>();
         _memberRepository = Substitute.For<IRepository<GroupMember>>();
         _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
-        _memberService = Substitute
-            .For<IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>>();
         _mapper = Substitute.For<IMapper>();
+        _memberService = new Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(_memberRepository, _mapper);
+        
         _service = new BLL.Services.User.UserGroupService(
             _repository, 
             _userRepository, 
