@@ -37,11 +37,9 @@ public class UserService(
 
     public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var userExists = await repository.GetById(updateId, cancellationToken);
-        if (userExists is null)
-        {
-            throw new InvalidOperationException($"Cannot update user with id {updateId}");
-        }
+        var userExists = await repository.GetById(updateId, cancellationToken)
+                         ?? throw new InvalidOperationException($"Cannot update user with id {updateId}");
+        
         var entity = await base.Update(userExists.Id, updateDto, cancellationToken);
         return entity;
     }
