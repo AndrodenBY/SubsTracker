@@ -9,7 +9,7 @@ public interface ISubscriptionService :
 {
     Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken);
     Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken);
-    Task<SubscriptionDto> CancelSubscription(Guid id, CancellationToken cancellationToken);
+    Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken);
     Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken);
     Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken);
 }

@@ -10,6 +10,7 @@ using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
@@ -41,11 +42,14 @@ public class UserGroupService(
     
     public async Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
+        var existingUser = await repository.GetById(userId, cancellationToken)
+            ?? throw new ValidationException($"User with id {userId} does not exist");
+        
         var createdGroup = await base.Create(createDto, cancellationToken);
         
         var createMemberDto = new CreateGroupMemberDto
         {
-            UserId = userId,
+            UserId = existingUser.Id,
             GroupId = createdGroup.Id,
             Role = MemberRole.Admin
         };
@@ -98,7 +102,7 @@ public class UserGroupService(
 
         if (group is not null)
         {
-            throw new ValidationException($"Subscription with id {subscriptionId} is already shared with group {groupId}.");
+            throw new InvalidOperationException($"Subscription with id {subscriptionId} is already shared with group {groupId}.");
         }
 
         group = await repository.GetById(groupId, cancellationToken)
@@ -116,7 +120,10 @@ public class UserGroupService(
     public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var isShared = await IsShared(groupId, subscriptionId, cancellationToken);
-        if (!isShared) throw new ValidationException($"Subscription {subscriptionId} is not shared");
+        if (!isShared)
+        {
+            throw new ValidationException($"Subscription {subscriptionId} is not shared");
+        }
 
         var subscription = await subscriptionRepository.GetById(groupId, cancellationToken)
             ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");

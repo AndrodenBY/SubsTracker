@@ -18,6 +18,18 @@ public static class SubscriptionFilterHelper
             subscription => subscription.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 
+        predicate = FilterHelper.AddFilterCondition<Subscription, Guid>(
+            predicate,
+            filter.Id, 
+            subscription => subscription.Id == filter.Id
+        );
+        
+        predicate = FilterHelper.AddFilterCondition<Subscription, Guid>(
+            predicate,
+            filter.UserId, 
+            subscription => subscription.UserId == filter.UserId
+        );
+
         predicate = FilterHelper.AddFilterCondition<Subscription, decimal>(
             predicate,
             filter.Price,
