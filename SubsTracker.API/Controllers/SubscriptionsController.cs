@@ -43,10 +43,10 @@ public class SubscriptionsController(
         return mapper.Map<SubscriptionViewModel>(update);
     }
     
-    [HttpPut("{id:guid}/cancel")]
-    public async Task<SubscriptionViewModel> CancelSubscription(Guid id, CancellationToken cancellationToken)
+    [HttpPut("{subscriptionId:guid}/cancel")]
+    public async Task<SubscriptionViewModel> CancelSubscription([FromQuery] Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var cancelledSubscription = await service.CancelSubscription(id, cancellationToken);
+        var cancelledSubscription = await service.CancelSubscription(userId, subscriptionId, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(cancelledSubscription);
     }
 
