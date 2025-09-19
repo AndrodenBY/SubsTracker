@@ -13,6 +13,7 @@ namespace SubsTracker.BLL.Services.Subscription;
 public class SubscriptionService(
     ISubscriptionRepository repository,
     IMapper mapper,
+    IRepository<DAL.Models.User.User> userRepository,
     ISubscriptionHistoryRepository history
     ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(repository, mapper),
     ISubscriptionService
@@ -27,33 +28,37 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
-        var entityToCreate = mapper.Map<SubscriptionModel>(createDto);
-        entityToCreate.UserId = userId;
+        var existingUser = await base.GetById(userId, cancellationToken)
+            ?? throw new NotFoundException($"User with id {userId} does not exist");
+        
+        var subscriptionToCreate = mapper.Map<SubscriptionModel>(createDto);
+        subscriptionToCreate.UserId = existingUser.Id;
     
-        var createdEntity = await repository.Create(entityToCreate, cancellationToken);
-        var subscriptionDto = mapper.Map<SubscriptionDto>(createdEntity);
+        var createdSubscription = await repository.Create(subscriptionToCreate, cancellationToken);
+        var subscriptionDto = mapper.Map<SubscriptionDto>(createdSubscription);
 
-        await history.Create(createdEntity.Id, SubscriptionAction.Activate, createDto.Price, cancellationToken);
+        await history.Create(createdSubscription.Id, SubscriptionAction.Activate, createDto.Price, cancellationToken);
         return subscriptionDto;
     }
 
     public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var originalSubscription = await repository.GetById(updateDto.Id, cancellationToken);
-        if (originalSubscription == null)
-        {
-            throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
-        }
+        var userWithSubscription = await userRepository.GetById(userId, cancellationToken)
+            ?? throw new NotFoundException($"User with id {userId} does not exist");
+        
+        var originalSubscription = await repository
+                                       .GetByPredicate(s => s.Id == updateDto.Id && s.UserId == userWithSubscription.Id, cancellationToken) 
+                                   ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found or does not belong to user {userWithSubscription.Id}");
 
         var updatedSubscription = await base.Update(updateDto.Id, updateDto, cancellationToken);
         await history.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id, updatedSubscription.Price, cancellationToken);
         return updatedSubscription;
     }
 
-    public async Task<SubscriptionDto> CancelSubscription(Guid id, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var subscription = await repository.GetById(id, cancellationToken)
-                           ?? throw new NotFoundException($"Subscription with id {id} not found");
+        var subscription = await repository
+            .GetByPredicate(subscription => subscription.Id == subscriptionId && subscription.UserId == userId, cancellationToken);
 
         subscription.Active = false;
         var updatedSubscription = await repository.Update(subscription, cancellationToken);
