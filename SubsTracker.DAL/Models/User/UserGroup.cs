@@ -6,5 +6,5 @@ public class UserGroup : BaseModel
     public Guid? UserId { get; set; }
     public User? User { get; set; }
     public List<GroupMember>? Members { get; set; }
-    public List<Subscription.Subscription>? SharedSubscriptions { get; set; }
+    public List<Subscription.Subscription>? SharedSubscriptions { get; set; } = new();
 }
