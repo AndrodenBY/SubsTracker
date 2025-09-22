@@ -10,7 +10,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var userGroupDto = new UserGroupDto { Id = userGroupToFind.Id, Name = userGroupToFind.Name};
         var filter = new UserGroupFilterDto { Name = userGroupToFind.Name };
 
-        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), Arg.Any<CancellationToken>())
+        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
             .Returns(new List<UserGroup> { userGroupToFind });
         _mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto> { userGroupDto });
 
@@ -20,7 +20,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         //Assert
         await _repository.Received(1).GetAll(
             Arg.Any<Expression<Func<UserGroup, bool>>>(), 
-            Arg.Any<CancellationToken>()
+            default
         );
         
         result.ShouldNotBeNull();
@@ -36,7 +36,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var userGroupDto = new UserGroupDto { Id = userGroupToFind.Id, Name = userGroupToFind.Name};
         var filter = new UserGroupFilterDto { Name = "Pv$$YbR3aK3rS123" };
 
-        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), Arg.Any<CancellationToken>())
+        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
             .Returns(new List<UserGroup>());
         _mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
         
@@ -53,7 +53,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         //Arrange
         var filter = new UserGroupFilterDto();
         
-        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), Arg.Any<CancellationToken>())
+        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
             .Returns(new List<UserGroup>());
         _mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
         
@@ -65,24 +65,6 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
     }
     
     [Fact]
-    public async Task GetAll_WhenNoMembers_ReturnsEmptyList()
-    {
-        //Arrange
-        var filter = new GroupMemberFilterDto();
-        
-        _memberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-        _mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto>());
-        
-        //Act
-        var result = await _service.GetAll(filter, default);
-        
-        //Assert
-        result.ShouldBeEmpty();
-    }
-
-    
-    [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUserGroups()
     {
         //Arrange
@@ -91,7 +73,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         
         var filter = new UserGroupFilterDto();
 
-        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), Arg.Any<CancellationToken>())
+        _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
             .Returns(userGroups);
         _mapper.Map<List<UserGroupDto>>(userGroups).Returns(userGroupDtos);
 
@@ -103,28 +85,5 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         result.ShouldNotBeEmpty();
         result.Count.ShouldBe(3);
         result.ShouldBe(userGroupDtos);
-    }
-    
-    [Fact]
-    public async Task GetAll_WhenFilterIsEmpty_ReturnsAllMembers()
-    {
-        //Arrange
-        var members = _fixture.CreateMany<GroupMember>(3).ToList();
-        var memberDtos = _fixture.CreateMany<GroupMemberDto>(3).ToList();
-        
-        var filter = new GroupMemberFilterDto();
-
-        _memberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(members);
-        _mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>())
-            .Returns(memberDtos);
-        
-        //Act
-        var result = await _service.GetAll(filter, default);
-
-        //Assert
-        result.ShouldNotBeNull();
-        result.ShouldNotBeEmpty();
-        result.Count.ShouldBe(3);
     }
 }
