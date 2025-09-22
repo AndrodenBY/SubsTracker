@@ -12,6 +12,7 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class UserGroupsController(
     IUserGroupService service,
+    IGroupMemberService memberService,
     IMapper mapper
     ) : ControllerBase
 {
@@ -32,7 +33,7 @@ public class UserGroupsController(
     [HttpGet("members")]
     public async Task<List<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
     {
-        var entities = await service.GetAll(filterDto, cancellationToken);
+        var entities = await memberService.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<GroupMemberViewModel>>(entities);
     }
     
@@ -59,19 +60,19 @@ public class UserGroupsController(
     [HttpPost("join")]
     public async Task JoinGroup([FromBody] CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
-        await service.JoinGroup(createDto, cancellationToken);
+        await memberService.JoinGroup(createDto, cancellationToken);
     }
 
     [HttpDelete("leave")]
     public async Task LeaveGroup([FromQuery] Guid groupId, [FromQuery] Guid userId, CancellationToken cancellationToken)
     {
-        await service.LeaveGroup(groupId, userId, cancellationToken);
+        await memberService.LeaveGroup(groupId, userId, cancellationToken);
     }
 
-    [HttpPut("members/{memberId:guid}/moderator")]
-    public async Task<GroupMemberViewModel> MakeModerator(Guid memberId, CancellationToken cancellationToken)
+    [HttpPut("members/{memberId:guid}/role")]
+    public async Task<GroupMemberViewModel> ChangeRole(Guid memberId, CancellationToken cancellationToken)
     {
-        var newModerator = await service.MakeModerator(memberId, cancellationToken);
+        var newModerator = await memberService.ChangeRole(memberId, cancellationToken);
         return mapper.Map<GroupMemberViewModel>(newModerator);
     }
 
