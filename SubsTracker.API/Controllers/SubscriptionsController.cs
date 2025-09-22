@@ -51,7 +51,7 @@ public class SubscriptionsController(
     }
 
     [HttpPut("{subscriptionId:guid}/renew")]
-    public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, int monthsToRenew,
+    public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, [FromQuery] int monthsToRenew,
         CancellationToken cancellationToken)
     {
         var renew = await service.RenewSubscription(subscriptionId, monthsToRenew, cancellationToken);

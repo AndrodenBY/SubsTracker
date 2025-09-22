@@ -35,11 +35,11 @@ public class UserGroupsController(
         var entities = await service.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<GroupMemberViewModel>>(entities);
     }
-
-    [HttpPost]
-    public async Task<UserGroupViewModel> Create(CreateUserGroupDto createDto, CancellationToken cancellationToken)
+    
+    [HttpPost("{userId:guid}/create")]
+    public async Task<UserGroupViewModel> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(createDto.UserId, createDto, cancellationToken);
+        var create = await service.Create(userId, createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
     }
 
