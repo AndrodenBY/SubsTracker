@@ -2,32 +2,31 @@ namespace SubsTracker.UnitTests.UserGroupService;
 
 public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
 {
-    private readonly UserGroup _userGroupEntity;
-    private readonly UserGroupDto _userGroupDto;
-    
-    public UserGroupServiceGetByIdTests()
-    {
-        _userGroupEntity = _fixture.Create<UserGroup>();
-        _userGroupDto = new UserGroupDto{Id = _userGroupEntity.Id, Name = _userGroupEntity.Name};
-        
-        _repository.GetById(_userGroupEntity.Id, default)
-            .Returns(Task.FromResult<UserGroup?>(_userGroupEntity));
-        
-        _mapper.Map<UserGroupDto>(_userGroupEntity)
-            .Returns(_userGroupDto);
-    }
-
     [Fact]
     public async Task GetById_ShouldReturnUserGroupDto_WhenUserGroupExists()
     {
+        //Arrange
+        var userGroupDto = _fixture.Create<UserGroupDto>();
+        var userGroup = _fixture.Build<UserGroup>()
+            .With(x => x.Id, userGroupDto.Id)
+            .With(x => x.Name, userGroupDto.Name)
+            .Create();
+
+        _repository.GetById(userGroupDto.Id, default)
+            .Returns(userGroup);
+
+        _mapper.Map<UserGroupDto>(userGroup)
+            .Returns(userGroupDto);
+
         //Act
-        var result = await _service.GetById(_userGroupEntity.Id, default);
-        
+        var result = await _service.GetById(userGroupDto.Id, default);
+
         //Assert
         result.ShouldNotBeNull();
-        result.Id.ShouldBe(_userGroupEntity.Id);
-        result.Name.ShouldBe(_userGroupEntity.Name);
+        result.Id.ShouldBe(userGroupDto.Id);
+        result.Name.ShouldBe(userGroupDto.Name);
     }
+
 
     [Fact]
     public async Task GetById_ShouldReturnNull_WhenEmptyGuid()
@@ -58,11 +57,24 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
     [Fact]
     public async Task GetById_WhenCalled_CallsRepositoryExactlyOnce()
     {
+        //Arrange
+        var userGroupDto = _fixture.Create<UserGroupDto>();
+        var userGroup = _fixture.Build<UserGroup>()
+            .With(x => x.Id, userGroupDto.Id)
+            .With(x => x.Name, userGroupDto.Name)
+            .Create();
+        
+        _repository.GetById(userGroupDto.Id, default)
+            .Returns(userGroup);
+
+        _mapper.Map<UserGroupDto>(userGroup)
+            .Returns(userGroupDto);
+        
         //Act
-        await _service.GetById(_userGroupEntity.Id, default);
+        await _service.GetById(userGroup.Id, default);
         
         //Assert
-        await _repository.Received(1).GetById(_userGroupEntity.Id, default);
-        _mapper.Received(1).Map<UserGroupDto>(_userGroupEntity);
+        await _repository.Received(1).GetById(userGroup.Id, default);
+        _mapper.Received(1).Map<UserGroupDto>(userGroup);
     }
 }
