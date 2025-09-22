@@ -42,8 +42,9 @@ public class UserGroupService(
     
     public async Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await repository.GetById(userId, cancellationToken)
+        var existingUser = await userRepository.GetById(userId, cancellationToken)
             ?? throw new ValidationException($"User with id {userId} does not exist");
+        createDto.UserId = userId;
         
         var createdGroup = await base.Create(createDto, cancellationToken);
         
