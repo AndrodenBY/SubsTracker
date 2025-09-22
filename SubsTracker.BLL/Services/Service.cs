@@ -59,8 +59,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 
     public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
-        var entity = await repository.GetByPredicate(predicate, cancellationToken)
-                     ?? throw new NotFoundException($"Entity with predicate {predicate} not found");
+        var entity = await repository.GetByPredicate(predicate, cancellationToken);
 
         return mapper.Map<TDto>(entity);
     }

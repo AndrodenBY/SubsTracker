@@ -28,7 +28,7 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await base.GetById(userId, cancellationToken)
+        var existingUser = await userRepository.GetById(userId, cancellationToken)
             ?? throw new NotFoundException($"User with id {userId} does not exist");
         
         var subscriptionToCreate = mapper.Map<SubscriptionModel>(createDto);
@@ -58,8 +58,9 @@ public class SubscriptionService(
     public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var subscription = await repository
-            .GetByPredicate(subscription => subscription.Id == subscriptionId && subscription.UserId == userId, cancellationToken);
-
+            .GetByPredicate(subscription => subscription.Id == subscriptionId && subscription.UserId == userId, cancellationToken)
+            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
+        
         subscription.Active = false;
         var updatedSubscription = await repository.Update(subscription, cancellationToken);
 
@@ -79,6 +80,7 @@ public class SubscriptionService(
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
 
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
+        subscriptionToRenew.Active = true;
         var renewedSubscription = await repository.Update(subscriptionToRenew, cancellationToken);
         await history.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price, cancellationToken);
 
@@ -89,7 +91,7 @@ public class SubscriptionService(
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var billsToPay = await repository.GetUpcomingBills(userId, cancellationToken)
-            ?? throw new NotFoundException($"User with id {userId} not found");
+            ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
         return mapper.Map<List<SubscriptionDto>>(billsToPay);
     }
 }

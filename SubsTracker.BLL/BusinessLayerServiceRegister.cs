@@ -20,7 +20,8 @@ public static class BusinessLayerServiceRegister
         .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
         .AddScoped<ISubscriptionService, SubscriptionService>()
         .AddScoped<IUserService, UserService>()
-        .AddScoped<IUserGroupService, UserGroupService>();
+        .AddScoped<IUserGroupService, UserGroupService>()
+        .AddScoped<IGroupMemberService, GroupMemberService>();
         return services;
     }
 }
