@@ -69,7 +69,7 @@ public class UserGroupsController(
         await memberService.LeaveGroup(groupId, userId, cancellationToken);
     }
 
-    [HttpPut("members/{memberId:guid}/role")]
+    [HttpPatch("members/{memberId:guid}/role")]
     public async Task<GroupMemberViewModel> ChangeRole(Guid memberId, CancellationToken cancellationToken)
     {
         var newModerator = await memberService.ChangeRole(memberId, cancellationToken);
