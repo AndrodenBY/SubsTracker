@@ -5,9 +5,8 @@ public class UserGroupServiceTestsBase
     protected readonly IFixture _fixture;
     protected readonly IRepository<UserGroup> _repository;
     protected readonly IRepository<User> _userRepository;
-    protected readonly IRepository<GroupMember> _memberRepository;
     protected readonly ISubscriptionRepository _subscriptionRepository;
-    protected readonly IService<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto> _memberService;
+    protected readonly IGroupMemberService _memberService;
     protected readonly IMapper _mapper;
     protected readonly BLL.Services.User.UserGroupService _service;
 
@@ -22,15 +21,13 @@ public class UserGroupServiceTestsBase
         
         _repository = Substitute.For<IRepository<UserGroup>>();
         _userRepository = Substitute.For<IRepository<User>>();
-        _memberRepository = Substitute.For<IRepository<GroupMember>>();
         _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
         _mapper = Substitute.For<IMapper>();
-        _memberService = new Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(_memberRepository, _mapper);
+        _memberService = Substitute.For<IGroupMemberService>();
         
         _service = new BLL.Services.User.UserGroupService(
             _repository, 
             _userRepository, 
-            _memberRepository, 
             _subscriptionRepository, 
             _memberService, 
             _mapper
