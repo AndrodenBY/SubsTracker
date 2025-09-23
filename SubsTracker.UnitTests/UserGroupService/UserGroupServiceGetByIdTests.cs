@@ -3,7 +3,7 @@ namespace SubsTracker.UnitTests.UserGroupService;
 public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
 {
     [Fact]
-    public async Task GetById_ShouldReturnUserGroupDto_WhenUserGroupExists()
+    public async Task GetById_WhenUserGroupExists_ReturnsUserGroupDto()
     {
         //Arrange
         var userGroupDto = _fixture.Create<UserGroupDto>();
@@ -29,7 +29,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
 
 
     [Fact]
-    public async Task GetById_ShouldReturnNull_WhenEmptyGuid()
+    public async Task GetById_WhenEmptyGuid_ReturnsNull()
     {
         //Arrange
         var emptyId = Guid.Empty;
@@ -42,7 +42,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
     }
 
     [Fact]
-    public async Task GetById_ShouldReturnNull_WhenUserGroupDoesNotExist()
+    public async Task GetById_WhenUserGroupDoesNotExist_ReturnsNull()
     {
         //Arrange
         var fakeId = Guid.NewGuid();
