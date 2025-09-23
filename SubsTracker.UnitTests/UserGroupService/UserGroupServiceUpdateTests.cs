@@ -38,6 +38,6 @@ public class UserGroupServiceUpdateTests : UserGroupServiceTestsBase
         var emptyDto = new UpdateUserGroupDto();
 
         //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(() => _service.Update(Guid.NewGuid(), emptyDto, default));
+        await Should.ThrowAsync<NotFoundException>(() => _service.Update(Guid.Empty, emptyDto, default));
     }
 }
