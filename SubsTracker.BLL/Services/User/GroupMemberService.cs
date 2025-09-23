@@ -62,11 +62,6 @@ public class GroupMemberService(
         var memberToUpdate = await repository.GetById(memberId, cancellationToken)
                              ?? throw new NotFoundException($"Member with id {memberId} not found.");
         
-        if (memberToUpdate.Role == MemberRole.Admin)
-        {
-            throw new InvalidOperationException("Cannot modify administrator role");
-        }
-        
         var newRole = memberToUpdate.Role switch
         {
             MemberRole.Participant => MemberRole.Moderator,
