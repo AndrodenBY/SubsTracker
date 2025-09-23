@@ -1,6 +1,3 @@
-using SubsTracker.Domain.Enums;
-using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
-
 namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceChangeRoleTests : GroupMemberServiceTestBase

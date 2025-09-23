@@ -1,5 +1,3 @@
-using SubsTracker.Domain.Exceptions;
-
 namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
