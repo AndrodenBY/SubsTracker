@@ -1,5 +1,3 @@
-using SubsTracker.Domain.Exceptions;
-
 namespace SubsTracker.UnitTests.SubscriptionService;
 
 public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
