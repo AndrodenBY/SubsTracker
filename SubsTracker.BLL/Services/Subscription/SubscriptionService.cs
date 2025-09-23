@@ -45,11 +45,15 @@ public class SubscriptionService(
     {
         var userWithSubscription = await userRepository.GetById(userId, cancellationToken)
             ?? throw new NotFoundException($"User with id {userId} does not exist");
-        
-        var originalSubscription = await repository
-                                       .GetByPredicate(s => s.Id == updateDto.Id && s.UserId == userWithSubscription.Id, cancellationToken) 
-                                   ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found or does not belong to user {userWithSubscription.Id}");
+            
+        var originalSubscription = await repository.GetById(updateDto.Id, cancellationToken)
+            ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
 
+        if (originalSubscription.UserId != userWithSubscription.Id)
+        {
+            throw new NotFoundException($"Subscription with id {updateDto.Id} does not belong to user {userWithSubscription.Id}");
+        }
+            
         var updatedSubscription = await base.Update(updateDto.Id, updateDto, cancellationToken);
         await history.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id, updatedSubscription.Price, cancellationToken);
         return updatedSubscription;
@@ -57,9 +61,13 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var subscription = await repository
-            .GetByPredicate(subscription => subscription.Id == subscriptionId && subscription.UserId == userId, cancellationToken)
-            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
+        var subscription = await repository.GetById(subscriptionId, cancellationToken)
+                           ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
+
+        if (subscription.UserId != userId)
+        {
+            throw new NotFoundException($"Subscription with id {subscriptionId} does not belong to user {userId}");
+        }
         
         subscription.Active = false;
         var updatedSubscription = await repository.Update(subscription, cancellationToken);
@@ -68,8 +76,7 @@ public class SubscriptionService(
         return mapper.Map<SubscriptionDto>(updatedSubscription);
     }
 
-    public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew,
-        CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
     {
         if (monthsToRenew <= 0)
         {
@@ -78,7 +85,7 @@ public class SubscriptionService(
 
         var subscriptionToRenew = await repository.GetById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
-
+    
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
         subscriptionToRenew.Active = true;
         var renewedSubscription = await repository.Update(subscriptionToRenew, cancellationToken);
@@ -92,6 +99,7 @@ public class SubscriptionService(
     {
         var billsToPay = await repository.GetUpcomingBills(userId, cancellationToken)
             ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
+        
         return mapper.Map<List<SubscriptionDto>>(billsToPay);
     }
 }
