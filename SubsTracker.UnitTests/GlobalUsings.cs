@@ -21,3 +21,5 @@ global using SubsTracker.BLL.Services;
 global using SubsTracker.Domain.Exceptions;
 global using SubsTracker.BLL.Interfaces.User;
 global using AutoFixture.Xunit2;
+global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
+global using SubsTracker.Domain.Exceptions;
