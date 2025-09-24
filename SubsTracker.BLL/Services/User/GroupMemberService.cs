@@ -31,7 +31,11 @@ public class GroupMemberService(
     
     public async Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
-        await EnsureExist(createDto.UserId, createDto.GroupId, cancellationToken);
+        var user = repository.GetById(createDto.UserId, default)
+            ?? throw new NotFoundException($"User with id {createDto.UserId} not found");
+        
+        var group = repository.GetById(createDto.GroupId, default)
+            ?? throw new NotFoundException($"Group with id {createDto.GroupId} not found");
 
         var existingMember = await repository.GetByPredicate(
             gm => gm.UserId == createDto.UserId && gm.GroupId == createDto.GroupId, cancellationToken);
@@ -48,7 +52,7 @@ public class GroupMemberService(
     {
         var memberToDelete = await repository.GetByPredicate(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
-                             ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}.");
+                             ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
 
         return await base.Delete(memberToDelete.Id, cancellationToken);
     }
@@ -57,30 +61,16 @@ public class GroupMemberService(
     {
         var memberToUpdate = await repository.GetById(memberId, cancellationToken)
                              ?? throw new NotFoundException($"Member with id {memberId} not found.");
-
-        var updateDto = new UpdateGroupMemberDto();
-        mapper.Map(memberToUpdate, updateDto);
-
-        if (memberToUpdate.Role == MemberRole.Admin)
-        {
-            throw new InvalidOperationException("Cannot modify administrator role");
-        }
         
-        updateDto.Role = memberToUpdate.Role switch
+        var newRole = memberToUpdate.Role switch
         {
             MemberRole.Participant => MemberRole.Moderator,
             MemberRole.Moderator => MemberRole.Participant,
-            _ => memberToUpdate.Role
+            _ => throw new InvalidOperationException("Cannot modify administrator role")
         };
-
+        
+        var updateDto = new UpdateGroupMemberDto { Id = memberToUpdate.Id, Role = newRole };
+        
         return await base.Update(memberToUpdate.Id, updateDto, cancellationToken);
-    }
-    
-    private async Task EnsureExist(Guid userId, Guid groupId, CancellationToken cancellationToken)
-    {
-        var userTask = await userRepository.GetById(userId, cancellationToken)
-                       ?? throw new NotFoundException($"User with id {userId} not found.");
-        var groupTask = await groupRepository.GetById(groupId, cancellationToken)
-                        ?? throw new NotFoundException($"Group with id {groupId} not found.");
     }
 }
