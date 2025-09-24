@@ -8,13 +8,12 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         // Arrange
         var subscriptionEntity = _fixture.Create<Subscription>();
 
-        var subscriptionDto = new SubscriptionDto
-        {
-            Id = subscriptionEntity.Id,
-            Name = subscriptionEntity.Name,
-            Price = subscriptionEntity.Price,
-            DueDate = subscriptionEntity.DueDate
-        };
+        var subscriptionDto = _fixture.Build<SubscriptionDto>()
+            .With(subscription => subscription.Id, subscriptionEntity.Id)
+            .With(subscription => subscription.Name, subscriptionEntity.Name)
+            .With(subscription => subscription.Price, subscriptionEntity.Price)
+            .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
+            .Create();
 
         _repository.GetById(subscriptionEntity.Id, default)
             .Returns(subscriptionEntity);
