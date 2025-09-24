@@ -48,7 +48,7 @@ public class GroupMemberService(
     {
         var memberToDelete = await repository.GetByPredicate(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
-                             ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}.");
+                             ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
 
         return await base.Delete(memberToDelete.Id, cancellationToken);
     }
@@ -56,7 +56,7 @@ public class GroupMemberService(
     public async Task<GroupMemberDto> ChangeRole(Guid memberId, CancellationToken cancellationToken)
     {
         var memberToUpdate = await repository.GetById(memberId, cancellationToken)
-                             ?? throw new NotFoundException($"Member with id {memberId} not found.");
+                             ?? throw new NotFoundException($"Member with id {memberId} not found");
 
         var updateDto = new UpdateGroupMemberDto();
         mapper.Map(memberToUpdate, updateDto);
@@ -79,8 +79,8 @@ public class GroupMemberService(
     private async Task EnsureExist(Guid userId, Guid groupId, CancellationToken cancellationToken)
     {
         var userTask = await userRepository.GetById(userId, cancellationToken)
-                       ?? throw new NotFoundException($"User with id {userId} not found.");
+                       ?? throw new NotFoundException($"User with id {userId} not found");
         var groupTask = await groupRepository.GetById(groupId, cancellationToken)
-                        ?? throw new NotFoundException($"Group with id {groupId} not found.");
+                        ?? throw new NotFoundException($"Group with id {groupId} not found");
     }
 }
