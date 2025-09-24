@@ -57,7 +57,7 @@ public class UserGroupService(
         
         if (group.SharedSubscriptions.Any(sub => sub.Id == subscriptionId))
         {
-            throw new InvalidOperationException($"Subscription with id {subscriptionId} is already shared with group {groupId}.");
+            throw new InvalidOperationException($"Subscription with id {subscriptionId} is already shared with group {groupId}");
         }
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
