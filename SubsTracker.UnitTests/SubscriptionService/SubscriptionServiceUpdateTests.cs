@@ -26,7 +26,9 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
             .With(s => s.Type, updateDto.Type)
             .Create();
         
-        var user = new User { Id = userId };
+        var user = _fixture.Build<User>()
+            .With(user => user.Id, userId)
+            .Create();
 
         _userRepository.GetById(Arg.Any<Guid>(), default)
             .Returns(user);

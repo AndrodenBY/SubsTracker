@@ -5,7 +5,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
     [Fact]
     public async Task GetById_WhenSubscriptionExists_ReturnsSubscriptionDto()
     {
-        // Arrange
+        //Arrange
         var subscriptionEntity = _fixture.Create<Subscription>();
 
         var subscriptionDto = _fixture.Build<SubscriptionDto>()
@@ -21,10 +21,10 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         _mapper.Map<SubscriptionDto>(subscriptionEntity)
             .Returns(subscriptionDto);
 
-        // Act
+        //Act
         var result = await _service.GetById(subscriptionEntity.Id, default);
 
-        // Assert
+        //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(subscriptionEntity.Id);
         result.Name.ShouldBe(subscriptionEntity.Name);
