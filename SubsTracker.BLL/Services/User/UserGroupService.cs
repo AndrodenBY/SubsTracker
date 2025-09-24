@@ -52,49 +52,37 @@ public class UserGroupService(
 
     public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        _ = await repository.GetById(groupId, cancellationToken)
-                ?? throw new NotFoundException($"Group with id {groupId} not found");
+        var group = await repository.GetById(groupId, cancellationToken)
+                ?? throw new NotFoundException($"Group with id {groupId} not found.");
         
-        var checkedGroup = await repository.GetByPredicate(
-            group => group.Id == groupId && group.SharedSubscriptions.Any(sub => sub.Id == subscriptionId),
-            cancellationToken);
-
-        if (checkedGroup is not null)
+        if (group.SharedSubscriptions.Any(sub => sub.Id == subscriptionId))
         {
             throw new InvalidOperationException($"Subscription with id {subscriptionId} is already shared with group {groupId}");
         }
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
-                           ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
-
-        checkedGroup.SharedSubscriptions.Add(subscription);
-
-        var updatedGroup = await repository.Update(checkedGroup, cancellationToken);
-        return mapper.Map<UserGroupDto>(updatedGroup);
-    }
-
-    public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
-    {
-        var isShared = await IsShared(groupId, subscriptionId, cancellationToken);
-        if (!isShared)
-        {
-            throw new ValidationException($"Subscription {subscriptionId} is not shared");
-        }
-
-        var subscription = await subscriptionRepository.GetById(groupId, cancellationToken)
-            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
-
-        var group = await repository.GetById(groupId, cancellationToken);
-        group.SharedSubscriptions.Remove(subscription);
+                           ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found.");
+        
+        group.SharedSubscriptions.Add(subscription);
 
         var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
     }
 
-    private async Task<bool> IsShared(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
+    public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var group = await repository.GetByPredicate(
-            g => g.Id == groupId && g.SharedSubscriptions.Any(s => s.Id == subscriptionId), cancellationToken);
-        return group is not null;
+        var group = await repository.GetById(groupId, cancellationToken)
+                    ?? throw new NotFoundException($"Group with id {groupId} not found.");
+
+        var subscriptionToRemove = group.SharedSubscriptions.FirstOrDefault(s => s.Id == subscriptionId);
+        
+        if (subscriptionToRemove is null)
+        {
+            throw new ValidationException($"Subscription {subscriptionId} is not shared with group {groupId}");
+        }
+        group.SharedSubscriptions.Remove(subscriptionToRemove);
+
+        var updatedGroup = await repository.Update(group, cancellationToken);
+        return mapper.Map<UserGroupDto>(updatedGroup);
     }
 }
