@@ -10,7 +10,10 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
             .With(group => group.SharedSubscriptions, new List<Subscription>())
             .Create();
         var subscription = new Subscription { Id = Guid.NewGuid() };
-        var expectedDto = new UserGroupDto { Id = userGroup.Id, Name = userGroup.Name };
+        var expectedDto = _fixture.Build<UserGroupDto>()
+            .With(group => group.Id, userGroup.Id)
+            .With(group => group.Name, userGroup.Name)
+            .Create();
 
         _repository.GetById(userGroup.Id, default)
             .Returns(userGroup);

@@ -22,12 +22,12 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
     [Fact]
     public async Task Delete_WhenEmptyGuid_ThrowsNotFoundException()
     {
-        // Arrange
+        //Arrange
         var emptyId = Guid.Empty;
 
         _repository.GetById(emptyId, default).Returns((UserGroup)null);
 
-        // Act & Assert
+        //Act & Assert
         await Should.ThrowAsync<NotFoundException>(async () => await _service.Delete(emptyId, default));
     }
 }

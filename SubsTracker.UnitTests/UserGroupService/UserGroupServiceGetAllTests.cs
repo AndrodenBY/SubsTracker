@@ -7,7 +7,11 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
     {
         //Arrange
         var userGroupToFind = _fixture.Create<UserGroup>();
-        var userGroupDto = new UserGroupDto { Id = userGroupToFind.Id, Name = userGroupToFind.Name};
+        var userGroupDto = _fixture.Build<UserGroupDto>() 
+            .With(userGroup => userGroup.Name, userGroupToFind.Name)
+            .With(userGroup => userGroup.Id, userGroupToFind.Id)
+            .Create();
+        
         var filter = new UserGroupFilterDto { Name = userGroupToFind.Name };
 
         _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
@@ -33,7 +37,11 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
     {
         //Arrange
         var userGroupToFind = _fixture.Create<UserGroup>();
-        var userGroupDto = new UserGroupDto { Id = userGroupToFind.Id, Name = userGroupToFind.Name};
+        var userGroupDto = _fixture.Build<UserGroupDto>()
+            .With(userGroup => userGroup.Name, userGroupToFind.Name)
+            .With(userGroup => userGroup.Id, userGroupToFind.Id)
+            .Create();
+        
         var filter = new UserGroupFilterDto { Name = "Pv$$YbR3aK3rS123" };
 
         _repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
