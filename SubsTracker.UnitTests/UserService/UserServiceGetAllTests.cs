@@ -7,7 +7,12 @@ public class UserServiceGetAllTests : UserServiceTestsBase
     {
         //Arrange
         var userToFind = _fixture.Create<User>();
-        var userDto = new UserDto { Id = userToFind.Id, FirstName = userToFind.FirstName, Email = userToFind.Email };
+        var userDto = _fixture.Build<UserDto>()
+            .With(user => user.Email, userToFind.Email)
+            .With(user => user.Id, userToFind.Id)
+            .With(user => user.FirstName, userToFind.FirstName)
+            .Create();
+            
         var filter = new UserFilterDto { Email = userToFind.Email };
 
         _repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)

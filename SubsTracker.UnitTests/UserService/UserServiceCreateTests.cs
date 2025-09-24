@@ -5,7 +5,7 @@ public class UserServiceCreateTests : UserServiceTestsBase
     [Fact]
     public async Task Create_WhenCalled_ReturnsCreatedUserDto()
     {
-        // Arrange
+        //Arrange
         var createDto = _fixture.Create<CreateUserDto>();
 
         var userEntity = _fixture.Build<User>()
@@ -26,10 +26,10 @@ public class UserServiceCreateTests : UserServiceTestsBase
         _repository.Create(userEntity, default).Returns(userEntity);
         _mapper.Map<UserDto>(userEntity).Returns(userDto);
 
-        // Act
+        //Act
         var result = await _service.Create(createDto, default);
 
-        // Assert
+        //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(userEntity.Id);
         result.Email.ShouldBe(userEntity.Email);

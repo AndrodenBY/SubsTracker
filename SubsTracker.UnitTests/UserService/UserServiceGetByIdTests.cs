@@ -7,7 +7,11 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
     {
         //Arrange
         var existingUser = _fixture.Create<User>();
-        var expectedDto = new UserDto { Id = existingUser.Id, FirstName = existingUser.FirstName, Email = existingUser.Email };
+        var expectedDto = _fixture.Build<UserDto>()
+            .With(user => user.Id, existingUser.Id)
+            .With(user => user.FirstName, existingUser.FirstName)
+            .With(user => user.Email, existingUser.Email)
+            .Create();
 
         _repository.GetById(existingUser.Id, default).Returns(existingUser);
         _mapper.Map<UserDto>(existingUser).Returns(expectedDto);
@@ -21,7 +25,6 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         result.FirstName.ShouldBe(existingUser.FirstName);
         await _repository.Received(1).GetById(existingUser.Id, default);
     }
-
 
     [Fact]
     public async Task GetById_WhenEmptyGuid_ReturnsNull()

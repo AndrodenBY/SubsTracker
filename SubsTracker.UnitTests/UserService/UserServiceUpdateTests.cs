@@ -31,7 +31,7 @@ public class UserServiceUpdateTests : UserServiceTestsBase
     [Fact]
     public async Task Update_WhenNull_ThrowsInvalidOperationException()
     {
-        // Act & Assert
+        //Act & Assert
         await Should.ThrowAsync<InvalidOperationException>(async () => await _service.Update(Guid.Empty, null, default));
     }
 }
