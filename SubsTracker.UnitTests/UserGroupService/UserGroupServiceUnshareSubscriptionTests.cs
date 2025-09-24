@@ -31,7 +31,7 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
     }
     
     [Fact]
-    public async Task UnshareSubscription_Should_ThrowNotFoundException_When_GroupDoesNotExist()
+    public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
         _repository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())

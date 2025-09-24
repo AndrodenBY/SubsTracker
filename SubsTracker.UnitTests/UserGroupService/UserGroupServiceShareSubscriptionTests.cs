@@ -33,7 +33,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
     }
     
     [Fact]
-    public async Task ShareSubscription_Should_ThrowNotFoundException_When_GroupDoesNotExist()
+    public async Task ShareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
         var nonExistentGroupId = Guid.NewGuid();
