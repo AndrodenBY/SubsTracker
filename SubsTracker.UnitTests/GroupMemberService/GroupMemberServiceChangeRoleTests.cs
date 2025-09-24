@@ -46,7 +46,10 @@ public class GroupMemberServiceChangeRoleTests : GroupMemberServiceTestBase
             .With(member => member.Role, MemberRole.Admin)
             .Create();
         
-        var updateDto = new UpdateGroupMemberDto { Id = memberEntity.Id, Role = MemberRole.Moderator };
+        var updateDto = _fixture.Build<UpdateGroupMemberDto>()
+            .With(dto => dto.Id, memberEntity.Id)
+            .With(dto => dto.Role, MemberRole.Moderator)
+            .Create();
         
         _repository.GetById(memberEntity.Id, default).Returns(memberEntity);
     

@@ -41,4 +41,34 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         //Assert
         result.ShouldBeEmpty();
     }
+    
+    [Fact]
+    public async Task GetAll_WhenFilteredByName_ReturnsCorrectGroupMember()
+    {
+        //Arrange
+        var memberToFind = _fixture.Create<GroupMember>();
+        var memberDto = _fixture.Build<GroupMemberDto>()
+            .With(d => d.Id, memberToFind.Id)
+            .With(filter => filter.Role, memberToFind.Role)
+            .Create();
+        
+        var filter = new GroupMemberFilterDto { Role = memberToFind.Role };
+
+        _repository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+            .Returns(new List<GroupMember> { memberToFind });
+        _mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto> { memberDto });
+
+        //Act
+        var result = await _service.GetAll(filter, default);
+
+        //Assert
+        await _repository.Received(1).GetAll(
+            Arg.Any<Expression<Func<GroupMember, bool>>>(), 
+            default
+        );
+
+        result.ShouldNotBeNull();
+        result.ShouldHaveSingleItem();
+        result.Single().Role.ShouldBe(memberToFind.Role);
+    }
 }
