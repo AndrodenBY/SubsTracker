@@ -1,27 +1,4 @@
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Text;
-using Newtonsoft.Json;
-using System.Threading.Tasks;
-using AutoFixture;
-using Xunit;
-using Shouldly;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Serialization;
-using SubsTracker.API.ViewModel.Subscription;
-using SubsTracker.BLL.DTOs.Subscription;
-using SubsTracker.BLL.DTOs.User;
-using SubsTracker.DAL;
-using SubsTracker.DAL.Models.User;
-using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.Domain.Enums;
-
-namespace SubsTracker.IntegrationTests;
+namespace SubsTracker.IntegrationTests.Subscription;
 
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>, IAsyncDisposable
 {
@@ -35,7 +12,6 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         _client = _factory.CreateClient();
         _helper = new SubscriptionTestHelper(factory);
     }
-    
     
     [Fact]
     public async Task GetById_ShouldReturnCorrectSubscription()
