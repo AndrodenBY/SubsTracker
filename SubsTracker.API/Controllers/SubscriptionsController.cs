@@ -77,7 +77,7 @@ public class SubscriptionsController(
     /// <summary>
     /// Updates an existing subscription
     /// </summary>
-    /// <param name="id">The ID of the subscription to update</param>
+    /// <param name="id">The ID of the user owning subscription</param>
     /// <param name="updateDto">The updated subscription data</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <remarks>
@@ -87,6 +87,7 @@ public class SubscriptionsController(
     ///     "name": "Netflix Premium",
     ///     "price": 15.99
     /// }
+    /// </remarks>
     /// <returns>The updated subscription view model</returns>
     /// <exception cref="NotFoundException">Thrown if the subscription is not found, or the user with such a subscription</exception>
     [HttpPut("{id:guid}")]
