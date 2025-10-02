@@ -4,122 +4,145 @@ namespace SubsTracker.IntegrationTests.Helpers;
 
 public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
-    private User _user = null!;
-    private List<Subscription> _subscriptions = null!;
-    
-    public async Task<Subscription> AddSingleSubscription()
+    public async Task<SubscriptionSeedEntity> AddSeedData()
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        _user = _fixture.Build<User>()
-            .Without(user => user.Groups)
+        var user = _fixture.Build<User>()
+            .Without(u => u.Groups)
             .Create();
-        await dbContext.Users.AddAsync(_user);
 
-        var subscription = _fixture.Build<Subscription>()
-            .With(s => s.UserId, _user.Id)
+        var fixedDueDate = DateOnly.FromDateTime(DateTime.Today);
+
+        var subscription = _fixture.Build<DAL.Models.Subscription.Subscription>()
+            .With(s => s.UserId, user.Id)
+            .With(s => s.Active, true)
+            .With(s => s.DueDate, fixedDueDate)
             .Without(s => s.User)
             .Create();
 
+        await dbContext.Users.AddAsync(user);
         await dbContext.Subscriptions.AddAsync(subscription);
         await dbContext.SaveChangesAsync(default);
 
-        var dbUser = dbContext.Users.FirstOrDefault(user => user.Id == _user.Id);
-        var dbSubscription = dbContext.Subscriptions.FirstOrDefault(sub => sub.Id == subscription.Id);
-        return subscription;
+        return new SubscriptionSeedEntity
+        {
+            User = user,
+            Subscriptions = new List<DAL.Models.Subscription.Subscription> { subscription }
+        };
     }
-    
-    public async Task AddTestData()
+
+    public async Task<SubscriptionSeedEntity> AddSeedUserOnly()
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        await ClearTestData();
-
-        _user = _fixture.Create<User>();
-        _subscriptions = Enumerable.Range(1, 5)
-            .Select(_ => _fixture.Build<Subscription>()
-                .With(s => s.UserId, _user.Id)
-                .Create())
-            .ToList();
-
-        await dbContext.Users.AddAsync(_user);
-        await dbContext.Subscriptions.AddRangeAsync(_subscriptions);
-        await dbContext.SaveChangesAsync(default);
-    }
-
-    public async Task<CreateSubscriptionDto> AddCreateSubscriptionDtoInstance()
-    {
-        using var scope = CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        
-        _user = _fixture.Build<User>()
-            .Without(user => user.Groups)
-            .Create();
-        
-        await dbContext.Users.AddAsync(_user);
-        await dbContext.SaveChangesAsync(default);
-        
-        var subscriptionDto = _fixture.Create<CreateSubscriptionDto>();
-        return subscriptionDto;
-    }
-
-    public async Task<User> AddUserToDatabase()
-    {
-        var createdUser = _fixture.Build<User>()
+        var user = _fixture.Build<User>()
             .Without(u => u.Groups)
             .Create();
-        
-        using var scope = CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        
-        await dbContext.Users.AddAsync(createdUser);
+
+        await dbContext.Users.AddAsync(user);
         await dbContext.SaveChangesAsync(default);
 
-        dbContext.Users.FirstOrDefault(user => user.Id == createdUser.Id);
-        return createdUser;
+        return new SubscriptionSeedEntity
+        {
+            User = user,
+            Subscriptions = null!
+        };
     }
 
-    public async Task<Subscription> AddSubscription()
-    {
-        
-        _user = _fixture.Build<User>()
-            .Without(user => user.Groups)
-            .Create();
-
-        var createdSubscription = _fixture.Build<Subscription>()
-            .With(s => s.UserId, _user.Id)
-            .Without(s => s.User)
-            .Create();
-        
-        return createdSubscription;
-    }
-
-    public async Task<Subscription> AddSubscriptionToDatabase()
+    public async Task<SubscriptionSeedEntity> AddSeedUserWithSubscriptions(params string[] subscriptionNames)
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        
-        _user = _fixture.Build<User>()
-            .Without(user => user.Groups)
-            .Create();
-        await dbContext.Users.AddAsync(_user);
 
-        var createdSubscription = _fixture.Build<Subscription>()
-            .With(s => s.UserId, _user.Id)
-            .Without(s => s.User)
+        var user = _fixture.Build<User>()
+            .Without(u => u.Groups)
             .Create();
-        
-        
-        await dbContext.Subscriptions.AddAsync(createdSubscription);
+
+        var subscriptions = subscriptionNames.Select(name =>
+            _fixture.Build<DAL.Models.Subscription.Subscription>()
+                .With(s => s.UserId, user.Id)
+                .With(s => s.Name, name)
+                .With(s => s.Active, true)
+                .Without(s => s.User)
+                .Create()
+        ).ToList();
+
+        await dbContext.Users.AddAsync(user);
+        await dbContext.Subscriptions.AddRangeAsync(subscriptions);
         await dbContext.SaveChangesAsync(default);
 
-        dbContext.Subscriptions.FirstOrDefault(sub => sub.Id == createdSubscription.Id);
-        return createdSubscription;
+        return new SubscriptionSeedEntity
+        {
+            User = user,
+            Subscriptions = subscriptions
+        };
+    }
+
+    public async Task<CreateSubscriptionDto> AddCreateSubscriptionDto()
+    {
+        var createSubscriptionDto = _fixture.Build<CreateSubscriptionDto>()
+            .With(s => s.Content, SubscriptionContent.Design)
+            .With(s => s.Type, SubscriptionType.Free)
+            .Create();
+        
+        return createSubscriptionDto;
+    }
+
+    public async Task<UpdateSubscriptionDto> AddUpdateSubscriptionDto(Guid updateTarget)
+    {
+        var updateSubscriptionDto = _fixture.Build<UpdateSubscriptionDto>()
+            .With(s => s.Id, updateTarget)
+            .Create();
+        
+        return updateSubscriptionDto;
     }
     
-    
+    public async Task<SubscriptionSeedEntity> AddSeedUserWithUpcomingAndNonUpcomingSubscriptions()
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+
+        var user = _fixture.Build<User>()
+            .Without(u => u.Groups)
+            .Create();
+
+        var today = DateOnly.FromDateTime(DateTime.Today);
+
+        var upcoming = _fixture.Build<DAL.Models.Subscription.Subscription>()
+            .With(s => s.UserId, user.Id)
+            .With(s => s.DueDate, today.AddDays(3)) // попадает в окно 7 дней
+            .With(s => s.Active, true)
+            .Without(s => s.User)
+            .Create();
+
+        var distant = _fixture.Build<DAL.Models.Subscription.Subscription>()
+            .With(s => s.UserId, user.Id)
+            .With(s => s.DueDate, today.AddDays(15)) // слишком далеко
+            .With(s => s.Active, true)
+            .Without(s => s.User)
+            .Create();
+
+        var expired = _fixture.Build<DAL.Models.Subscription.Subscription>()
+            .With(s => s.UserId, user.Id)
+            .With(s => s.DueDate, today.AddDays(-2)) // уже просрочена
+            .With(s => s.Active, true)
+            .Without(s => s.User)
+            .Create();
+
+        await dbContext.Users.AddAsync(user);
+        await dbContext.Subscriptions.AddRangeAsync(upcoming, distant, expired);
+        await dbContext.SaveChangesAsync(default);
+
+        return new SubscriptionSeedEntity
+        {
+            User = user,
+            Subscriptions = new List<DAL.Models.Subscription.Subscription> { upcoming, distant, expired }
+        };
+    }
+
     public async Task ClearTestData()
     {
         using var scope = CreateScope();
@@ -129,8 +152,18 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
         await dbContext.SaveChangesAsync(default);
     }
-}
+    
+    public async Task ClearTestDataWithRelations()
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        
+        dbContext.UserGroups.RemoveRange(dbContext.UserGroups.ToList());
+        dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
+        dbContext.Users.RemoveRange(dbContext.Users.ToList());
 
+        await dbContext.SaveChangesAsync(default);
+    }
 
 
 
