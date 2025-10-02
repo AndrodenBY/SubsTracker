@@ -30,61 +30,29 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     [Fact]
     public async Task GetAll_WhenFilteredByName_ReturnsOnlyMatchingSubscription()
     {
-        // Arrange
-        var user = new User { Id = Guid.NewGuid(), FirstName = "TestUser", Email = "test@filter.com" };
-        var targetSubscription = new Subscription { Id = Guid.NewGuid(), UserId = user.Id, Name = "Target Subscription", Price = 10m, User = user };
-        var otherSubscription = new Subscription { Id = Guid.NewGuid(), UserId = user.Id, Name = "Unrelated App", Price = 5m, User = user };
-
-        // Добавляем данные в In-Memory DB
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-            db.Users.Add(user);
-            db.Subscriptions.Add(targetSubscription);
-            db.Subscriptions.Add(otherSubscription);
-            await db.SaveChangesAsync(default);
-        }
-
-        // Act: GET /api/subscriptions?Name=Target
-        var url = $"/api/subscriptions?Name=Target";
-        var response = await _client.GetAsync(url);
-
-        // Assert 1: Проверка статуса
-        response.EnsureSuccessStatusCode();
-
-        // Assert 2: Десериализация с помощью Newtonsoft.Json
-        var content = await response.Content.ReadAsStringAsync();
-        content.ShouldNotBeNullOrWhiteSpace();
-
-        var result = JsonConvert.DeserializeObject<List<SubscriptionViewModel>>(content);
-
-        result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem(); // Должен быть только один результат
-        result.Single().Name.ShouldBe("Target Subscription");
+        //Arrange
+        await _helper.ClearTestDataWithRelations();
+        var seedData = await _helper.AddSeedUserWithSubscriptions("Target Subscription", "Unrelated App");
+        
+        //Act
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name=Target Subscription");
+        
+        //Assert
+        await _helper.GetAllHappyPathAssert(response, "Target Subscription");
     }
-
+    
     [Fact]
     public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
-        // Arrange
-        // (Данные уже добавлены в конструкторе, но мы проверяем, что новый фильтр не найдет ничего)
+        //Arrange
+        var seedData = await _helper.AddSeedData();
         var nonExistentName = "NonExistentFilter";
 
-        // Act: GET /api/subscriptions?Name=NonExistentFilter
-        var url = $"/api/subscriptions?Name={nonExistentName}";
-        var response = await _client.GetAsync(url);
-
-        // Assert 1: Проверка статуса
-        response.EnsureSuccessStatusCode(); // Ожидаем 200 OK
-
-        // Assert 2: Десериализация с помощью Newtonsoft.Json
-        var content = await response.Content.ReadAsStringAsync();
+        //Act
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={nonExistentName}");
         
-        // ASP.NET Core сериализует пустой список как "[]"
-        var result = JsonConvert.DeserializeObject<List<SubscriptionViewModel>>(content);
-
-        result.ShouldNotBeNull();
-        result.ShouldBeEmpty();
+        //Assert
+        await _helper.GetAllSadPathAssert(response);
     }
     
     [Fact]
