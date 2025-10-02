@@ -1,0 +1,16 @@
+global using SubsTracker.DAL.Models.Subscription;
+global using SubsTracker.DAL.Models.User;
+global using System.Net.Http.Json;
+global using Newtonsoft.Json;
+global using Shouldly;
+global using Microsoft.Extensions.DependencyInjection;
+global using SubsTracker.API.ViewModel.Subscription;
+global using SubsTracker.DAL;
+global using SubsTracker.IntegrationTests.Constants;
+global using SubsTracker.BLL.DTOs.Subscription;
+global using AutoFixture;
+global using SubsTracker.Domain.Enums;
+global using Microsoft.AspNetCore.Mvc.Testing;
+global using Microsoft.EntityFrameworkCore;
+global using SubsTracker.IntegrationTests.Helpers;
+global using SubsTracker.IntegrationTests.DataSeedEntites;
