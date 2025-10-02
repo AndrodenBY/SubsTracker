@@ -1,5 +1,6 @@
 global using SubsTracker.DAL.Models.Subscription;
-global using SubsTracker.DAL.Models.User;
+global using UserModel = SubsTracker.DAL.Models.User.User;
+global using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 global using System.Net.Http.Json;
 global using Newtonsoft.Json;
 global using Shouldly;

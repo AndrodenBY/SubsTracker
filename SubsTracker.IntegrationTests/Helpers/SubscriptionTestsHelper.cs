@@ -9,13 +9,13 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = _fixture.Build<User>()
+        var user = _fixture.Build<UserModel>()
             .Without(u => u.Groups)
             .Create();
 
         var fixedDueDate = DateOnly.FromDateTime(DateTime.Today);
 
-        var subscription = _fixture.Build<DAL.Models.Subscription.Subscription>()
+        var subscription = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
             .With(s => s.Active, true)
             .With(s => s.DueDate, fixedDueDate)
@@ -29,7 +29,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         return new SubscriptionSeedEntity
         {
             User = user,
-            Subscriptions = new List<DAL.Models.Subscription.Subscription> { subscription }
+            Subscriptions = new List<SubscriptionModel> { subscription }
         };
     }
 
@@ -38,7 +38,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = _fixture.Build<User>()
+        var user = _fixture.Build<UserModel>()
             .Without(u => u.Groups)
             .Create();
 
@@ -57,12 +57,12 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = _fixture.Build<User>()
+        var user = _fixture.Build<UserModel>()
             .Without(u => u.Groups)
             .Create();
 
         var subscriptions = subscriptionNames.Select(name =>
-            _fixture.Build<DAL.Models.Subscription.Subscription>()
+            _fixture.Build<SubscriptionModel>()
                 .With(s => s.UserId, user.Id)
                 .With(s => s.Name, name)
                 .With(s => s.Active, true)
@@ -105,29 +105,29 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = _fixture.Build<User>()
+        var user = _fixture.Build<UserModel>()
             .Without(u => u.Groups)
             .Create();
 
         var today = DateOnly.FromDateTime(DateTime.Today);
 
-        var upcoming = _fixture.Build<DAL.Models.Subscription.Subscription>()
+        var upcoming = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
-            .With(s => s.DueDate, today.AddDays(3)) // попадает в окно 7 дней
+            .With(s => s.DueDate, today.AddDays(3))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
 
-        var distant = _fixture.Build<DAL.Models.Subscription.Subscription>()
+        var distant = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
-            .With(s => s.DueDate, today.AddDays(15)) // слишком далеко
+            .With(s => s.DueDate, today.AddDays(15))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
 
-        var expired = _fixture.Build<DAL.Models.Subscription.Subscription>()
+        var expired = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
-            .With(s => s.DueDate, today.AddDays(-2)) // уже просрочена
+            .With(s => s.DueDate, today.AddDays(-2))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
@@ -139,7 +139,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         return new SubscriptionSeedEntity
         {
             User = user,
-            Subscriptions = new List<DAL.Models.Subscription.Subscription> { upcoming, distant, expired }
+            Subscriptions = new List<SubscriptionModel> { upcoming, distant, expired }
         };
     }
 
@@ -165,7 +165,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         await dbContext.SaveChangesAsync(default);
     }
     
-    public async Task GetByIdHappyPathAssert(HttpResponseMessage response, DAL.Models.Subscription.Subscription expected)
+    public async Task GetByIdHappyPathAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -244,7 +244,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         entity!.Name.ShouldBe(expectedName);
     }
     
-    public async Task CancelSubscriptionHappyPathAssert(HttpResponseMessage response, DAL.Models.Subscription.Subscription original)
+    public async Task CancelSubscriptionHappyPathAssert(HttpResponseMessage response, SubscriptionModel original)
     {
         response.EnsureSuccessStatusCode();
 
@@ -263,7 +263,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         entity!.Active.ShouldBeFalse();
     }
     
-    public async Task RenewSubscriptionHappyPathAssert(HttpResponseMessage response, DAL.Models.Subscription.Subscription original, DateOnly expectedDueDate)
+    public async Task RenewSubscriptionHappyPathAssert(HttpResponseMessage response, SubscriptionModel original, DateOnly expectedDueDate)
     {
         response.EnsureSuccessStatusCode();
 
@@ -285,7 +285,7 @@ public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHe
         entity.Active.ShouldBeTrue();
     }
     
-    public async Task GetUpcomingBillsHappyPathAssert(HttpResponseMessage response, DAL.Models.Subscription.Subscription expected)
+    public async Task GetUpcomingBillsHappyPathAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
 

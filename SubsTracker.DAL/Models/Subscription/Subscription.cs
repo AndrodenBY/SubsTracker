@@ -12,5 +12,5 @@ public class Subscription : BaseModel
     public bool Active { get; set; } = true;
     public SubscriptionType Type { get; set; }
     public SubscriptionContent Content { get; set; }
-    public IEnumerable<SubscriptionHistory> History { get; set; } = new List<SubscriptionHistory>();
+    public List<SubscriptionHistory> History { get; set; } = new List<SubscriptionHistory>();
 }
