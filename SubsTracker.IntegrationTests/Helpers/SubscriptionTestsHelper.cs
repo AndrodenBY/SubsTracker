@@ -1,18 +1,6 @@
-using Microsoft.Extensions.DependencyInjection;
-using SubsTracker.API;
-using SubsTracker.DAL;
-using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.DAL.Models.User;
-using SubsTracker.BLL.DTOs.Subscription;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using AutoFixture;
-using AutoMapper;
-using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
-namespace SubsTracker.IntegrationTests;
+
+namespace SubsTracker.IntegrationTests.Helpers;
 
 public class SubscriptionTestHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
