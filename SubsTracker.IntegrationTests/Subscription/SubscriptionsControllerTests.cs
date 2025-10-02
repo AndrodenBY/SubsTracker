@@ -99,29 +99,25 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         await _helper.CancelSubscriptionHappyPathAssert(response, subscription);
     }
 
+    [Fact]
+    public async Task RenewSubscription_WhenValidData_UpdatesDueDateAndActivates()
+    {
+        //Arrange
+        await _helper.ClearTestDataWithRelations();
 
-        using (var scope = _helper.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-            db.Users.Add(user);
-            db.Subscriptions.Add(subscription);
-            await db.SaveChangesAsync(default);
-        }
+        var seed = await _helper.AddSeedData();
+        var subscription = seed.Subscriptions.FirstOrDefault();
 
-        // Act: PATCH /api/subscriptions/{subscriptionId}/cancel?userId={userId}
-        var response = await _client.PatchAsync(
-            $"/api/subscriptions/{subscription.Id}/cancel?userId={user.Id}", null);
+        var monthsToRenew = 3;
+        var expectedDueDate = subscription.DueDate.AddMonths(monthsToRenew);
 
-        // Assert 1: Проверка статуса
-        response.EnsureSuccessStatusCode();
+        //Act
+        var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}", null);
 
-        // Assert 2: Проверка возвращаемой ViewModel
-        var rawContent = await response.Content.ReadAsStringAsync();
-        var resultViewModel = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
+        //Assert
+        await _helper.RenewSubscriptionHappyPathAssert(response, subscription, expectedDueDate);
+    }
 
-        resultViewModel.ShouldNotBeNull();
-        resultViewModel!.Id.ShouldBe(subscription.Id);
-        //resultViewModel.Active.ShouldBeFalse();
 
         // Assert 3: Проверка состояния в БД
         using (var scope = _helper.CreateScope())
