@@ -13,3 +13,4 @@ global using SubsTracker.Domain.Enums;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using Microsoft.EntityFrameworkCore;
 global using SubsTracker.IntegrationTests.Helpers;
+global using SubsTracker.IntegrationTests.DataSeedEntites;
