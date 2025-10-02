@@ -118,20 +118,21 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         await _helper.RenewSubscriptionHappyPathAssert(response, subscription, expectedDueDate);
     }
 
+    [Fact]
+    public async Task GetUpcomingBills_WhenAnySubscriptionsAreDue_ShouldReturnOnlyUpcomingSubscriptions()
+    {
+        //Arrange
+        await _helper.ClearTestDataWithRelations();
 
-        // Assert 3: Проверка состояния в БД
-        using (var scope = _helper.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-            var savedSubscription = db.Subscriptions.SingleOrDefault(s => s.Id == subscription.Id);
+        var seedData = await _helper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
+        var upcoming = seedData.Subscriptions.First(s => s.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
 
-            savedSubscription.ShouldNotBeNull();
-            savedSubscription!.Active.ShouldBeFalse();
-        }
+        //Act
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}/bills/users/{seedData.User.Id}");
+
+        //Assert
+        await _helper.GetUpcomingBillsHappyPathAssert(response, upcoming);
     }
-
-    
-    
     
     public async ValueTask DisposeAsync()
     {
