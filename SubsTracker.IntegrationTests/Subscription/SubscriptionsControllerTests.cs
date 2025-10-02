@@ -87,16 +87,18 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     [Fact]
     public async Task CancelSubscription_WhenValidData_ReturnsCancelledSubscription()
     {
-        // Arrange
-        var user = _helper._fixture.Build<User>()
-            .Without(u => u.Groups)
-            .Create();
+        //Arrange
+        await _helper.ClearTestDataWithRelations();
+        var seedData = await _helper.AddSeedUserWithSubscriptions("Streaming Service");
+        var subscription = seedData.Subscriptions.FirstOrDefault();
+        
+        //Act
+        var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}", null);
+        
+        //Assert
+        await _helper.CancelSubscriptionHappyPathAssert(response, subscription);
+    }
 
-        var subscription = _helper._fixture.Build<Subscription>()
-            .With(s => s.UserId, user.Id)
-            .With(s => s.User, user)
-            .With(s => s.Active, true)
-            .Create();
 
         using (var scope = _helper.CreateScope())
         {
