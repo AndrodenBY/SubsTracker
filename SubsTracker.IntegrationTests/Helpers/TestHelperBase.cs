@@ -1,7 +1,4 @@
-using AutoFixture;
-using Microsoft.Extensions.DependencyInjection;
-
-namespace SubsTracker.IntegrationTests;
+namespace SubsTracker.IntegrationTests.Helpers;
 
 public abstract class TestHelperBase
 {
