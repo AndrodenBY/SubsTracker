@@ -72,59 +72,16 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     [Fact]
     public async Task Update_WhenValidData_ReturnsUpdatedSubscription()
     {
-        // Arrange
-        // 1. Создаем и сохраняем существующую подписку в БД
-        var existingUser = _helper._fixture.Build<User>()
-            .Without(u => u.Groups)
-            .Create();
-        var subscriptionEntity = _helper._fixture.Build<Subscription>()
-            .With(s => s.UserId, existingUser.Id)
-            .With(s => s.User, existingUser)
-            .Create();
-
-        // 2. Добавляем пользователя и подписку в БД
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-            await db.Users.AddAsync(existingUser);
-            await db.Subscriptions.AddAsync(subscriptionEntity);
-            await db.SaveChangesAsync(default);
-        }
-
-        // 3. Создаем DTO для обновления
-        var updateDto = new UpdateSubscriptionDto
-        {
-            Id = subscriptionEntity.Id, 
-            Name = "Updated Streaming Service Name",
-            Price = 49.99m,
-        };
-
-        // Act: PUT /api/subscriptions/{id}
-        // Используем PutAsJsonAsync для отправки DTO и явного указания Guid в URL
-        var response = await _client.PutAsJsonAsync(
-            $"/api/subscriptions/{existingUser.Id}", 
-            updateDto);
-
-        // Assert 1: Проверка HTTP-статуса
-        response.EnsureSuccessStatusCode(); 
-    
-        // Assert 2: Чтение и проверка возвращаемой ViewModel
-        var rawContent = await response.Content.ReadAsStringAsync();
-        var resultViewModel = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
-
-        resultViewModel.ShouldNotBeNull();
-        resultViewModel!.Id.ShouldBe(subscriptionEntity.Id);
-        resultViewModel.Name.ShouldBe(updateDto.Name);
-
-        // Assert 3: Проверка целостности данных в базе данных
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-            var savedSubscription = db.Subscriptions.SingleOrDefault(s => s.Id == subscriptionEntity.Id);
+        //Arrange
+        var dataSeedObject = await _helper.AddSeedData();
+        var subscription = dataSeedObject.Subscriptions.FirstOrDefault();
+        var updateDto = await _helper.AddUpdateSubscriptionDto(subscription.Id);
+            
+        //Act
+        var response = await _client.PutAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", updateDto);
         
-            savedSubscription.ShouldNotBeNull();
-            savedSubscription!.Name.ShouldBe(updateDto.Name);
-        }
+        //Assert
+        await _helper.UpdateHappyPathAssert(response, subscription.Id, updateDto.Name);
     }
     
     [Fact]
