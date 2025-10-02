@@ -16,19 +16,15 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     [Fact]
     public async Task GetById_ShouldReturnCorrectSubscription()
     {
-        // Arrange
-        var subscription = await _helper.AddSingleSubscription();
+        //Arrange
+        var dataSeedObject = await _helper.AddSeedData();
+        var subscription = dataSeedObject.Subscriptions.FirstOrDefault();
 
-        // Act
-        var response = await _client.GetAsync($"/api/subscriptions/{subscription.Id}");
-        //var rawContent = await response.Content.ReadAsStringAsync();
-        //var result = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
+        //Act
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
-
-        // Assert
-        response.EnsureSuccessStatusCode();
-        result.ShouldNotBeNull();
+        //Assert
+        await _helper.GetByIdHappyPathAssert(response, subscription);
     }
 
     [Fact]
