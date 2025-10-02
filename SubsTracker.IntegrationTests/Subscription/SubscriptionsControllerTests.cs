@@ -58,38 +58,15 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     [Fact]
     public async Task Create_WhenValidData_ReturnsCreatedSubscription()
     {
-        // Arrange
-        
-        var createSubscriptionDto = _helper._fixture.Build<CreateSubscriptionDto>()
-            .With(s => s.Content, SubscriptionContent.Design)
-            .With(s => s.Type, SubscriptionType.Free)
-            .Create();
-        
-        var user = await _helper.AddUserToDatabase();
+        //Arrange
+        var subscriptionDto = await _helper.AddCreateSubscriptionDto();
+        var dataSeedObject = await _helper.AddSeedUserOnly();
     
-        // Act
-        var response = await _client.PostAsJsonAsync($"api/subscriptions/{user.Id}", createSubscriptionDto);
+        //Act
+        var response = await _client.PostAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", subscriptionDto);
         
-        var rawContent = await response.Content.ReadAsStringAsync();
-        
-
-        // Используем Newtonsoft.Json для десериализации
-        var resultViewModel = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
-    
-        // Assert 3: Проверка целостности данных в базе данных
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        
-            // Ищем новую запись по ID, возвращенному в ViewModel
-            var savedSubscription = db.Subscriptions.SingleOrDefault(s => s.Id == resultViewModel.Id);
-
-            // Проверяем, что запись существует
-            savedSubscription.ShouldNotBeNull();
-            resultViewModel.ShouldNotBeNull();
-            rawContent.ShouldNotBeNullOrWhiteSpace();
-        }
-        response.EnsureSuccessStatusCode();
+        //Assert
+        await _helper.CreateHappyPathAssert(response);
     }
     
     [Fact]
