@@ -21,7 +21,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     
                 services.AddDbContext<SubsDbContext>(options =>
                 {
-                    options.UseInMemoryDatabase("InMemoryDbContextTest");
+                    options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
                 });
             }));
     }
