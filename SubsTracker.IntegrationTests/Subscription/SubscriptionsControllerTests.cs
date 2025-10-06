@@ -1,5 +1,6 @@
 namespace SubsTracker.IntegrationTests.Subscription;
 
+[Collection("NonParallelTests")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
