@@ -13,10 +13,11 @@ public static class DataLayerServiceRegister
         var postgreConnectionString = configuration["PostgreConnectionString"];
 
         services.AddDbContext<SubsDbContext>(options =>
-            options.UseNpgsql(postgreConnectionString))
-        .AddScoped(typeof(IRepository<>), typeof(Repository<>))
-        .AddScoped<ISubscriptionRepository, SubscriptionRepository>()
-        .AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>();
+                options.UseNpgsql(postgreConnectionString))
+            .AddScoped(typeof(IRepository<>), typeof(Repository<>))
+            .AddScoped<ISubscriptionRepository, SubscriptionRepository>()
+            .AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>()
+            .AddScoped<IUserGroupRepository, UserGroupRepository>();
         return services;
     }
 }

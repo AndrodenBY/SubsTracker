@@ -1,5 +1,3 @@
-using SubsTracker.IntegrationTests.Helpers.Subscription;
-
 namespace SubsTracker.IntegrationTests.Subscription;
 
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>, IAsyncDisposable
