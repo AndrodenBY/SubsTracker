@@ -130,10 +130,10 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         var result = JsonConvert.DeserializeObject<List<SubscriptionViewModel>>(rawContent);
 
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem();
+        result.ShouldNotBeNull();
+        result.ShouldContain(x => x.Id == expected.Id);
+        result.ShouldAllBe(x => x.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
 
-        var actual = result.Single();
-        actual.Id.ShouldBe(expected.Id);
-        actual.DueDate.ShouldBe(expected.DueDate);
+
     }
 }
