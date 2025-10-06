@@ -171,7 +171,6 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .Create();
 
         await db.Users.AddAsync(user);
-        await db.SaveChangesAsync(default);
         
         var group = _fixture.Build<Group>()
             .With(g => g.UserId, user.Id)
@@ -218,7 +217,6 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         await db.Subscriptions.AddAsync(subscription);
         
-
         var group = _fixture.Build<Group>()
             .With(g => g.UserId, user.Id)
             .With(g => g.Name, "Group With Shared Sub")
