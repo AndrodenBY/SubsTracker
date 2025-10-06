@@ -217,7 +217,7 @@ public class UserGroupsController(
     /// </remarks>
     /// <returns>The updated user group view model</returns>
     /// <exception cref="NotFoundException">Thrown if subscription is not found</exception>
-    /// <exception cref="NotFoundException">Thrown when the subscription is not associated with the group during an exclusion attempt</exception>
+    /// <exception cref="ArgumentException">Thrown when the subscription is not associated with the group during an exclusion attempt</exception>
     [HttpPost("unshare")]
     public async Task<UserGroupViewModel> UnshareSubscription([FromQuery] Guid groupId, [FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
     {

@@ -82,15 +82,10 @@ public class UserGroupService(
                     ?? throw new NotFoundException($"Group with id {groupId} not found.");
 
         var subscriptionToRemove = group.SharedSubscriptions.FirstOrDefault(s => s.Id == subscriptionId);
-        
-        if (group.SharedSubscriptions is null)
-        {
-            throw new InvalidOperationException($"No subscriptions is shared in group with id {groupId}");
-        }
 
         if (subscriptionToRemove is null)
         {
-            throw new InvalidOperationException($"No subscription is shared in group with id {groupId}");
+            throw new ArgumentException($"No subscription is shared in group with id {groupId}");
         }
         
         group.SharedSubscriptions.Remove(subscriptionToRemove);
