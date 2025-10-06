@@ -2,7 +2,7 @@ using SubsTracker.IntegrationTests.Helpers.User;
 
 namespace SubsTracker.IntegrationTests.User;
 
-public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>, IAsyncDisposable
+public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
     private readonly HttpClient _client;
@@ -96,12 +96,5 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>, I
         
         //Assert
         await _assertHelper.DeleteHappyPathAssert(response, seedData.User.Id);
-    }
-    
-    public async ValueTask DisposeAsync()
-    {
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
-        _client.Dispose();
-        _factory.Dispose();
     }
 }
