@@ -16,20 +16,20 @@ using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperation
 namespace SubsTracker.BLL.Services.User;
 
 public class UserGroupService(
-    IUserGroupRepository userGroupRepository,
+    IUserGroupRepository repository,
     IRepository<DAL.Models.User.User> userRepository,
     ISubscriptionRepository subscriptionRepository,
     IGroupMemberService memberService,
     IMapper mapper
-    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(userGroupRepository, mapper),
+    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(repository, mapper),
     IUserGroupService
 {
     public async Task<UserGroupDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var groupWithConnectedEntities = await userGroupRepository.GetById(id, cancellationToken);
+        var groupWithConnectedEntities = await repository.GetById(id, cancellationToken);
         return mapper.Map<UserGroupDto>(groupWithConnectedEntities);
     }
-    
+
     public async Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = UserGroupFilterHelper.CreatePredicate(filter);
@@ -56,10 +56,21 @@ public class UserGroupService(
         
         return createdGroup;
     }
+    
+    public async Task<UserGroupDto> Update(Guid updateId, UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
+    {
+        var existingUserGroup = await repository.GetById(updateId, cancellationToken)
+                             ?? throw new NotFoundException($"UserGroup with id {updateId} not found");
+
+        mapper.Map(updateDto, existingUserGroup);
+        var updatedEntity = await repository.Update(existingUserGroup, cancellationToken);
+
+        return mapper.Map<UserGroupDto>(updatedEntity);
+    }
 
     public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var group = await userGroupRepository.GetById(groupId, cancellationToken)
+        var group = await repository.GetById(groupId, cancellationToken)
                 ?? throw new NotFoundException($"Group with id {groupId} not found.");
         
         if (group.SharedSubscriptions is not null && group.SharedSubscriptions.Any(s => s.Id == subscriptionId))
@@ -72,13 +83,13 @@ public class UserGroupService(
         
         group.SharedSubscriptions.Add(subscription);
 
-        var updatedGroup = await userGroupRepository.Update(group, cancellationToken);
+        var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
     }
 
     public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var group = await userGroupRepository.GetById(groupId, cancellationToken)
+        var group = await repository.GetById(groupId, cancellationToken)
                     ?? throw new NotFoundException($"Group with id {groupId} not found.");
 
         var subscriptionToRemove = group.SharedSubscriptions.FirstOrDefault(s => s.Id == subscriptionId);
@@ -90,7 +101,16 @@ public class UserGroupService(
         
         group.SharedSubscriptions.Remove(subscriptionToRemove);
 
-        var updatedGroup = await userGroupRepository.Update(group, cancellationToken);
+        var updatedGroup = await repository.Update(group, cancellationToken);
         return mapper.Map<UserGroupDto>(updatedGroup);
     }
+    
+    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var existingUserGroup = await repository.GetById(id, cancellationToken)
+                             ?? throw new NotFoundException($"UserGroup with id {id} not found");
+
+        return await repository.Delete(existingUserGroup, cancellationToken);
+    }
+
 }
