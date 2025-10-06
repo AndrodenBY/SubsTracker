@@ -4,7 +4,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
 
-    public async Task GetByIdHappyPathAssert(HttpResponseMessage response, Group expected)
+    public async Task GetByIdValidAssert(HttpResponseMessage response, Group expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -16,7 +16,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         viewModel.Name.ShouldBe(expected.Name);
     }
 
-    public async Task GetAllHappyPathAssert(HttpResponseMessage response, string expectedName)
+    public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -27,7 +27,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         result.ShouldContain(g => g.Name == expectedName);
     }
 
-    public async Task GetAllSadPathAssert(HttpResponseMessage response)
+    public async Task GetAllInvalidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 
@@ -38,7 +38,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         result.ShouldBeEmpty();
     }
 
-    public async Task CreateHappyPathAssert(HttpResponseMessage response, CreateUserGroupDto expected)
+    public async Task CreateValidAssert(HttpResponseMessage response, CreateUserGroupDto expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -55,7 +55,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         entity!.Name.ShouldBe(expected.Name);
     }
 
-    public async Task UpdateHappyPathAssert(HttpResponseMessage response, Guid groupId, string expectedName)
+    public async Task UpdateValidAssert(HttpResponseMessage response, Guid groupId, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -73,7 +73,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         entity!.Name.ShouldBe(expectedName);
     }
 
-    public async Task DeleteHappyPathAssert(HttpResponseMessage response, Guid groupId)
+    public async Task DeleteValidAssert(HttpResponseMessage response, Guid groupId)
     {
         response.EnsureSuccessStatusCode();
 
@@ -83,7 +83,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         entity.ShouldBeNull();
     }
     
-    public async Task GetAllMembersHappyPathAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity, MemberRole targetRole)
+    public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity, MemberRole targetRole)
     {
         response.EnsureSuccessStatusCode();
 
@@ -100,7 +100,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         actual.Role.ShouldBe(targetRole);
     }
     
-    public async Task JoinGroupHappyPathAssert(HttpResponseMessage response, CreateGroupMemberDto createDto)
+    public async Task JoinGroupValidAssert(HttpResponseMessage response, CreateGroupMemberDto createDto)
     {
         response.EnsureSuccessStatusCode();
         
@@ -114,7 +114,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         member.Role.ShouldBe(MemberRole.Participant);
     }
 
-    public async Task LeaveGroupHappyPathAssert(HttpResponseMessage response ,Guid groupId, Guid userId)
+    public async Task LeaveGroupValidAssert(HttpResponseMessage response ,Guid groupId, Guid userId)
     {
         response.EnsureSuccessStatusCode();
         
@@ -127,7 +127,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         exists.ShouldBeFalse();
     }
     
-    public async Task ChangeRoleHappyPathAssert(HttpResponseMessage response, MemberRole expectedRole)
+    public async Task ChangeRoleValidAssert(HttpResponseMessage response, MemberRole expectedRole)
     {
         response.EnsureSuccessStatusCode();
 
@@ -138,7 +138,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         updated.Role.ShouldBe(expectedRole);
     }
 
-    public async Task ShareSubscriptionHappyPathAssert(HttpResponseMessage response)
+    public async Task ShareSubscriptionValidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 
@@ -148,7 +148,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         updated.ShouldNotBeNull();
     }
 
-    public async Task UnshareSubscriptionHappyPathAssert(HttpResponseMessage response)
+    public async Task UnshareSubscriptionValidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 

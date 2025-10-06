@@ -28,7 +28,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.GetAsync($"{EndpointConst.User}/{seedData.User.Id}");
         
         //Assert
-        await _assertHelper.GetByIdHappyPathAssert(response, seedData.User);
+        await _assertHelper.GetByIdValidAssert(response, seedData.User);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.GetAsync($"{EndpointConst.User}?email={seedData.User.Email}");
         
         //Assert
-        await _assertHelper.GetAllHappyPathAssert(response, seedData.User.Email);
+        await _assertHelper.GetAllValidAssert(response, seedData.User.Email);
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.GetAsync($"{EndpointConst.User}?email=nonexistent@example.com");
         
         //Assert
-        await _assertHelper.GetAllSadPathAssert(response);
+        await _assertHelper.GetAllInvalidAssert(response);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.PostAsJsonAsync($"{EndpointConst.User}", createDto);
         
         //Assert
-        await _assertHelper.CreateHappyPathAssert(response, createDto);
+        await _assertHelper.CreateValidAssert(response, createDto);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/{seedData.User.Id}", updateDto);
         
         //Assert
-        await _assertHelper.UpdateHappyPathAssert(response, seedData.User.Id, updateDto.FirstName, updateDto.Email);
+        await _assertHelper.UpdateValidAssert(response, seedData.User.Id, updateDto.FirstName, updateDto.Email);
     }
 
     [Fact]
@@ -96,6 +96,6 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.DeleteAsync($"{EndpointConst.User}/{seedData.User.Id}");
         
         //Assert
-        await _assertHelper.DeleteHappyPathAssert(response, seedData.User.Id);
+        await _assertHelper.DeleteValidAssert(response, seedData.User.Id);
     }
 }

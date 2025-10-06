@@ -6,7 +6,7 @@ namespace SubsTracker.IntegrationTests.Helpers.User;
 public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
-    public async Task GetByIdHappyPathAssert(HttpResponseMessage response, DAL.Models.User.User expected)
+    public async Task GetByIdValidAssert(HttpResponseMessage response, DAL.Models.User.User expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -19,7 +19,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         viewModel.LastName.ShouldBe(expected.LastName);
     }
 
-    public async Task GetAllHappyPathAssert(HttpResponseMessage response, string expectedEmail)
+    public async Task GetAllValidAssert(HttpResponseMessage response, string expectedEmail)
     {
         response.EnsureSuccessStatusCode();
 
@@ -31,7 +31,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         result.Single().Email.ShouldBe(expectedEmail);
     }
 
-    public async Task GetAllSadPathAssert(HttpResponseMessage response)
+    public async Task GetAllInvalidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 
@@ -42,7 +42,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         result.ShouldBeEmpty();
     }
 
-    public async Task CreateHappyPathAssert(HttpResponseMessage response, CreateUserDto expected)
+    public async Task CreateValidAssert(HttpResponseMessage response, CreateUserDto expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -62,7 +62,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         entity.LastName.ShouldBe(expected.LastName);
     }
 
-    public async Task UpdateHappyPathAssert(HttpResponseMessage response, Guid userId, string? expectedFirstName, string? expectedEmail)
+    public async Task UpdateValidAssert(HttpResponseMessage response, Guid userId, string? expectedFirstName, string? expectedEmail)
     {
         response.EnsureSuccessStatusCode();
 
@@ -81,7 +81,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         entity.Email.ShouldBe(expectedEmail);
     }
 
-    public async Task DeleteHappyPathAssert(HttpResponseMessage response, Guid userId)
+    public async Task DeleteValidAssert(HttpResponseMessage response, Guid userId)
     {
         response.EnsureSuccessStatusCode();
 
