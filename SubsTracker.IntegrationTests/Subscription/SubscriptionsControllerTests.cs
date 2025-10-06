@@ -27,6 +27,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.GetByIdHappyPathAssert(response, subscription);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
 
     [Fact]
@@ -41,6 +42,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.GetAllHappyPathAssert(response, "Target Subscription");
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
     
     [Fact]
@@ -55,6 +57,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.GetAllSadPathAssert(response);
+        await _dataSeedingHelper.ClearTestDataWithRelations();        
     }
     
     [Fact]
@@ -69,12 +72,14 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.CreateHappyPathAssert(response);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
     
     [Fact]
     public async Task Update_WhenValidData_ReturnsUpdatedSubscription()
     {
         //Arrange
+        await _dataSeedingHelper.ClearTestDataWithRelations();
         var dataSeedObject = await _dataSeedingHelper.AddSeedData();
         var subscription = dataSeedObject.Subscriptions.FirstOrDefault();
         var updateDto = await _dataSeedingHelper.AddUpdateSubscriptionDto(subscription.Id);
@@ -84,13 +89,14 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.UpdateHappyPathAssert(response, subscription.Id, updateDto.Name);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
     
     [Fact]
     public async Task CancelSubscription_WhenValidData_ReturnsCancelledSubscription()
     {
         //Arrange
-        await _dataSeedingHelper.ClearTestDataWithRelations();
+        //await _dataSeedingHelper.ClearTestDataWithRelations();
         var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
         var subscription = seedData.Subscriptions.FirstOrDefault();
         
@@ -99,6 +105,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.CancelSubscriptionHappyPathAssert(response, subscription);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
 
     [Fact]
@@ -118,6 +125,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
         //Assert
         await _assertHelper.RenewSubscriptionHappyPathAssert(response, subscription, expectedDueDate);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
 
     [Fact]
@@ -134,5 +142,6 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
         //Assert
         await _assertHelper.GetUpcomingBillsHappyPathAssert(response, upcoming);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
 }
