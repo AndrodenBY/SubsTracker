@@ -1,6 +1,6 @@
 namespace SubsTracker.IntegrationTests.Subscription;
 
-public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>, IAsyncDisposable
+public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
     private readonly HttpClient _client;
@@ -134,12 +134,5 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
         //Assert
         await _assertHelper.GetUpcomingBillsHappyPathAssert(response, upcoming);
-    }
-    
-    public async ValueTask DisposeAsync()
-    {
-        await _dataSeedingHelper.ClearTestData();
-        _client.Dispose();
-        _factory.Dispose();
     }
 }
