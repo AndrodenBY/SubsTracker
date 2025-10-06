@@ -26,13 +26,13 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.GetByIdHappyPathAssert(response, seedData.Group);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
     public async Task GetAll_WhenFilteredByName_ReturnsMatchingGroup()
     {
         //Arrange
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
         var seedData = await _dataSeedingHelper.AddOnlyUserGroup();
 
         //Act
@@ -40,6 +40,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.GetAllHappyPathAssert(response, seedData.Group.Name);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
@@ -53,13 +54,13 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.GetAllSadPathAssert(response);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
     public async Task Create_WhenValidData_ReturnsCreatedGroup()
     {
         //Arrange
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
         var createDto = await _dataSeedingHelper.AddCreateUserGroupDto();
         var seedUser = await _dataSeedingHelper.AddSeedUserOnly();
 
@@ -68,6 +69,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.CreateHappyPathAssert(response, createDto);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
@@ -82,6 +84,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.UpdateHappyPathAssert(response, seedData.Group.Id, "Updated Group Name");
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
@@ -95,6 +98,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.DeleteHappyPathAssert(response, seedData.Group.Id);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
@@ -109,6 +113,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.GetAllMembersHappyPathAssert(response, seedData, targetRole);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
@@ -123,6 +128,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.JoinGroupHappyPathAssert(response, createDto);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
@@ -137,13 +143,14 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         
         //Assert
         await _assertHelper.LeaveGroupHappyPathAssert(response, member.GroupId, member.UserId);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
     public async Task ChangeRole_WhenValid_UpdatesMemberRole()
     {
         //Arrange
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
+        
         var member = await _dataSeedingHelper.AddMemberOnly();
 
         //Act
@@ -151,6 +158,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.ChangeRoleHappyPathAssert(response, MemberRole.Moderator);
+        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
