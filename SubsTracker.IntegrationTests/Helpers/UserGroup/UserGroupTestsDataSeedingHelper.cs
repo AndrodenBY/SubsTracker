@@ -32,13 +32,13 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
         
-        var owner = _fixture.Build<User>()
+        var owner = _fixture.Build<UserModel>()
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
         
-        var memberUsers = _fixture.CreateMany<User>(3)
-            .Select(u => _fixture.Build<User>().Without(u => u.Groups).Without(u => u.Subscriptions).Create())
+        var memberUsers = _fixture.CreateMany<UserModel>(3)
+            .Select(u => _fixture.Build<UserModel>().Without(u => u.Groups).Without(u => u.Subscriptions).Create())
             .ToList();
         
         var ownerMember = _fixture.Build<GroupMember>()
@@ -70,7 +70,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .With(g => g.Members, allMembers) 
             .Create();
         
-        var usersToSave = new List<User> { owner };
+        var usersToSave = new List<UserModel> { owner };
         usersToSave.AddRange(memberUsers);
         await db.Users.AddRangeAsync(usersToSave);
 

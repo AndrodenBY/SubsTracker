@@ -111,14 +111,14 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
         var upcoming = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
-            .With(s => s.DueDate, today.AddDays(3))
+            .With(s => s.DueDate, today.AddDays(5))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
 
         var distant = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
-            .With(s => s.DueDate, today.AddDays(15))
+            .With(s => s.DueDate, today.AddDays(20))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
@@ -139,16 +139,6 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
             User = user,
             Subscriptions = new List<SubscriptionModel> { upcoming, distant, expired }
         };
-    }
-
-    public async Task ClearTestData()
-    {
-        using var scope = CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        dbContext.Users.RemoveRange(dbContext.Users.ToList());
-        dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
-        await dbContext.SaveChangesAsync(default);
     }
 
     public async Task ClearTestDataWithRelations()
