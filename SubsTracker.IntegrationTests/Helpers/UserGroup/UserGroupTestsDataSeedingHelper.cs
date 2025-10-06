@@ -98,7 +98,6 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .Create();
 
         await db.Users.AddAsync(user);
-        await db.SaveChangesAsync(default);
         
         var subscription = _fixture.Build<SubscriptionModel>()
             .With(s => s.UserId, user.Id)
