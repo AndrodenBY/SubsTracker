@@ -142,7 +142,6 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .Create();
 
         await db.Users.AddAsync(user);
-        await db.SaveChangesAsync(default);
 
         var group = _fixture.Build<Group>()
             .With(g => g.UserId, user.Id)
