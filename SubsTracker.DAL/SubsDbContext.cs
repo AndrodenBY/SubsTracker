@@ -5,8 +5,19 @@ using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.DAL;
 
-public class SubsDbContext(DbContextOptions<SubsDbContext> options) : DbContext(options)
+public class SubsDbContext : DbContext
 {
+    public SubsDbContext(DbContextOptions<SubsDbContext> options) : base(options)
+    {
+        if (Database.IsRelational())
+        {
+            Database.Migrate();
+        }
+        else
+        {
+            Database.EnsureCreated();
+        }
+    }
     public DbSet<User> Users { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<SubscriptionHistory> SubscriptionHistory { get; set; }
