@@ -1,0 +1,62 @@
+name: SubsTrackerCI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  run_all_tests_and_analyze:
+    name: Run All Tests and Sonar Analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    env:
+      SOLUTION_FILE: SubsTracker.sln
+      SONAR_PROJECT_KEY: SubsTracker
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET 9.0
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore ${{ env.SOLUTION_FILE }}
+
+      - name: Install Sonar Scanner and Start Analysis
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          dotnet tool install --global dotnet-sonarscanner
+          dotnet sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" \
+          /d:sonar.host.url="https://sonarcloud.io" \
+          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
+          /d:sonar.cs.vstest.reportsPaths="**/*.trx"
+
+      - name: Build Solution
+        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
+        
+      - name: Run All Tests and Collect Coverage
+        run: |
+          dotnet test ${{ env.SOLUTION_FILE }} \
+            --configuration Release \
+            /p:CollectCoverage=true \
+            /p:CoverletOutputFormat="opencover" \
+            /p:CoverletOutput="TestResults/coverage.opencover.xml" \
+            --no-build \
+            --logger "trx" \
+            --results-directory TestResults
+            
+      - name: End Sonar Scanner and Upload Results
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
