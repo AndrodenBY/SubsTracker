@@ -1,5 +1,6 @@
 namespace SubsTracker.IntegrationTests.UserGroup;
 
+[Collection("NonParallelTests")]
 public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -25,7 +26,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.GetAsync($"{EndpointConst.Group}/{seedData.Group.Id}");
 
         //Assert
-        await _assertHelper.GetByIdHappyPathAssert(response, seedData.Group);
+        await _assertHelper.GetByIdValidAssert(response, seedData.Group);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
@@ -39,7 +40,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.GetAsync($"{EndpointConst.Group}?name={seedData.Group.Name}");
 
         //Assert
-        await _assertHelper.GetAllHappyPathAssert(response, seedData.Group.Name);
+        await _assertHelper.GetAllValidAssert(response, seedData.Group.Name);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
@@ -53,7 +54,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.GetAsync($"{EndpointConst.Group}?name=NonExistent");
 
         //Assert
-        await _assertHelper.GetAllSadPathAssert(response);
+        await _assertHelper.GetAllInvalidAssert(response);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
@@ -68,7 +69,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.PostAsJsonAsync($"{EndpointConst.Group}/{seedUser.User.Id}/create", createDto);
 
         //Assert
-        await _assertHelper.CreateHappyPathAssert(response, createDto);
+        await _assertHelper.CreateValidAssert(response, createDto);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
@@ -83,7 +84,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.PutAsJsonAsync($"{EndpointConst.Group}/{seedData.Group.Id}", updateDto);
 
         //Assert
-        await _assertHelper.UpdateHappyPathAssert(response, seedData.Group.Id, "Updated Group Name");
+        await _assertHelper.UpdateValidAssert(response, seedData.Group.Id, "Updated Group Name");
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
@@ -97,7 +98,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.DeleteAsync($"{EndpointConst.Group}/{seedData.Group.Id}");
 
         //Assert
-        await _assertHelper.DeleteHappyPathAssert(response, seedData.Group.Id);
+        await _assertHelper.DeleteValidAssert(response, seedData.Group.Id);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
@@ -112,8 +113,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.GetAsync($"{EndpointConst.Group}/members?role={targetRole}");
 
         //Assert
-        await _assertHelper.GetAllMembersHappyPathAssert(response, seedData, targetRole);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
+        await _assertHelper.GetAllMembersValidAssert(response, seedData, targetRole);
     }
     
     [Fact]
@@ -127,7 +127,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.PostAsJsonAsync($"{EndpointConst.Group}/join", createDto);
 
         //Assert
-        await _assertHelper.JoinGroupHappyPathAssert(response, createDto);
+        await _assertHelper.JoinGroupValidAssert(response, createDto);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
@@ -142,7 +142,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
         
         //Assert
-        await _assertHelper.LeaveGroupHappyPathAssert(response, member.GroupId, member.UserId);
+        await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
@@ -157,7 +157,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.PatchAsync($"{EndpointConst.Group}/members/{member.Id}/role", null);
 
         //Assert
-        await _assertHelper.ChangeRoleHappyPathAssert(response, MemberRole.Moderator);
+        await _assertHelper.ChangeRoleValidAssert(response, MemberRole.Moderator);
         await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
@@ -172,7 +172,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.PostAsync($"{EndpointConst.Group}/share?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
 
         //Assert
-        await _assertHelper.ShareSubscriptionHappyPathAssert(response);
+        await _assertHelper.ShareSubscriptionValidAssert(response);
     }
     
     [Fact]
@@ -186,6 +186,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.PostAsync($"{EndpointConst.Group}/unshare?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
 
         //Assert
-        await _assertHelper.UnshareSubscriptionHappyPathAssert(response);
+        await _assertHelper.UnshareSubscriptionValidAssert(response);
     }
 }

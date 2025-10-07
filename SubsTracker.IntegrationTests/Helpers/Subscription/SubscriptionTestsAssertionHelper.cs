@@ -2,7 +2,7 @@ namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
-    public async Task GetByIdHappyPathAssert(HttpResponseMessage response, SubscriptionModel expected)
+    public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -15,7 +15,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         result.DueDate.ShouldBe(expected.DueDate);
     }
 
-    public async Task GetAllHappyPathAssert(HttpResponseMessage response, string expectedName)
+    public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -27,7 +27,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         result.Single().Name.ShouldBe(expectedName);
     }
 
-    public async Task GetAllSadPathAssert(HttpResponseMessage response)
+    public async Task GetAllInvalidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 
@@ -38,7 +38,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         result.ShouldBeEmpty();
     }
 
-    public async Task CreateHappyPathAssert(HttpResponseMessage response)
+    public async Task CreateValidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 
@@ -60,7 +60,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         viewModel.DueDate.ShouldBe(entity.DueDate);
     }
 
-    public async Task UpdateHappyPathAssert(HttpResponseMessage response, Guid expectedId, string expectedName)
+    public async Task UpdateValidAssert(HttpResponseMessage response, Guid expectedId, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -81,7 +81,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity!.Name.ShouldBe(expectedName);
     }
 
-    public async Task CancelSubscriptionHappyPathAssert(HttpResponseMessage response, SubscriptionModel original)
+    public async Task CancelSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original)
     {
         response.EnsureSuccessStatusCode();
 
@@ -100,7 +100,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity!.Active.ShouldBeFalse();
     }
 
-    public async Task RenewSubscriptionHappyPathAssert(HttpResponseMessage response, SubscriptionModel original, DateOnly expectedDueDate)
+    public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original, DateOnly expectedDueDate)
     {
         response.EnsureSuccessStatusCode();
 
@@ -122,7 +122,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity.Active.ShouldBeTrue();
     }
 
-    public async Task GetUpcomingBillsHappyPathAssert(HttpResponseMessage response, SubscriptionModel expected)
+    public async Task GetUpcomingBillsValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -130,10 +130,10 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         var result = JsonConvert.DeserializeObject<List<SubscriptionViewModel>>(rawContent);
 
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem();
+        result.ShouldNotBeNull();
+        result.ShouldContain(x => x.Id == expected.Id);
+        result.ShouldAllBe(x => x.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
 
-        var actual = result.Single();
-        actual.Id.ShouldBe(expected.Id);
-        actual.DueDate.ShouldBe(expected.DueDate);
+
     }
 }

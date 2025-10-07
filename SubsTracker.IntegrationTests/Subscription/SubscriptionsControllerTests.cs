@@ -1,5 +1,6 @@
 namespace SubsTracker.IntegrationTests.Subscription;
 
+[Collection("NonParallelTests")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -26,8 +27,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
         
         //Assert
-        await _assertHelper.GetByIdHappyPathAssert(response, subscription);
-        await _dataSeedingHelper.ClearTestDataWithRelations();
+        await _assertHelper.GetByIdValidAssert(response, subscription);
     }
 
     [Fact]
@@ -41,8 +41,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name=Target Subscription");
         
         //Assert
-        await _assertHelper.GetAllHappyPathAssert(response, "Target Subscription");
-        await _dataSeedingHelper.ClearTestDataWithRelations();
+        await _assertHelper.GetAllValidAssert(response, "Target Subscription");
     }
     
     [Fact]
@@ -56,7 +55,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={nonExistentName}");
         
         //Assert
-        await _assertHelper.GetAllSadPathAssert(response);
+        await _assertHelper.GetAllInvalidAssert(response);
         await _dataSeedingHelper.ClearTestDataWithRelations();        
     }
     
@@ -71,7 +70,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.PostAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", subscriptionDto);
         
         //Assert
-        await _assertHelper.CreateHappyPathAssert(response);
+        await _assertHelper.CreateValidAssert(response);
         await _dataSeedingHelper.ClearTestDataWithRelations();
     }
     
@@ -88,15 +87,13 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.PutAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", updateDto);
         
         //Assert
-        await _assertHelper.UpdateHappyPathAssert(response, subscription.Id, updateDto.Name);
-        await _dataSeedingHelper.ClearTestDataWithRelations();
+        await _assertHelper.UpdateValidAssert(response, subscription.Id, updateDto.Name);
     }
     
     [Fact]
     public async Task CancelSubscription_WhenValidData_ReturnsCancelledSubscription()
     {
         //Arrange
-        //await _dataSeedingHelper.ClearTestDataWithRelations();
         var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
         var subscription = seedData.Subscriptions.FirstOrDefault();
         
@@ -104,8 +101,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}", null);
         
         //Assert
-        await _assertHelper.CancelSubscriptionHappyPathAssert(response, subscription);
-        await _dataSeedingHelper.ClearTestDataWithRelations();
+        await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
     }
 
     [Fact]
@@ -124,7 +120,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}", null);
 
         //Assert
-        await _assertHelper.RenewSubscriptionHappyPathAssert(response, subscription, expectedDueDate);
+        await _assertHelper.RenewSubscriptionValidAssert(response, subscription, expectedDueDate);
         await _dataSeedingHelper.ClearTestDataWithRelations();
     }
 
@@ -141,7 +137,6 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await _client.GetAsync($"{EndpointConst.Subscription}/bills/users/{seedData.User.Id}");
 
         //Assert
-        await _assertHelper.GetUpcomingBillsHappyPathAssert(response, upcoming);
-        await _dataSeedingHelper.ClearTestDataWithRelations();
+        await _assertHelper.GetUpcomingBillsValidAssert(response, upcoming);
     }
 }

@@ -35,7 +35,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
             .Create();
 
         var groups = groupNames.Select(name =>
-            _fixture.Build<UserGroup>()
+            _fixture.Build<Group>()
                 .With(g => g.UserId, user.Id)
                 .With(g => g.Name, name)
                 .Create()
