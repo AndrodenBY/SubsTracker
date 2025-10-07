@@ -17,6 +17,7 @@ jobs:
       SOLUTION_FILE: SubsTracker.sln
       SONAR_PROJECT_KEY: SubsTracker
       SONAR_ORGANIZATION: androdenby
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout repository
@@ -32,19 +33,17 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore ${{ env.SOLUTION_FILE }}
 
-      - name: Begin SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Install Sonar Scanner and Start Analysis
         run: |
           dotnet tool install --global dotnet-sonarscanner
-          dotnet sonarscanner begin \
+          dotnet-sonarscanner begin \
             /k:"${{ env.SONAR_PROJECT_KEY }}" \
             /o:"${{ env.SONAR_ORGANIZATION }}" \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+            /d:sonar.token="${{ env.SONAR_TOKEN }}" \
             /d:sonar.branch.name="${{ github.ref_name }}" \
-            /d:sonar.projectName="SubsTracker" \
-            /d:sonar.projectVersion="1.0" \
+            /n:"SubsTracker" \
+            /v:"1.0" \
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx"
 
@@ -62,7 +61,5 @@ jobs:
             --logger "trx" \
             --results-directory TestResults
 
-      - name: End SonarCloud analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+      - name: End Sonar Scanner and Upload Results
+        run: dotnet-sonarscanner end
