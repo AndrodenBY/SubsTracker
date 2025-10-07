@@ -62,4 +62,4 @@ jobs:
             --results-directory TestResults
 
       - name: End Sonar Scanner and Upload Results
-        run: dotnet-sonarscanner end
+        run: dotnet-sonarscanner end /d:sonar.token="${{ env.SONAR_TOKEN }}"
