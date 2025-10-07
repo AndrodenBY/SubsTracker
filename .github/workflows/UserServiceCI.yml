@@ -39,7 +39,7 @@ jobs:
           dotnet sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" \
           /o:"androdenby" \
           /d:sonar.host.url="https://sonarcloud.io" \
-          /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+          /d:sonar.token="$SONAR_TOKEN" \
           /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
           /d:sonar.cs.vstest.reportsPaths="**/*.trx"
 
@@ -60,4 +60,4 @@ jobs:
       - name: End Sonar Scanner and Upload Results
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
