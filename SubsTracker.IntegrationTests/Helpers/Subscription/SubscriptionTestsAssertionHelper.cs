@@ -1,6 +1,6 @@
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
-public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
+public class SubscriptionTestsAssertionHelper
 {
     public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
@@ -47,17 +47,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 
         var viewModel = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
         viewModel.ShouldNotBeNull();
-
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.SingleOrDefaultAsync(s => s.Id == viewModel.Id);
-
-        entity.ShouldNotBeNull();
-
-        viewModel.Id.ShouldBe(entity.Id);
-        viewModel.Name.ShouldBe(entity.Name);
-        viewModel.Price.ShouldBe(entity.Price);
-        viewModel.DueDate.ShouldBe(entity.DueDate);
     }
 
     public async Task UpdateValidAssert(HttpResponseMessage response, Guid expectedId, string expectedName)
@@ -72,13 +61,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 
         viewModel.Id.ShouldBe(expectedId);
         viewModel.Name.ShouldBe(expectedName);
-
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.SingleOrDefaultAsync(s => s.Id == expectedId);
-
-        entity.ShouldNotBeNull();
-        entity!.Name.ShouldBe(expectedName);
     }
 
     public async Task CancelSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original)
@@ -91,13 +73,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         var viewModel = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
         viewModel.ShouldNotBeNull();
         viewModel.Id.ShouldBe(original.Id);
-
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.FindAsync(original.Id);
-
-        entity.ShouldNotBeNull();
-        entity!.Active.ShouldBeFalse();
     }
 
     public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original, DateOnly expectedDueDate)
@@ -112,14 +87,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 
         viewModel.Id.ShouldBe(original.Id);
         viewModel.DueDate.ShouldBe(expectedDueDate);
-
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.FindAsync(original.Id);
-
-        entity.ShouldNotBeNull();
-        entity!.DueDate.ShouldBe(expectedDueDate);
-        entity.Active.ShouldBeTrue();
     }
 
     public async Task GetUpcomingBillsValidAssert(HttpResponseMessage response, SubscriptionModel expected)

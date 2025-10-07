@@ -1,6 +1,6 @@
 namespace SubsTracker.IntegrationTests.UserGroup;
 
-[Collection("NonParallelTests")]
+//[Collection("NonParallelTests")]
 public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;

@@ -4,7 +4,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 {
     public async Task<SubscriptionSeedEntity> AddSeedData()
     {
-        using var scope = CreateScope();
+        using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = _fixture.Build<UserModel>()
@@ -33,7 +33,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
     public async Task<SubscriptionSeedEntity> AddSeedUserOnly()
     {
-        using var scope = CreateScope();
+        using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = _fixture.Build<UserModel>()
@@ -52,7 +52,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
     public async Task<SubscriptionSeedEntity> AddSeedUserWithSubscriptions(params string[] subscriptionNames)
     {
-        using var scope = CreateScope();
+        using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = _fixture.Build<UserModel>()
@@ -78,6 +78,49 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
             Subscriptions = subscriptions
         };
     }
+    public async Task<SubscriptionSeedEntity> AddSeedUserWithSubscriptions(
+        SubsDbContext dbContext,
+        params string[] subscriptionNames)
+    {
+        var user = _fixture.Build<UserModel>()
+            .Without(u => u.Groups)
+            .Create();
+
+        var subscriptions = subscriptionNames.Select(name =>
+            _fixture.Build<SubscriptionModel>()
+                .With(s => s.UserId, user.Id)
+                .With(s => s.Name, name)
+                .With(s => s.Active, true)
+                .Without(s => s.User)
+                .Create()
+        ).ToList();
+
+        await dbContext.Users.AddAsync(user);
+        await dbContext.Subscriptions.AddRangeAsync(subscriptions);
+        await dbContext.SaveChangesAsync(default);
+
+        return new SubscriptionSeedEntity
+        {
+            User = user,
+            Subscriptions = subscriptions
+        };
+    }
+
+    [Fact]
+    public async Task SeededData_ShouldExistInInMemoryDb()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+
+        await ClearTestDataWithRelations(db);
+
+        var seed = await AddSeedUserWithSubscriptions(db, "Target Subscription");
+
+        db.Subscriptions.Count().ShouldBe(1);
+        db.Subscriptions.Single().Name.ShouldBe("Target Subscription");
+        db.Users.Any(u => u.Id == seed.User.Id).ShouldBeTrue();
+    }
+
 
     public async Task<CreateSubscriptionDto> AddCreateSubscriptionDto()
     {
@@ -100,7 +143,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
     public async Task<SubscriptionSeedEntity> AddSeedUserWithUpcomingAndNonUpcomingSubscriptions()
     {
-        using var scope = CreateScope();
+        using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = _fixture.Build<UserModel>()
@@ -141,14 +184,16 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         };
     }
 
-    public async Task ClearTestDataWithRelations()
+    public async Task ClearTestDataWithRelations(SubsDbContext dbContext)
     {
-        using var scope = CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        if (dbContext.UserGroups.Any())
+            dbContext.UserGroups.RemoveRange(dbContext.UserGroups);
 
-        dbContext.UserGroups.RemoveRange(dbContext.UserGroups.ToList());
-        dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
-        dbContext.Users.RemoveRange(dbContext.Users.ToList());
+        if (dbContext.Subscriptions.Any())
+            dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions);
+
+        if (dbContext.Users.Any())
+            dbContext.Users.RemoveRange(dbContext.Users);
 
         await dbContext.SaveChangesAsync(default);
     }

@@ -19,10 +19,11 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
         }
         return await query.ToListAsync(cancellationToken);
     }
-
+    
     public virtual async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        var i = await _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        return i;
     }
 
     public async Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken)
