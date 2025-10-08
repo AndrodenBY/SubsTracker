@@ -23,7 +23,7 @@ jobs:
       - name: Restore dependencies
         run: dotnet restore SubsTracker.sln
 
-      - name: Install Sonar, Build, and Upload Analysis
+      - name: Install Sonar Scanner and Start Analysis
         run: |
           dotnet tool install --global dotnet-sonarscanner
           dotnet-sonarscanner begin \
@@ -34,11 +34,16 @@ jobs:
             /d:sonar.branch.name="${{ github.ref_name }}" \
             /n:"SubsTracker" \
             /v:"1.0" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx"
-          
-          dotnet build SubsTracker.sln --configuration Release --no-restore
-          
-          dotnet sonarscanner end /d:sonar.token="${{ env.SONAR_TOKEN }}"
+      
+      - name: Build Solution
+        run: dotnet build SubsTracker.sln --configuration Release --no-restore
+
+      - name: End Sonar Scanner and Upload Results
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
 
   test:
     name: Run Tests
