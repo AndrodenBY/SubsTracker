@@ -1,6 +1,3 @@
-using SubsTracker.BLL.DTOs.User.Create;
-using SubsTracker.BLL.DTOs.User.Update;
-
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
 public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
@@ -63,7 +60,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         };
     }
     
-    public async Task<CreateUserDto> AddCreateUserDto()
+    public CreateUserDto AddCreateUserDto()
     {
         var createDto = _fixture.Build<CreateUserDto>()
             .With(u => u.FirstName, "TestUser")
@@ -73,7 +70,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         return createDto;
     }
 
-    public async Task<UpdateUserDto> AddUpdateUserDto(Guid userId)
+    public UpdateUserDto AddUpdateUserDto(Guid userId)
     {
         var updateDto = _fixture.Build<UpdateUserDto>()
             .With(u => u.Id, userId)
@@ -82,18 +79,5 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
             .Create();
 
         return updateDto;
-    }
-
-
-    public async Task ClearTestDataWithDependencies()
-    {
-        using var scope = CreateScope();
-        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        dbContext.UserGroups.RemoveRange(dbContext.UserGroups.ToList());
-        dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
-        dbContext.Users.RemoveRange(dbContext.Users.ToList());
-
-        await dbContext.SaveChangesAsync(default);
     }
 }

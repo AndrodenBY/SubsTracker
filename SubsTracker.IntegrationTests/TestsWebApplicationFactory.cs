@@ -25,7 +25,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
@@ -44,7 +43,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
             });
-
         });
     }
 }

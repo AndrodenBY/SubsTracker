@@ -52,7 +52,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         var entity = await db.UserGroups.FindAsync(viewModel.Id);
 
         entity.ShouldNotBeNull();
-        entity!.Name.ShouldBe(expected.Name);
+        entity.Name.ShouldBe(expected.Name);
     }
 
     public async Task UpdateValidAssert(HttpResponseMessage response, Guid groupId, string expectedName)
@@ -70,7 +70,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         var entity = await db.UserGroups.FindAsync(groupId);
 
         entity.ShouldNotBeNull();
-        entity!.Name.ShouldBe(expectedName);
+        entity.Name.ShouldBe(expectedName);
     }
 
     public async Task DeleteValidAssert(HttpResponseMessage response, Guid groupId)
