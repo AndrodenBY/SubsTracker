@@ -37,8 +37,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 services.Remove(descriptor);
             }
-
-            // ✅ Добавляем InMemory реализацию с уникальным именем
+            
             services.AddDbContext<SubsDbContext>(options =>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
