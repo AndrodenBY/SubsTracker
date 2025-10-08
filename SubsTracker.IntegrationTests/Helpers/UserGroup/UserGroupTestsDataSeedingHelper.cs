@@ -256,7 +256,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         };
     }
 
-    public  CreateUserGroupDto AddCreateUserGroupDto()
+    public CreateUserGroupDto AddCreateUserGroupDto()
     {
         var createDto = _fixture.Build<CreateUserGroupDto>()
             .With(d => d.Name, "Created Group Name")
