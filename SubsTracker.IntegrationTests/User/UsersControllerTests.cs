@@ -2,7 +2,6 @@ using SubsTracker.IntegrationTests.Helpers.User;
 
 namespace SubsTracker.IntegrationTests.User;
 
-[Collection("NonParallelTests")]
 public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -35,7 +34,6 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     public async Task GetAll_WhenFilteredByEmail_ReturnsMatchingUser()
     {
         //Arrange
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
         var seedData = await _dataSeedingHelper.AddSeedUser();
         
         //Act
@@ -49,7 +47,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     public async Task GetAll_WhenFilteredByNonExistentEmail_ReturnsEmptyList()
     {
         //Arrange
-        var seedData = await _dataSeedingHelper.AddSeedUser();
+        await _dataSeedingHelper.AddSeedUser();
         
         //Act
         var response = await _client.GetAsync($"{EndpointConst.User}?email=nonexistent@example.com");
@@ -62,8 +60,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     public async Task Create_WhenValidData_ReturnsCreatedUser()
     {
         //Act
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
-        var createDto = await _dataSeedingHelper.AddCreateUserDto();
+        var createDto = _dataSeedingHelper.AddCreateUserDto();
         
         //Act
         var response = await _client.PostAsJsonAsync($"{EndpointConst.User}", createDto);
@@ -77,7 +74,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
-        var updateDto = await _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
+        var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
         
         //Act
         var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/{seedData.User.Id}", updateDto);

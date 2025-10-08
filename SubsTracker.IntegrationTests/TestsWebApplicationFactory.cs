@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Hosting;
-
 namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
