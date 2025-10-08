@@ -8,36 +8,29 @@ on:
     branches: [main]
 
 jobs:
-  run_all_tests_and_analyze:
-    name: Run All Tests and Sonar Analysis
+  analyze:
+    name: Analyze
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    env:
-      SOLUTION_FILE: SubsTracker.sln
-      SONAR_PROJECT_KEY: SubsTracker
-      SONAR_ORGANIZATION: androdenby
-      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout repository
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.SOLUTION_FILE }}
+        uses: actions/checkout@v4
 
-      - name: Install Sonar Scanner and Start Analysis
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+        
+      - name: Restore dependencies
+        run: dotnet restore SubsTracker.sln
+      
+      - name: Build Solution
+        run: dotnet build SubsTracker.sln --configuration Release --no-restore
+
+      - name: Run Tests
         run: |
-          dotnet tool install --global dotnet-sonarscanner
-          dotnet-sonarscanner begin \
-            /k:"${{ env.SONAR_PROJECT_KEY }}" \
-            /o:"${{ env.SONAR_ORGANIZATION }}" \
-            /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.token="${{ env.SONAR_TOKEN }}" \
-            /d:sonar.branch.name="${{ github.ref_name }}" \
-            /n:"SubsTracker" \
-            /v:"1.0" \
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
-            /d:sonar.cs.vstest.reportsPaths="**/*.trx"
+          dotnet test SubsTracker.sln \
+            --configuration Release \
+            --no-build \
             --logger "trx" \
             --results-directory TestResults
-      - name: End Sonar Scanner and Upload Results
-        run: dotnet-sonarscanner end
