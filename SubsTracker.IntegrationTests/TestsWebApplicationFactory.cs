@@ -42,7 +42,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
             });
-
         });
     }
 }

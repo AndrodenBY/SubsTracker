@@ -148,7 +148,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.ChangeRoleValidAssert(response, MemberRole.Moderator);
-        
     }
     
     [Fact]
