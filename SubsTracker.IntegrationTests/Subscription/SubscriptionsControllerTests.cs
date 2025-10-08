@@ -1,6 +1,6 @@
 namespace SubsTracker.IntegrationTests.Subscription;
 
-
+[Collection("NonParallelTests")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -34,7 +34,8 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     public async Task GetAll_WhenFilteredByName_ReturnsOnlyMatchingSubscription()
     {
         //Arrange
-        await _dataSeedingHelper.AddSeedUserWithSubscriptions("Target Subscription", "Unrelated App");
+        await _dataSeedingHelper.ClearTestDataWithRelations();
+        var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Target Subscription", "Unrelated App");
         
         //Act
         var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name=Target Subscription");
@@ -47,7 +48,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
         //Arrange
-        await _dataSeedingHelper.AddSeedData();
+        var seedData = await _dataSeedingHelper.AddSeedData();
         var nonExistentName = "NonExistentFilter";
 
         //Act
@@ -55,13 +56,14 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.GetAllInvalidAssert(response);
+        await _dataSeedingHelper.ClearTestDataWithRelations();        
     }
     
     [Fact]
     public async Task Create_WhenValidData_ReturnsCreatedSubscription()
     {
         //Arrange
-        var subscriptionDto = _dataSeedingHelper.AddCreateSubscriptionDto();
+        var subscriptionDto = await _dataSeedingHelper.AddCreateSubscriptionDto();
         var dataSeedObject = await _dataSeedingHelper.AddSeedUserOnly();
     
         //Act
@@ -69,15 +71,17 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         
         //Assert
         await _assertHelper.CreateValidAssert(response);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
     
     [Fact]
     public async Task Update_WhenValidData_ReturnsUpdatedSubscription()
     {
         //Arrange
+        await _dataSeedingHelper.ClearTestDataWithRelations();
         var dataSeedObject = await _dataSeedingHelper.AddSeedData();
         var subscription = dataSeedObject.Subscriptions.FirstOrDefault();
-        var updateDto = _dataSeedingHelper.AddUpdateSubscriptionDto(subscription.Id);
+        var updateDto = await _dataSeedingHelper.AddUpdateSubscriptionDto(subscription.Id);
             
         //Act
         var response = await _client.PutAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", updateDto);
@@ -104,6 +108,8 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     public async Task RenewSubscription_WhenValidData_UpdatesDueDateAndActivates()
     {
         //Arrange
+        await _dataSeedingHelper.ClearTestDataWithRelations();
+
         var seed = await _dataSeedingHelper.AddSeedData();
         var subscription = seed.Subscriptions.FirstOrDefault();
 
@@ -115,12 +121,15 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
         //Assert
         await _assertHelper.RenewSubscriptionValidAssert(response, subscription, expectedDueDate);
+        await _dataSeedingHelper.ClearTestDataWithRelations();
     }
 
     [Fact]
     public async Task GetUpcomingBills_WhenAnySubscriptionsAreDue_ShouldReturnOnlyUpcomingSubscriptions()
     {
         //Arrange
+        await _dataSeedingHelper.ClearTestDataWithRelations();
+
         var seedData = await _dataSeedingHelper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
         var upcoming = seedData.Subscriptions.First(s => s.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
 

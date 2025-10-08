@@ -20,4 +20,3 @@ global using SubsTracker.API.ViewModel.User;
 global using SubsTracker.IntegrationTests.Helpers.UserGroup;
 global using SubsTracker.BLL.DTOs.User.Create;
 global using SubsTracker.BLL.DTOs.User.Update;
-global using Microsoft.AspNetCore.Hosting;
