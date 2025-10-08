@@ -1,4 +1,4 @@
-name: SubsTrackerCI
+name: UserServiceCI
 
 on:
   push:
@@ -21,15 +21,6 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
       - name: Restore dependencies
         run: dotnet restore ${{ env.SOLUTION_FILE }}
 
@@ -46,20 +37,7 @@ jobs:
             /v:"1.0" \
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx"
-
-      - name: Build solution
-        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
-
-      - name: Run tests and collect coverage
-        run: |
-          dotnet test ${{ env.SOLUTION_FILE }} \
-            --configuration Release \
-            /p:CollectCoverage=true \
-            /p:CoverletOutputFormat="opencover" \
-            /p:CoverletOutput="TestResults/coverage.opencover.xml" \
-            --no-build \
             --logger "trx" \
             --results-directory TestResults
-
       - name: End Sonar Scanner and Upload Results
-        run: dotnet-sonarscanner end /d:sonar.token="${{ env.SONAR_TOKEN }}"
+        run: dotnet-sonarscanner end
