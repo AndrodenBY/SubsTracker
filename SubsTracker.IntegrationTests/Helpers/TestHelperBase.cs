@@ -2,9 +2,9 @@ namespace SubsTracker.IntegrationTests.Helpers;
 
 public abstract class TestHelperBase
 {
-    public readonly TestsWebApplicationFactory _factory;
-    public readonly IServiceScopeFactory _scopeFactory;
-    public readonly IFixture _fixture;
+    protected readonly TestsWebApplicationFactory _factory;
+    private readonly IServiceScopeFactory _scopeFactory;
+    protected readonly IFixture _fixture;
 
     protected TestHelperBase(TestsWebApplicationFactory factory)
     {
