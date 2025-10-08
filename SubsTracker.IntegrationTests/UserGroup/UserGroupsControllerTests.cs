@@ -1,6 +1,5 @@
 namespace SubsTracker.IntegrationTests.UserGroup;
 
-[Collection("NonParallelTests")]
 public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -27,7 +26,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.GetByIdValidAssert(response, seedData.Group);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
@@ -41,28 +39,26 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.GetAllValidAssert(response, seedData.Group.Name);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
     public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
         //Arrange
-        var seedData = await _dataSeedingHelper.AddOnlyUserGroup();
+        await _dataSeedingHelper.AddOnlyUserGroup();
 
         //Act
         var response = await _client.GetAsync($"{EndpointConst.Group}?name=NonExistent");
 
         //Assert
         await _assertHelper.GetAllInvalidAssert(response);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
     public async Task Create_WhenValidData_ReturnsCreatedGroup()
     {
         //Arrange
-        var createDto = await _dataSeedingHelper.AddCreateUserGroupDto();
+        var createDto = _dataSeedingHelper.AddCreateUserGroupDto();
         var seedUser = await _dataSeedingHelper.AddSeedUserOnly();
 
         //Act
@@ -70,7 +66,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.CreateValidAssert(response, createDto);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
@@ -78,14 +73,13 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddOnlyUserGroup();
-        var updateDto = await _dataSeedingHelper.AddUpdateUserGroupDto(seedData.Group.Id);
+        var updateDto = _dataSeedingHelper.AddUpdateUserGroupDto(seedData.Group.Id);
 
         //Act
         var response = await _client.PutAsJsonAsync($"{EndpointConst.Group}/{seedData.Group.Id}", updateDto);
 
         //Assert
         await _assertHelper.UpdateValidAssert(response, seedData.Group.Id, "Updated Group Name");
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
 
     [Fact]
@@ -99,7 +93,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.DeleteValidAssert(response, seedData.Group.Id);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
@@ -128,7 +121,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.JoinGroupValidAssert(response, createDto);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
@@ -143,14 +135,12 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         
         //Assert
         await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
     public async Task ChangeRole_WhenValid_UpdatesMemberRole()
     {
         //Arrange
-        
         var member = await _dataSeedingHelper.AddMemberOnly();
 
         //Act
@@ -158,7 +148,6 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Assert
         await _assertHelper.ChangeRoleValidAssert(response, MemberRole.Moderator);
-        await _dataSeedingHelper.ClearTestDataWithDependencies();
     }
     
     [Fact]
@@ -180,7 +169,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddGroupWithSharedSubscription();
-        var subscription = seedData.Group.SharedSubscriptions.First();
+        var subscription = seedData.Group.SharedSubscriptions.FirstOrDefault();
 
         //Act
         var response = await _client.PostAsync($"{EndpointConst.Group}/unshare?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);

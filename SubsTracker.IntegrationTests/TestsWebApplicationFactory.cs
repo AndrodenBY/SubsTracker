@@ -2,27 +2,46 @@ namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 {
-    internal readonly WebApplicationFactory<Program> WebHost;
-    
-    public TestsWebApplicationFactory()
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        WebHost = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services =>
+        builder.UseEnvironment("IntegrationTest");
+
+        builder.ConfigureAppConfiguration((context, configBuilder) =>
+        {
+            var sources = configBuilder.Sources.ToList();
+            configBuilder.Sources.Clear();
+
+            foreach (var source in sources)
             {
-                var descriptorsToRemove = services.Where(descriptor =>
-                    descriptor.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
-                    descriptor.ImplementationType?.Namespace?.Contains("Npgsql") == true
-                ).ToList();
-    
-                foreach (var descriptor in descriptorsToRemove)
+                var typeName = source.GetType().FullName ?? string.Empty;
+                if (!typeName.Contains("UserSecrets", StringComparison.OrdinalIgnoreCase))
                 {
-                    services.Remove(descriptor);
+                    configBuilder.Sources.Add(source);
                 }
-    
-                services.AddDbContext<SubsDbContext>(options =>
-                {
-                    options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
-                });
-            }));
+            }
+        });
+
+        builder.ConfigureServices(services =>
+        {
+
+            var descriptorsToRemove = services.Where(d =>
+                d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
+                d.ServiceType == typeof(SubsDbContext) ||
+                d.ServiceType.Name.Contains("DatabaseProvider") ||
+                d.ServiceType.Name.Contains("DbContextOptions") ||
+                d.ServiceType.Name.Contains("IDbContextOptionsConfiguration") ||
+                d.ImplementationType?.Namespace?.Contains("Npgsql") == true
+            ).ToList();
+
+            foreach (var descriptor in descriptorsToRemove)
+            {
+                services.Remove(descriptor);
+            }
+            
+            services.AddDbContext<SubsDbContext>(options =>
+            {
+                options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
+            });
+        });
     }
 }
