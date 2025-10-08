@@ -79,7 +79,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         };
     }
 
-    public CreateSubscriptionDto AddCreateSubscriptionDto()
+    public async Task<CreateSubscriptionDto> AddCreateSubscriptionDto()
     {
         var createSubscriptionDto = _fixture.Build<CreateSubscriptionDto>()
             .With(s => s.Content, SubscriptionContent.Design)
@@ -89,7 +89,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         return createSubscriptionDto;
     }
 
-    public UpdateSubscriptionDto AddUpdateSubscriptionDto(Guid updateTarget)
+    public async Task<UpdateSubscriptionDto> AddUpdateSubscriptionDto(Guid updateTarget)
     {
         var updateSubscriptionDto = _fixture.Build<UpdateSubscriptionDto>()
             .With(s => s.Id, updateTarget)
@@ -139,5 +139,17 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
             User = user,
             Subscriptions = new List<SubscriptionModel> { upcoming, distant, expired }
         };
+    }
+
+    public async Task ClearTestDataWithRelations()
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+
+        dbContext.UserGroups.RemoveRange(dbContext.UserGroups.ToList());
+        dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
+        dbContext.Users.RemoveRange(dbContext.Users.ToList());
+
+        await dbContext.SaveChangesAsync(default);
     }
 }

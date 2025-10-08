@@ -1,3 +1,6 @@
+using SubsTracker.API.ViewModel.User;
+using SubsTracker.BLL.DTOs.User.Create;
+
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
 public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
@@ -74,7 +77,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         var entity = await db.Users.FindAsync(userId);
 
         entity.ShouldNotBeNull();
-        entity.FirstName.ShouldBe(expectedFirstName);
+        entity!.FirstName.ShouldBe(expectedFirstName);
         entity.Email.ShouldBe(expectedEmail);
     }
 

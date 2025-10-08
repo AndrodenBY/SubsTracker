@@ -256,7 +256,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         };
     }
 
-    public  CreateUserGroupDto AddCreateUserGroupDto()
+    public async Task<CreateUserGroupDto> AddCreateUserGroupDto()
     {
         var createDto = _fixture.Build<CreateUserGroupDto>()
             .With(d => d.Name, "Created Group Name")
@@ -265,7 +265,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         return createDto;
     }
 
-    public UpdateUserGroupDto AddUpdateUserGroupDto(Guid groupId)
+    public async Task<UpdateUserGroupDto> AddUpdateUserGroupDto(Guid groupId)
     {
         var updateDto = _fixture.Build<UpdateUserGroupDto>()
             .With(d => d.Id, groupId)
@@ -273,5 +273,18 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .Create();
 
         return updateDto;
+    }
+    
+    public async Task ClearTestDataWithDependencies()
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+
+        dbContext.UserGroups.RemoveRange(dbContext.UserGroups.ToList());
+        dbContext.Subscriptions.RemoveRange(dbContext.Subscriptions.ToList());
+        dbContext.Members.RemoveRange(dbContext.Members.ToList());
+        dbContext.Users.RemoveRange(dbContext.Users.ToList());
+
+        await dbContext.SaveChangesAsync(default);
     }
 }
