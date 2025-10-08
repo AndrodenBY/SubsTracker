@@ -230,8 +230,3 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
-
-.DS_Store
-.idea/
-
-
