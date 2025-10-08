@@ -2,7 +2,7 @@ namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
-    public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
+    public  async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -15,7 +15,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         result.DueDate.ShouldBe(expected.DueDate);
     }
 
-    public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
+    public  async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -27,7 +27,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         result.Single().Name.ShouldBe(expectedName);
     }
 
-    public async Task GetAllInvalidAssert(HttpResponseMessage response)
+    public  async Task GetAllInvalidAssert(HttpResponseMessage response)
     {
         response.EnsureSuccessStatusCode();
 
@@ -122,7 +122,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity.Active.ShouldBeTrue();
     }
 
-    public async Task GetUpcomingBillsValidAssert(HttpResponseMessage response, SubscriptionModel expected)
+    public  async Task GetUpcomingBillsValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -133,7 +133,5 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         result.ShouldNotBeNull();
         result.ShouldContain(x => x.Id == expected.Id);
         result.ShouldAllBe(x => x.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
-
-
     }
 }
