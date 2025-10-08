@@ -8,51 +8,44 @@ on:
     branches: [main]
 
 jobs:
-  run_tests_and_analyze:
-    name: Run Tests and Sonar Analysis
+  run_all_tests_and_analyze:
+    name: Run All Tests and Sonar Analysis
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     env:
-      SOLUTION_FILE: UserService.sln
-      SONAR_PROJECT_KEY: UserService
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 9.0.x
-
       - name: Restore dependencies
-        run: dotnet restore ${{ env.SOLUTION_FILE }}
+        run: dotnet restore SubsTracker.sln
 
       - name: Install Sonar Scanner and Start Analysis
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           dotnet tool install --global dotnet-sonarscanner
-          dotnet sonarscanner begin /k:"${{ env.SONAR_PROJECT_KEY }}" \
-            /o:"androdenby" \
+          dotnet-sonarscanner begin \
+            /k:SubsTracker \
+            /o:androdenby \
             /d:sonar.host.url="https://sonarcloud.io" \
-            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.token="${{ env.SONAR_TOKEN }}" \
+            /d:sonar.branch.name="${{ github.ref_name }}" \
+            /n:"SubsTracker" \
+            /v:"1.0" \
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/coverage.opencover.xml" \
             /d:sonar.cs.vstest.reportsPaths="**/*.trx"
-
+      
       - name: Build Solution
-        run: dotnet build ${{ env.SOLUTION_FILE }} --configuration Release --no-restore
-
+        run: dotnet build SubsTracker.sln --configuration Release --no-restore
+      
       - name: Run Tests
         run: |
-          dotnet test ${{ env.SOLUTION_FILE }} \
+          dotnet test SubsTracker.sln \
             --configuration Release \
             --no-build \
             --logger "trx" \
             --results-directory TestResults
-
+      
       - name: End Sonar Scanner and Upload Results
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
