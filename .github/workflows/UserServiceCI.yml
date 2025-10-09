@@ -50,15 +50,17 @@ jobs:
           PR_BASE: ${{ github.base_ref }}
           
         run: |
-          $SCANNER_ARGS = ""
+          [string[]]$PR_ARGS = @()
           
           if ([string]::IsNullOrWhiteSpace($env:PR_KEY) -ne $true) {
               Write-Host ">>> Running Pull Request analysis for PR #$env:PR_KEY"
-              $SCANNER_ARGS = "/d:sonar.pullrequest.key=$env:PR_KEY /d:sonar.pullrequest.branch=$env:PR_BRANCH /d:sonar.pullrequest.base=$env:PR_BASE"
+              $PR_ARGS += "/d:sonar.pullrequest.key=$env:PR_KEY"
+              $PR_ARGS += "/d:sonar.pullrequest.branch=$env:PR_BRANCH"
+              $PR_ARGS += "/d:sonar.pullrequest.base=$env:PR_BASE"
           } 
           else {
               Write-Host ">>> Running Main Branch analysis."
-              $SCANNER_ARGS = "/d:sonar.branch.name=${{ github.ref_name }}"
+              $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
           }
 
           dotnet sonarscanner begin `
@@ -68,7 +70,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" `
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
             /d:sonar.scm.revision="${{ github.sha }}" `
-            $SCANNER_ARGS
+            @PR_ARGS
           
           dotnet restore SubsTracker.sln
           dotnet build SubsTracker.sln --no-restore --configuration Release
