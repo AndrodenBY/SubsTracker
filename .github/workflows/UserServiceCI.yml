@@ -48,7 +48,6 @@ jobs:
           PR_KEY: ${{ github.event.pull_request.number }}
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
           PR_BASE: ${{ github.event.pull_request.base.ref }}
-        shell: powershell
         run: |
           $PR_ARGS = ""
           if ($env:PR_KEY) {
