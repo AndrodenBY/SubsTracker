@@ -10,8 +10,8 @@ on:
 jobs:
   build-and-analyze:
     name: Build and analyze
-    runs-on: windows-latest
-    timeout-minutes: 5
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Set up JDK 17
@@ -34,7 +34,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.sln') }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/SubsTracker.sln') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
@@ -64,10 +64,10 @@ jobs:
             /d:sonar.scm.revision="${{ github.sha }}" `
             $PR_ARGS
 
-          dotnet restore
+          dotnet restore SubsTracker.sln
 
-          dotnet build --no-restore --configuration Release
+          dotnet build SubsTracker.sln --no-restore --configuration Release
 
-          dotnet test --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
+          dotnet test SubsTracker.sln --no-build --configuration Release --collect:"XPlat Code Coverage" --results-directory ./coverage
 
           dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
