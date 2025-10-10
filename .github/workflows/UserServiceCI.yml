@@ -48,6 +48,7 @@ jobs:
           PR_KEY: ${{ github.event.pull_request.number }}
           PR_BRANCH: ${{ github.head_ref }}
           PR_BASE: ${{ github.base_ref }}
+          EXCLUDE_FROM_SONAR: "**/Migrations/*, **/Dockerfile"
           
         run: |
           [string[]]$PR_ARGS = @()
@@ -71,6 +72,7 @@ jobs:
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
             /d:sonar.scm.revision="${{ github.sha }}" `
             @PR_ARGS
+            /d:sonar.exclusions="$env:EXCLUDE_FROM_SONAR"
           
           dotnet restore SubsTracker.sln
           dotnet build SubsTracker.sln --no-restore --configuration Release
@@ -83,3 +85,4 @@ jobs:
             /p:CoverletOutput=./coverage/coverage.opencover.xml
             
           dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
+          
