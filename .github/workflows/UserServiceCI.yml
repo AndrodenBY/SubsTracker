@@ -84,3 +84,4 @@ jobs:
             /p:CoverletOutput=./coverage/coverage.opencover.xml
             
           dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
+          
