@@ -2,22 +2,22 @@ namespace SubsTracker.UnitTests.UserService;
 
 public class UserServiceTestsBase
 {
-    protected readonly IFixture _fixture;
-    protected readonly IRepository<User> _repository;
-    protected readonly IMapper _mapper;
-    protected readonly BLL.Services.User.UserService _service;
+    protected readonly IFixture Fixture;
+    protected readonly IRepository<User> Repository;
+    protected readonly IMapper Mapper;
+    protected readonly BLL.Services.User.UserService Service;
 
     protected UserServiceTestsBase()
     {
-        _fixture = new Fixture();
-        _fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
-            DateOnly.FromDateTime(DateTime.Today.AddDays(_fixture.Create<int>()))));
-        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => _fixture.Behaviors.Remove(b));
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        
-        _repository = Substitute.For<IRepository<User>>();
-        _mapper = Substitute.For<IMapper>();
-        _service = new BLL.Services.User.UserService(_repository, _mapper);
+        Fixture = new Fixture();
+        Fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
+           DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
+        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+           .ForEach(b => Fixture.Behaviors.Remove(b));
+        Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        Repository = Substitute.For<IRepository<User>>();
+        Mapper = Substitute.For<IMapper>();
+        Service = new BLL.Services.User.UserService(Repository, Mapper);
     }
 }
