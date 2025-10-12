@@ -4,9 +4,9 @@ namespace SubsTracker.DAL.Models.User;
 
 public class GroupMember : BaseModel
 {
-    public Guid UserId { get; set; }
-    public User User { get; set; }
-    public Guid GroupId { get; set; }
-    public UserGroup Group { get; set; }
+    public required Guid UserId { get; set; }
+    public required User User { get; set; }
+    public required Guid GroupId { get; set; }
+    public required UserGroup Group { get; set; }
     public MemberRole Role { get; set; } = MemberRole.Participant;
 }
