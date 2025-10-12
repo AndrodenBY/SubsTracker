@@ -78,7 +78,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         var entity = await db.Subscriptions.SingleOrDefaultAsync(s => s.Id == expectedId);
 
         entity.ShouldNotBeNull();
-        entity!.Name.ShouldBe(expectedName);
+        entity.Name.ShouldBe(expectedName);
     }
 
     public async Task CancelSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original)
@@ -97,7 +97,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         var entity = await db.Subscriptions.FindAsync(original.Id);
 
         entity.ShouldNotBeNull();
-        entity!.Active.ShouldBeFalse();
+        entity.Active.ShouldBeFalse();
     }
 
     public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original, DateOnly expectedDueDate)
@@ -118,7 +118,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         var entity = await db.Subscriptions.FindAsync(original.Id);
 
         entity.ShouldNotBeNull();
-        entity!.DueDate.ShouldBe(expectedDueDate);
+        entity.DueDate.ShouldBe(expectedDueDate);
         entity.Active.ShouldBeTrue();
     }
 
