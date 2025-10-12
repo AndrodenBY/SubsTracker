@@ -6,11 +6,11 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
     public async Task Create_WhenValidModel_ReturnsCreatedSubscription()
     {
         //Arrange
-        var createDto = _fixture.Create<CreateSubscriptionDto>();
+        var createDto = Fixture.Create<CreateSubscriptionDto>();
 
-        var existingUser = _fixture.Create<User>();
+        var existingUser = Fixture.Create<User>();
 
-        var subscriptionEntity = _fixture.Build<Subscription>()
+        var subscriptionEntity = Fixture.Build<Subscription>()
             .With(s => s.Name, createDto.Name)
             .With(s => s.Price, createDto.Price)
             .With(s => s.DueDate, createDto.DueDate)
@@ -19,7 +19,7 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
             .With(s => s.UserId, existingUser.Id)
             .Create();
 
-        var subscriptionDto = _fixture.Build<SubscriptionDto>()
+        var subscriptionDto = Fixture.Build<SubscriptionDto>()
             .With(s => s.Name, subscriptionEntity.Name)
             .With(s => s.Price, subscriptionEntity.Price)
             .With(s => s.DueDate, subscriptionEntity.DueDate)
@@ -27,17 +27,17 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
             .With(s => s.Type, subscriptionEntity.Type)
             .Create();
 
-        _userRepository.GetById(existingUser.Id, default)
-            .Returns(existingUser);
-        _mapper.Map<Subscription>(createDto)
-            .Returns(subscriptionEntity);
-        _repository.Create(subscriptionEntity, default)
-            .Returns(subscriptionEntity);
-        _mapper.Map<SubscriptionDto>(subscriptionEntity)
-            .Returns(subscriptionDto);
+        UserRepository.GetById(existingUser.Id, default)
+           .Returns(existingUser);
+        Mapper.Map<Subscription>(createDto)
+           .Returns(subscriptionEntity);
+        Repository.Create(subscriptionEntity, default)
+           .Returns(subscriptionEntity);
+        Mapper.Map<SubscriptionDto>(subscriptionEntity)
+           .Returns(subscriptionDto);
 
         //Act
-        var result = await _service.Create(existingUser.Id, createDto, default);
+        var result = await Service.Create(existingUser.Id, createDto, default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -46,17 +46,17 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
         result.DueDate.ShouldBe(createDto.DueDate);
         result.Content.ShouldBe(createDto.Content);
         result.Type.ShouldBe(createDto.Type);
-        await _userRepository.Received(1).GetById(existingUser.Id, default);
-        await _repository.Received(1).Create(subscriptionEntity, default);
+        await UserRepository.Received(1).GetById(existingUser.Id, default);
+        await Repository.Received(1).Create(subscriptionEntity, default);
     }
 
     [Fact]
     public async Task Create_WhenUserNotExists_ReturnsNull()
     {
         //Arrange
-        var createDto = _fixture.Create<CreateSubscriptionDto>();
-        
+        var createDto = Fixture.Create<CreateSubscriptionDto>();
+
         //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(async () => await _service.Create(Guid.NewGuid(), createDto, default));
+        await Should.ThrowAsync<NotFoundException>(async () => await Service.Create(Guid.NewGuid(), createDto, default));
     }
 }

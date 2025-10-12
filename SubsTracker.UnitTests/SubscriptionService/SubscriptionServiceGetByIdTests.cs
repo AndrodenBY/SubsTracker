@@ -6,23 +6,23 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
     public async Task GetById_WhenSubscriptionExists_ReturnsSubscriptionDto()
     {
         //Arrange
-        var subscriptionEntity = _fixture.Create<Subscription>();
+        var subscriptionEntity = Fixture.Create<Subscription>();
 
-        var subscriptionDto = _fixture.Build<SubscriptionDto>()
+        var subscriptionDto = Fixture.Build<SubscriptionDto>()
             .With(subscription => subscription.Id, subscriptionEntity.Id)
             .With(subscription => subscription.Name, subscriptionEntity.Name)
             .With(subscription => subscription.Price, subscriptionEntity.Price)
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
 
-        _repository.GetById(subscriptionEntity.Id, default)
-            .Returns(subscriptionEntity);
+        Repository.GetById(subscriptionEntity.Id, default)
+           .Returns(subscriptionEntity);
 
-        _mapper.Map<SubscriptionDto>(subscriptionEntity)
-            .Returns(subscriptionDto);
+        Mapper.Map<SubscriptionDto>(subscriptionEntity)
+           .Returns(subscriptionDto);
 
         //Act
-        var result = await _service.GetById(subscriptionEntity.Id, default);
+        var result = await Service.GetById(subscriptionEntity.Id, default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -31,7 +31,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         result.Price.ShouldBe(subscriptionEntity.Price);
         result.DueDate.ShouldBe(subscriptionEntity.DueDate);
 
-        await _repository.Received(1).GetById(subscriptionEntity.Id, default);
+        await Repository.Received(1).GetById(subscriptionEntity.Id, default);
     }
 
     [Fact]
@@ -39,10 +39,10 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var emptyId = Guid.Empty;
-        
+
         //Act
-        var emptyIdResult = await _service.GetById(emptyId, default);
-        
+        var emptyIdResult = await Service.GetById(emptyId, default);
+
         //Assert
         emptyIdResult.ShouldBeNull();
     }
@@ -52,10 +52,10 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var fakeId = Guid.NewGuid();
-        
+
         //Act
-        var fakeIdResult = await _service.GetById(fakeId, default);
-        
+        var fakeIdResult = await Service.GetById(fakeId, default);
+
         //Assert
         fakeIdResult.ShouldBeNull();
     }
