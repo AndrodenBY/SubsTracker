@@ -8,25 +8,25 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
         //Arrange
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
-    
-        var memberToDelete = _fixture.Build<GroupMember>()
+
+        var memberToDelete = Fixture.Build<GroupMember>()
             .With(m => m.UserId, userId)
             .With(m => m.GroupId, groupId)
             .Create();
-        
-        _repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-            .Returns(memberToDelete);
-        _repository.GetById(Arg.Any<Guid>(), default).Returns(memberToDelete);
-        _repository.Delete(memberToDelete, default)
-            .Returns(true);
-    
+
+        Repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+           .Returns(memberToDelete);
+        Repository.GetById(Arg.Any<Guid>(), default).Returns(memberToDelete);
+        Repository.Delete(memberToDelete, default)
+           .Returns(true);
+
         //Act
-        var result = await _service.LeaveGroup(groupId, userId, default);
-    
+        var result = await Service.LeaveGroup(groupId, userId, default);
+
         //Assert
         result.ShouldBeTrue();
-        await _repository.Received(1).GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
-        await _repository.Received(1).Delete(memberToDelete, default);
+        await Repository.Received(1).GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
+        await Repository.Received(1).Delete(memberToDelete, default);
     }
 
     [Fact]
@@ -35,16 +35,16 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
         //Arrange
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
-        
-        _repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-            .Returns((GroupMember)null);
-    
+
+        Repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+           .Returns((GroupMember?)null);
+
         //Act
-        var act = async () => await _service.LeaveGroup(groupId, userId, default);
-    
+        var act = async () => await Service.LeaveGroup(groupId, userId, default);
+
         //Assert
         await act.ShouldThrowAsync<NotFoundException>();
-        await _repository.Received(1).GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
-        await _repository.DidNotReceive().Delete(Arg.Any<GroupMember>(), default);
+        await Repository.Received(1).GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
+        await Repository.DidNotReceive().Delete(Arg.Any<GroupMember>(), default);
     }
 }
