@@ -2,26 +2,26 @@ namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceTestBase
 {
-    protected readonly IFixture _fixture;
-    protected readonly IRepository<GroupMember> _repository;
-    protected readonly IMapper _mapper;
-    protected readonly BLL.Services.User.GroupMemberService _service;
+    protected readonly IFixture Fixture;
+    protected readonly IRepository<GroupMember> Repository;
+    protected readonly IMapper Mapper;
+    protected readonly BLL.Services.User.GroupMemberService Service;
 
     protected GroupMemberServiceTestBase()
     {
-        _fixture = new Fixture();
-        _fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
-            DateOnly.FromDateTime(DateTime.Today.AddDays(_fixture.Create<int>()))));
-        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => _fixture.Behaviors.Remove(b));
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        
-        _repository = Substitute.For<IRepository<GroupMember>>();
-        _mapper = Substitute.For<IMapper>();
-        
-        _service = new BLL.Services.User.GroupMemberService(
-            _repository, 
-            _mapper
-        );
+        Fixture = new Fixture();
+        Fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
+             DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
+        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+             .ForEach(b => Fixture.Behaviors.Remove(b));
+        Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        Repository = Substitute.For<IRepository<GroupMember>>();
+        Mapper = Substitute.For<IMapper>();
+
+        Service = new BLL.Services.User.GroupMemberService(
+            Repository,
+            Mapper
+       );
     }
 }

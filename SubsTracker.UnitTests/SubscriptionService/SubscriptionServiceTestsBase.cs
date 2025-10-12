@@ -2,26 +2,26 @@ namespace SubsTracker.UnitTests.SubscriptionService;
 
 public class SubscriptionServiceTestsBase
 {
-    protected readonly IFixture _fixture;
-    protected readonly ISubscriptionRepository _repository;
-    protected readonly IMapper _mapper;
-    protected readonly IRepository<User> _userRepository;
-    private ISubscriptionHistoryRepository _history;
-    protected readonly BLL.Services.Subscription.SubscriptionService _service;
+    protected readonly IFixture Fixture;
+    protected readonly ISubscriptionRepository Repository;
+    protected readonly IMapper Mapper;
+    protected readonly IRepository<User> UserRepository;
+    private readonly ISubscriptionHistoryRepository _historyRepository;
+    protected readonly BLL.Services.Subscription.SubscriptionService Service;
 
     protected SubscriptionServiceTestsBase()
     {
-        _fixture = new Fixture();
-        _fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
-            DateOnly.FromDateTime(DateTime.Today.AddDays(_fixture.Create<int>()))));
-        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => _fixture.Behaviors.Remove(b));
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        
-        _repository = Substitute.For<ISubscriptionRepository>();
-        _userRepository = Substitute.For<IRepository<User>>();
-        _mapper = Substitute.For<IMapper>();
-        _history = Substitute.For<ISubscriptionHistoryRepository>();
-        _service = new BLL.Services.Subscription.SubscriptionService(_repository, _mapper, _userRepository, _history);
+        Fixture = new Fixture();
+        Fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
+            DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
+        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+            .ForEach(b => Fixture.Behaviors.Remove(b));
+        Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        Repository = Substitute.For<ISubscriptionRepository>();
+        UserRepository = Substitute.For<IRepository<User>>();
+        Mapper = Substitute.For<IMapper>();
+        _historyRepository = Substitute.For<ISubscriptionHistoryRepository>();
+        Service = new BLL.Services.Subscription.SubscriptionService(Repository, Mapper, UserRepository, _historyRepository);
     }
 }
