@@ -13,7 +13,7 @@ global using AutoFixture;
 global using SubsTracker.Domain.Enums;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using Microsoft.EntityFrameworkCore;
-global using SubsTracker.IntegrationTests.DataSeedEntites;
+global using SubsTracker.IntegrationTests.DataSeedEntities;
 global using SubsTracker.DAL.Models.User;
 global using SubsTracker.IntegrationTests.Helpers.Subscription;
 global using SubsTracker.API.ViewModel.User;
