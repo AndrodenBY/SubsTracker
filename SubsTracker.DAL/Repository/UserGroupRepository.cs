@@ -8,7 +8,7 @@ public class UserGroupRepository(SubsDbContext context) : Repository<UserGroup>(
 {
     public override async Task<UserGroup?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var userGroup = await context.UserGroups
+        var userGroup = await Context.UserGroups
             .Include(g => g.SharedSubscriptions)
             .Include(g => g.Members)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
