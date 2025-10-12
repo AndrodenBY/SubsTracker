@@ -4,6 +4,7 @@ using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
@@ -66,7 +67,7 @@ public class UserGroupsController(
         var entities = await memberService.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<GroupMemberViewModel>>(entities);
     }
-    
+
     /// <summary>
     /// Creates a new user group
     /// </summary>
@@ -127,7 +128,7 @@ public class UserGroupsController(
     {
         await service.Delete(id, cancellationToken);
     }
-    
+
     /// <summary>
     /// Adds a user to a group
     /// </summary>

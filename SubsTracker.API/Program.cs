@@ -1,5 +1,6 @@
-using SubsTracker.API;
 using SubsTracker.API.Middlewares.ExceptionHandling;
+
+namespace SubsTracker.API;
 
 public class Program
 {
@@ -10,12 +11,12 @@ public class Program
             Args = args,
             EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"
         });
-        
+
         builder.Configuration
             .AddJsonFile("appsettings.json", optional: false)
             .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
             .AddEnvironmentVariables();
-        
+
         if (!builder.Environment.IsEnvironment("IntegrationTest"))
         {
             builder.Configuration.AddUserSecrets<Program>();
