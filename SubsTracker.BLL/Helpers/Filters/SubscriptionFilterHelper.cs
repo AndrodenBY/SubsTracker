@@ -8,25 +8,25 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class SubscriptionFilterHelper
 {
-    public static Expression<Func<Subscription, bool>> CreatePredicate(SubscriptionFilterDto filter)
+    public static Expression<Func<Subscription, bool>> CreatePredicate(SubscriptionFilterDto? filter)
     {
         var predicate = PredicateBuilder.New<Subscription>(true);
 
         predicate = FilterHelper.AddFilterCondition<Subscription>(
             predicate,
-            filter.Name,
+            filter?.Name,
             subscription => subscription.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 
         predicate = FilterHelper.AddFilterCondition<Subscription, Guid>(
             predicate,
-            filter.Id, 
+            filter.Id,
             subscription => subscription.Id == filter.Id
         );
-        
+
         predicate = FilterHelper.AddFilterCondition<Subscription, Guid>(
             predicate,
-            filter.UserId, 
+            filter.UserId,
             subscription => subscription.UserId == filter.UserId
         );
 

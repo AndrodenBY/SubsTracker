@@ -7,13 +7,13 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class UserGroupFilterHelper
 {
-    public static Expression<Func<UserGroup, bool>> CreatePredicate(UserGroupFilterDto filter)
+    public static Expression<Func<UserGroup, bool>> CreatePredicate(UserGroupFilterDto? filter)
     {
         var predicate = PredicateBuilder.New<UserGroup>(true);
 
         predicate = FilterHelper.AddFilterCondition<UserGroup>(
             predicate,
-            filter.Name,
+            filter?.Name,
             group => group.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 
