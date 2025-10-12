@@ -6,24 +6,24 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
     public async Task GetById_WhenUserExists_ReturnsUser()
     {
         //Arrange
-        var existingUser = _fixture.Create<User>();
-        var expectedDto = _fixture.Build<UserDto>()
+        var existingUser = Fixture.Create<User>();
+        var expectedDto = Fixture.Build<UserDto>()
             .With(user => user.Id, existingUser.Id)
             .With(user => user.FirstName, existingUser.FirstName)
             .With(user => user.Email, existingUser.Email)
             .Create();
 
-        _repository.GetById(existingUser.Id, default).Returns(existingUser);
-        _mapper.Map<UserDto>(existingUser).Returns(expectedDto);
+        Repository.GetById(existingUser.Id, default).Returns(existingUser);
+        Mapper.Map<UserDto>(existingUser).Returns(expectedDto);
 
         //Act
-        var result = await _service.GetById(existingUser.Id, default);
+        var result = await Service.GetById(existingUser.Id, default);
 
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(existingUser.Id);
         result.FirstName.ShouldBe(existingUser.FirstName);
-        await _repository.Received(1).GetById(existingUser.Id, default);
+        await Repository.Received(1).GetById(existingUser.Id, default);
     }
 
     [Fact]
@@ -31,10 +31,10 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
     {
         //Arrange
         var emptyId = Guid.Empty;
-        
+
         //Act
-        var emptyIdResult = await _service.GetById(emptyId, default);
-        
+        var emptyIdResult = await Service.GetById(emptyId, default);
+
         //Assert
         emptyIdResult.ShouldBeNull();
     }
@@ -44,10 +44,10 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
     {
         //Arrange
         var fakeId = Guid.NewGuid();
-        
+
         //Act
-        var fakeIdResult = await _service.GetById(fakeId, default);
-        
+        var fakeIdResult = await Service.GetById(fakeId, default);
+
         //Assert
         fakeIdResult.ShouldBeNull();
     }
