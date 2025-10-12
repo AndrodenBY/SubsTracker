@@ -14,7 +14,7 @@ namespace SubsTracker.BLL.Services.User;
 public class UserService(
     IRepository<UserModel> repository,
     IMapper mapper
-        ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
+    ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
@@ -26,7 +26,7 @@ public class UserService(
 
     public override async Task<UserDto> Create(CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        var userExists = await repository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
+        var userExists = await Repository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
         if (userExists is not null)
         {
             throw new InvalidOperationException($"User with email {userExists.Email} already exists");
@@ -37,9 +37,9 @@ public class UserService(
 
     public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var userExists = await repository.GetById(updateId, cancellationToken)
+        var userExists = await Repository.GetById(updateId, cancellationToken)
                          ?? throw new InvalidOperationException($"Cannot update user with id {updateId}");
-        
+
         var entity = await base.Update(userExists.Id, updateDto, cancellationToken);
         return entity;
     }

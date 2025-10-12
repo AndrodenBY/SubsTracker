@@ -17,24 +17,28 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     where TUpdateDto : class
     where TFilterDto : class
 {
+    protected IMapper Mapper => mapper;
+
+    protected IRepository<TEntity> Repository => repository;
+
     public virtual async Task<List<TDto>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
         var entities = await repository.GetAll(predicate, cancellationToken);
-        return mapper.Map<List<TDto>>(entities);
+        return Mapper.Map<List<TDto>>(entities);
     }
 
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var entity = await repository.GetById(id, cancellationToken);
-        return mapper.Map<TDto>(entity);
+        return Mapper.Map<TDto>(entity);
     }
 
     public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)
     {
-        var entity = mapper.Map<TEntity>(createDto);
+        var entity = Mapper.Map<TEntity>(createDto);
         var createdEntity = await repository.Create(entity, cancellationToken);
-        return mapper.Map<TDto>(createdEntity);
+        return Mapper.Map<TDto>(createdEntity);
     }
 
     public virtual async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
@@ -42,10 +46,10 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         var existingEntity = await repository.GetById(updateId, cancellationToken)
                              ?? throw new NotFoundException($"Entity with id {updateId} not found");
 
-        mapper.Map(updateDto, existingEntity);
+        Mapper.Map(updateDto, existingEntity);
         var updatedEntity = await repository.Update(existingEntity, cancellationToken);
 
-        return mapper.Map<TDto>(updatedEntity);
+        return Mapper.Map<TDto>(updatedEntity);
     }
 
     public virtual async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
@@ -60,6 +64,6 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     {
         var entity = await repository.GetByPredicate(predicate, cancellationToken);
 
-        return mapper.Map<TDto>(entity);
+        return Mapper.Map<TDto>(entity);
     }
 }
