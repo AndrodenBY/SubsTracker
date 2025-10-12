@@ -4,28 +4,26 @@ namespace SubsTracker.IntegrationTests.User;
 
 public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
-    private readonly TestsWebApplicationFactory _factory;
     private readonly HttpClient _client;
     private readonly UserTestsDataSeedingHelper _dataSeedingHelper;
     private readonly UserTestsAssertionHelper _assertHelper;
 
     public UsersControllerTests(TestsWebApplicationFactory factory)
     {
-        _factory = factory;
-        _client = _factory.CreateClient();
+        _client = factory.CreateClient();
         _dataSeedingHelper = new UserTestsDataSeedingHelper(factory);
         _assertHelper = new UserTestsAssertionHelper(factory);
     }
-    
+
     [Fact]
     public async Task GetById_ShouldReturnCorrectUser()
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
-        
+
         //Act
         var response = await _client.GetAsync($"{EndpointConst.User}/{seedData.User.Id}");
-        
+
         //Assert
         await _assertHelper.GetByIdValidAssert(response, seedData.User);
     }
@@ -35,10 +33,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
-        
+
         //Act
         var response = await _client.GetAsync($"{EndpointConst.User}?email={seedData.User.Email}");
-        
+
         //Assert
         await _assertHelper.GetAllValidAssert(response, seedData.User.Email);
     }
@@ -48,10 +46,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         await _dataSeedingHelper.AddSeedUser();
-        
+
         //Act
         var response = await _client.GetAsync($"{EndpointConst.User}?email=nonexistent@example.com");
-        
+
         //Assert
         await _assertHelper.GetAllInvalidAssert(response);
     }
@@ -61,10 +59,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Act
         var createDto = _dataSeedingHelper.AddCreateUserDto();
-        
+
         //Act
         var response = await _client.PostAsJsonAsync($"{EndpointConst.User}", createDto);
-        
+
         //Assert
         await _assertHelper.CreateValidAssert(response, createDto);
     }
@@ -75,10 +73,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
         var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
-        
+
         //Act
         var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/{seedData.User.Id}", updateDto);
-        
+
         //Assert
         await _assertHelper.UpdateValidAssert(response, seedData.User.Id, updateDto.FirstName, updateDto.Email);
     }
@@ -88,10 +86,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
-        
+
         //Act
         var response = await _client.DeleteAsync($"{EndpointConst.User}/{seedData.User.Id}");
-        
+
         //Assert
         await _assertHelper.DeleteValidAssert(response, seedData.User.Id);
     }
