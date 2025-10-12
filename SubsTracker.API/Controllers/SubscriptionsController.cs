@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.BLL.Interfaces.Subscription;
+using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
@@ -96,7 +97,7 @@ public class SubscriptionsController(
         var update = await service.Update(id, updateDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(update);
     }
-    
+
     /// <summary>
     /// Cancels a subscription by setting its Active property to false
     /// </summary>
@@ -135,7 +136,7 @@ public class SubscriptionsController(
         var renew = await service.RenewSubscription(subscriptionId, monthsToRenew, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(renew);
     }
-    
+
     /// <summary>
     /// Retrieves a list of upcoming bills for a specific user
     /// </summary>

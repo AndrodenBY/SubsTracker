@@ -4,7 +4,6 @@ using SubsTracker.BLL.Interfaces;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
-using LinqKit;
 
 namespace SubsTracker.BLL.Services;
 
