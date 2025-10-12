@@ -6,21 +6,21 @@ public class UserServiceDeleteTests : UserServiceTestsBase
     public async Task Delete_WhenCorrectModel_DeletesUser()
     {
         //Arrange
-        var existingUser = _fixture.Create<User>();
+        var existingUser = Fixture.Create<User>();
 
-        _repository.GetById(existingUser.Id, default)
-            .Returns(existingUser);
+        Repository.GetById(existingUser.Id, default)
+           .Returns(existingUser);
 
-        _repository.Delete(existingUser, default)
-            .Returns(true);
+        Repository.Delete(existingUser, default)
+           .Returns(true);
 
         //Act
-        var result = await _service.Delete(existingUser.Id, default);
+        var result = await Service.Delete(existingUser.Id, default);
 
         //Assert
         result.ShouldBeTrue();
-        await _repository.Received(1).GetById(existingUser.Id, default);
-        await _repository.Received(1).Delete(existingUser, default);
+        await Repository.Received(1).GetById(existingUser.Id, default);
+        await Repository.Received(1).Delete(existingUser, default);
     }
 
 
@@ -30,10 +30,13 @@ public class UserServiceDeleteTests : UserServiceTestsBase
         //Arrange
         var emptyGuid = Guid.Empty;
 
-        _repository.GetById(emptyGuid, default).Returns((User)null);
+        Repository.GetById(emptyGuid, default).Returns((User?)null);
+
+        //Act
+        var result = async () => await Service.Delete(emptyGuid, default);
         
-        //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(async () => await _service.Delete(emptyGuid, default));
+        //Assert
+        await result.ShouldThrowAsync<NotFoundException>();
     }
 }
 
