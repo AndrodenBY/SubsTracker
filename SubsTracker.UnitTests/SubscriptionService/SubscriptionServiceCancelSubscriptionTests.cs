@@ -8,40 +8,40 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
         //Arrange
         var userId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
-        
-        var userEntity = _fixture.Create<User>();
-        var subscriptionEntity = _fixture.Build<Subscription>()
+
+        var userEntity = Fixture.Create<User>();
+        var subscriptionEntity = Fixture.Build<Subscription>()
             .With(s => s.Id, subscriptionId)
             .With(s => s.UserId, userId)
             .With(s => s.Active, true)
             .Create();
-        
-        var updatedSubscriptionEntity = _fixture.Build<Subscription>()
+
+        var updatedSubscriptionEntity = Fixture.Build<Subscription>()
             .With(s => s.Id, subscriptionId)
             .With(s => s.UserId, userId)
             .With(s => s.Active, false)
             .Create();
 
-        var updatedSubscriptionDto = _fixture.Build<SubscriptionDto>()
+        var updatedSubscriptionDto = Fixture.Build<SubscriptionDto>()
             .With(dto => dto.Id, subscriptionId)
             .Create();
-        
-        _userRepository.GetById(userId, default)
-            .Returns(userEntity);
-        _repository.GetById(subscriptionId, default)
-            .Returns(subscriptionEntity);
-        _repository.Update(Arg.Any<Subscription>(), default)
-            .Returns(updatedSubscriptionEntity);
-        _mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
-            .Returns(updatedSubscriptionDto);
-    
+
+        UserRepository.GetById(userId, default)
+           .Returns(userEntity);
+        Repository.GetById(subscriptionId, default)
+           .Returns(subscriptionEntity);
+        Repository.Update(Arg.Any<Subscription>(), default)
+           .Returns(updatedSubscriptionEntity);
+        Mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
+           .Returns(updatedSubscriptionDto);
+
         //Act
-        var result = await _service.CancelSubscription(userId, subscriptionId, default);
-    
+        var result = await Service.CancelSubscription(userId, subscriptionId, default);
+
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(subscriptionId);
-        await _repository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
+        await Repository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
     }
 
     [Fact]
@@ -49,8 +49,11 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
     {
         //Arrange
         var emptyDto = new UpdateSubscriptionDto();
+
+        //Act
+        var result = async() => await Service.Update(Guid.Empty, emptyDto, default);
         
-        //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(() => _service.Update(Guid.Empty, emptyDto, default));
+        //Assert
+        await result.ShouldThrowAsync<NotFoundException>();
     }
 }
