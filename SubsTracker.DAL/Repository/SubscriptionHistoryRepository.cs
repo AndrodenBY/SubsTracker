@@ -19,7 +19,7 @@ public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<S
             PricePaid = pricePaid,
         };
         await _dbSet.AddAsync(createHistoryItem, cancellationToken);
-        return await context.SaveChangesAsync(cancellationToken) > 0;
+        return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
 
     public async Task UpdateType(SubscriptionType originalType, SubscriptionType updatedType,

@@ -16,7 +16,7 @@ public static class BusinessLayerServiceRegister
     public static IServiceCollection RegisterBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services.RegisterDataLayerDependencies(configuration)
-        .AddAutoMapper(cfg => { }, typeof(DtoMappingProfile).Assembly)
+        .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
         .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
         .AddScoped<ISubscriptionService, SubscriptionService>()
         .AddScoped<IUserService, UserService>()
