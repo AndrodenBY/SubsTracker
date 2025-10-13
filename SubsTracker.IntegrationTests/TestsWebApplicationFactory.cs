@@ -1,3 +1,5 @@
+using SubsTracker.API;
+
 namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
@@ -6,7 +8,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("IntegrationTest");
 
-        builder.ConfigureAppConfiguration((context, configBuilder) =>
+        builder.ConfigureAppConfiguration(configBuilder =>
         {
             var sources = configBuilder.Sources.ToList();
             configBuilder.Sources.Clear();
@@ -37,7 +39,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 services.Remove(descriptor);
             }
-            
+
             services.AddDbContext<SubsDbContext>(options =>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);

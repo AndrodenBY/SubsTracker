@@ -2,19 +2,17 @@ namespace SubsTracker.IntegrationTests.UserGroup;
 
 public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
-    private readonly TestsWebApplicationFactory _factory;
     private readonly HttpClient _client;
     private readonly UserGroupTestsDataSeedingHelper _dataSeedingHelper;
     private readonly UserGroupTestsAssertionHelper _assertHelper;
 
     public UserGroupsControllerTests(TestsWebApplicationFactory factory)
     {
-        _factory = factory;
-        _client = _factory.CreateClient();
+        _client = factory.CreateClient();
         _dataSeedingHelper = new UserGroupTestsDataSeedingHelper(factory);
         _assertHelper = new UserGroupTestsAssertionHelper(factory);
     }
-    
+
     [Fact]
     public async Task GetById_WhenValid_ReturnsCorrectGroup()
     {
@@ -94,7 +92,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.DeleteValidAssert(response, seedData.Group.Id);
     }
-    
+
     [Fact]
     public async Task GetAllMembers_WhenFilteredByRole_ReturnsCorrectMember()
     {
@@ -108,7 +106,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.GetAllMembersValidAssert(response, seedData, targetRole);
     }
-    
+
     [Fact]
     public async Task JoinGroup_WhenValidData_AddsMember()
     {
@@ -122,7 +120,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.JoinGroupValidAssert(response, createDto);
     }
-    
+
     [Fact]
     public async Task LeaveGroup_WhenValid_RemovesMember()
     {
@@ -132,11 +130,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
 
         //Act
         var response = await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
-        
+
         //Assert
         await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
     }
-    
+
     [Fact]
     public async Task ChangeRole_WhenValid_UpdatesMemberRole()
     {
@@ -149,7 +147,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.ChangeRoleValidAssert(response, MemberRole.Moderator);
     }
-    
+
     [Fact]
     public async Task ShareSubscription_WhenValid_AddsToGroup()
     {
@@ -163,7 +161,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.ShareSubscriptionValidAssert(response);
     }
-    
+
     [Fact]
     public async Task UnshareSubscription_WhenValid_RemovesFromGroup()
     {

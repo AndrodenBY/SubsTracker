@@ -1,6 +1,6 @@
 namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
 
-public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory) 
+public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
 
@@ -82,14 +82,14 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
 
         entity.ShouldBeNull();
     }
-    
+
     public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity, MemberRole targetRole)
     {
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
         var members = JsonConvert.DeserializeObject<List<GroupMemberViewModel>>(content);
-        
+
         members.ShouldNotBeNull();
         members.ShouldAllBe(m => m.Role == targetRole);
 
@@ -99,12 +99,12 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         actual.ShouldNotBeNull();
         actual.Role.ShouldBe(targetRole);
     }
-    
+
     public async Task JoinGroupValidAssert(HttpResponseMessage response, CreateGroupMemberDto createDto)
     {
         response.EnsureSuccessStatusCode();
-        
-        using var scope = _factory.Services.CreateScope();
+
+        using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var member = await db.Members.FirstOrDefaultAsync(m =>
@@ -114,11 +114,11 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         member.Role.ShouldBe(MemberRole.Participant);
     }
 
-    public async Task LeaveGroupValidAssert(HttpResponseMessage response ,Guid groupId, Guid userId)
+    public async Task LeaveGroupValidAssert(HttpResponseMessage response, Guid groupId, Guid userId)
     {
         response.EnsureSuccessStatusCode();
-        
-        using var scope = _factory.Services.CreateScope();
+
+        using var scope = Factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var exists = await db.Members.AnyAsync(m =>
@@ -126,14 +126,14 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
 
         exists.ShouldBeFalse();
     }
-    
+
     public async Task ChangeRoleValidAssert(HttpResponseMessage response, MemberRole expectedRole)
     {
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
         var updated = JsonConvert.DeserializeObject<GroupMemberViewModel>(content);
-        
+
         updated.ShouldNotBeNull();
         updated.Role.ShouldBe(expectedRole);
     }

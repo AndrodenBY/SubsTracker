@@ -1,4 +1,4 @@
-namespace SubsTracker.IntegrationTests.DataSeedEntites;
+namespace SubsTracker.IntegrationTests.DataSeedEntities;
 
 public class SubscriptionSeedEntity
 {
