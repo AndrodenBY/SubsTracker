@@ -6,7 +6,7 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
     public async Task UnshareSubscription_WhenDataIsValid_RemovesSubscription()
     {
         //Arrange
-        var subscription = new Subscription { Id = Guid.NewGuid() };
+        var subscription = new Subscription { Id = Guid.NewGuid(), Type = SubscriptionType.Free, Content = SubscriptionContent.Design, DueDate = DateOnly.MinValue, Price = 9.99m };
         var userGroup = _fixture.Build<UserGroup>()
             .With(group => group.SharedSubscriptions, new List<Subscription> { subscription })
             .Create();
