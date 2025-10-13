@@ -30,7 +30,7 @@ public class SubsDbContext : DbContext
         return base.SaveChanges();
     }
 
-    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken)
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         OnBeforeSaving();
         return base.SaveChangesAsync(cancellationToken);
@@ -50,8 +50,6 @@ public class SubsDbContext : DbContext
                     break;
                 case EntityState.Modified:
                     entry.Entity.ModifiedAt = DateTime.UtcNow;
-                    break;
-                default:
                     break;
             }
         }

@@ -9,7 +9,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         var userGroup = _fixture.Build<UserGroup>()
             .With(group => group.SharedSubscriptions, new List<Subscription>())
             .Create();
-        var subscription = new Subscription { Id = Guid.NewGuid() };
+        var subscription = new Subscription { Id = Guid.NewGuid(), Type = SubscriptionType.Free, Content = SubscriptionContent.Design, DueDate = DateOnly.MinValue, Price = 9.99m };
         var expectedDto = _fixture.Build<UserGroupDto>()
             .With(group => group.Id, userGroup.Id)
             .With(group => group.Name, userGroup.Name)

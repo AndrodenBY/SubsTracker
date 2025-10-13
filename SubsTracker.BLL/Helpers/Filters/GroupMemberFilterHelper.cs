@@ -8,7 +8,7 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class GroupMemberFilterHelper
 {
-    public static Expression<Func<GroupMember, bool>> CreatePredicate(GroupMemberFilterDto filter)
+    public static Expression<Func<GroupMember, bool>> CreatePredicate(GroupMemberFilterDto? filter)
     {
         var predicate = PredicateBuilder.New<GroupMember>(true);
 
