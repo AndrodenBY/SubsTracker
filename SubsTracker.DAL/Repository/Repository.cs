@@ -8,45 +8,47 @@ namespace SubsTracker.DAL.Repository;
 public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> where TEntity : class, IBaseModel
 {
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
+    protected readonly SubsDbContext Context = context;
 
-    public async Task<List<TEntity>> GetAll(
+    public Task<List<TEntity>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var query = _dbSet.AsQueryable();
-        if (predicate is not null)
-        {
-            query = query.Where(predicate);
-        }
-        return await query.ToListAsync(cancellationToken);
+        var query = _dbSet
+            .AsQueryable()
+            .AsNoTracking();
+
+        if (predicate is not null) query = query.Where(predicate);
+
+        return query.ToListAsync(cancellationToken);
     }
 
-    public virtual async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
+    public virtual Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return await _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
+        return _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
     public async Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken)
     {
         await _dbSet.AddAsync(entityToCreate, cancellationToken);
-        await context.SaveChangesAsync(cancellationToken);
+        await Context.SaveChangesAsync(cancellationToken);
         return entityToCreate;
     }
 
     public async Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken)
     {
-        var existingEntity = context.Update(entityToUpdate);
-        await context.SaveChangesAsync(cancellationToken);
+        var existingEntity = Context.Update(entityToUpdate);
+        await Context.SaveChangesAsync(cancellationToken);
         return existingEntity.Entity;
     }
 
     public async Task<bool> Delete(TEntity entityToDelete, CancellationToken cancellationToken)
     {
         _dbSet.Remove(entityToDelete);
-        return await context.SaveChangesAsync(cancellationToken) > 0;
+        return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-    public async Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    public Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
-        return await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+        return _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 }
