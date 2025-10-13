@@ -7,29 +7,24 @@ namespace SubsTracker.DAL.Repository;
 
 public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> where TEntity : class, IBaseModel
 {
-    protected SubsDbContext Context = context;
-
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
+    protected readonly SubsDbContext Context = context;
 
-    public async Task<List<TEntity>> GetAll(
+    public Task<List<TEntity>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
         var query = _dbSet
             .AsQueryable()
             .AsNoTracking();
 
-        if (predicate is not null)
-        {
-            query = query.Where(predicate);
-        }
+        if (predicate is not null) query = query.Where(predicate);
 
-        return await query.ToListAsync(cancellationToken);
+        return query.ToListAsync(cancellationToken);
     }
 
-    public virtual async Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
+    public virtual Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var entity = await _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
-        return entity;
+        return _dbSet.FirstOrDefaultAsync(entity => entity.Id == id, cancellationToken);
     }
 
     public async Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken)
@@ -52,9 +47,8 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
         return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-    public async Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    public Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
-        var entityByPredicate = await _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
-        return entityByPredicate;
+        return _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
     }
 }

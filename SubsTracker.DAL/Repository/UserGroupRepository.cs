@@ -6,12 +6,11 @@ namespace SubsTracker.DAL.Repository;
 
 public class UserGroupRepository(SubsDbContext context) : Repository<UserGroup>(context), IUserGroupRepository
 {
-    public override async Task<UserGroup?> GetById(Guid id, CancellationToken cancellationToken)
+    public override Task<UserGroup?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var userGroup = await Context.UserGroups
+        return Context.UserGroups
             .Include(g => g.SharedSubscriptions)
             .Include(g => g.Members)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
-        return userGroup;
     }
 }
