@@ -1,4 +1,3 @@
-using FluentValidation;
 using FluentValidation.AspNetCore;
 using SubsTracker.API.Mapper;
 using SubsTracker.API.Validators.User;
