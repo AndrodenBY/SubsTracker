@@ -68,7 +68,8 @@ jobs:
             /o:"androdenby" `
             /d:sonar.login="$env:SONAR_TOKEN" `
             /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" `
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
+            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
             /d:sonar.exclusions="**/Migrations/**,**/Dockerfile" `
             /d:sonar.scm.revision="${{ github.sha }}" `
             @PR_ARGS
@@ -79,9 +80,9 @@ jobs:
           dotnet test SubsTracker.sln `
             --no-build `
             --configuration Release `
-            /p:CollectCoverage=true `
-            /p:CoverletOutputFormat=OpenCover `
-            /p:CoverletOutput=./coverage/coverage.opencover.xml
+            --logger `
+            trx --collect:"XPlat Code Coverage" `
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
             
           dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
           
