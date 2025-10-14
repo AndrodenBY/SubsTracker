@@ -9,36 +9,36 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
 
-        var createDto = _fixture.Build<CreateGroupMemberDto>()
+        var createDto = Fixture.Build<CreateGroupMemberDto>()
             .With(dto => dto.UserId, userId)
             .With(dto => dto.GroupId, groupId)
             .Create();
 
-        var createdMemberEntity = _fixture.Build<GroupMember>()
+        var createdMemberEntity = Fixture.Build<GroupMember>()
             .With(gm => gm.UserId, userId)
             .With(gm => gm.GroupId, groupId)
             .Create();
 
-        var createdMemberDto = _fixture.Build<GroupMemberDto>()
+        var createdMemberDto = Fixture.Build<GroupMemberDto>()
             .With(dto => dto.UserId, userId)
             .With(dto => dto.GroupId, groupId)
             .Create();
 
-        _repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        Repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns((GroupMember?)null);
-        _repository.Create(Arg.Any<GroupMember>(), default)
+        Repository.Create(Arg.Any<GroupMember>(), default)
            .Returns(createdMemberEntity);
-        _mapper.Map<GroupMemberDto>(createdMemberEntity)
+        Mapper.Map<GroupMemberDto>(createdMemberEntity)
            .Returns(createdMemberDto);
 
         //Act
-        var result = await _service.JoinGroup(createDto, default);
+        var result = await Service.JoinGroup(createDto, default);
 
         //Assert
         result.ShouldNotBeNull();
         result.UserId.ShouldBe(userId);
         result.GroupId.ShouldBe(groupId);
-        await _repository.Received(1).Create(Arg.Any<GroupMember>(), default);
+        await Repository.Received(1).Create(Arg.Any<GroupMember>(), default);
     }
 
     [Fact]
@@ -48,21 +48,21 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
 
-        var createDto = _fixture.Build<CreateGroupMemberDto>()
+        var createDto = Fixture.Build<CreateGroupMemberDto>()
             .With(dto => dto.UserId, userId)
             .With(dto => dto.GroupId, groupId)
             .Create();
 
-        var existingMemberEntity = _fixture.Build<GroupMember>()
+        var existingMemberEntity = Fixture.Build<GroupMember>()
             .With(gm => gm.UserId, userId)
             .With(gm => gm.GroupId, groupId)
             .Create();
 
-        _repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        Repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns(existingMemberEntity);
 
         //Act
-        var act = async () => await _service.JoinGroup(createDto, default);
+        var act = async () => await Service.JoinGroup(createDto, default);
 
         //Assert
         await act.ShouldThrowAsync<ValidationException>();

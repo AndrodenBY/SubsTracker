@@ -6,17 +6,17 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
     public async Task Delete_WhenCorrectModel_DeletesUserGroup()
     {
         //Arrange
-        var userGroupEntity = _fixture.Create<UserGroup>();
-        
-        _repository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
-        _repository.Delete(userGroupEntity, default).Returns(true);
-        
+        var userGroupEntity = Fixture.Create<UserGroup>();
+
+        Repository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
+        Repository.Delete(userGroupEntity, default).Returns(true);
+
         //Act
-        var result = await _service.Delete(userGroupEntity.Id, default);
-        
+        var result = await Service.Delete(userGroupEntity.Id, default);
+
         //Assert
         result.ShouldBeTrue();
-        await _repository.Received(1).Delete(userGroupEntity, default);
+        await Repository.Received(1).Delete(userGroupEntity, default);
     }
 
     [Fact]
@@ -25,9 +25,12 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
         //Arrange
         var emptyId = Guid.Empty;
 
-        _repository.GetById(emptyId, default).Returns((UserGroup)null);
+        Repository.GetById(emptyId, default).Returns((UserGroup?)null);
 
-        //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(async () => await _service.Delete(emptyId, default));
+        //Act
+        var result = async () => await Service.Delete(emptyId, default);
+        
+        //Assert
+        await result.ShouldThrowAsync<NotFoundException>();
     }
 }

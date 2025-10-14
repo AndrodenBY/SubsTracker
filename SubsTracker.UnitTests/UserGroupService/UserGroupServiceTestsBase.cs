@@ -1,38 +1,36 @@
-using SubsTracker.DAL.Repository;
-
 namespace SubsTracker.UnitTests.UserGroupService;
 
 public class UserGroupServiceTestsBase
 {
-    protected readonly IFixture _fixture;
-    protected readonly IUserGroupRepository _repository;
-    protected readonly IRepository<User> _userRepository;
-    protected readonly ISubscriptionRepository _subscriptionRepository;
-    protected readonly IGroupMemberService _memberService;
-    protected readonly IMapper _mapper;
-    protected readonly BLL.Services.User.UserGroupService _service;
+    protected readonly IFixture Fixture;
+    protected readonly IUserGroupRepository Repository;
+    protected readonly IRepository<User> UserRepository;
+    protected readonly ISubscriptionRepository SubscriptionRepository;
+    private readonly IGroupMemberService _memberService;
+    protected readonly IMapper Mapper;
+    protected readonly BLL.Services.User.UserGroupService Service;
 
     protected UserGroupServiceTestsBase()
     {
-        _fixture = new Fixture();
-        _fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
-            DateOnly.FromDateTime(DateTime.Today.AddDays(_fixture.Create<int>()))));
-        _fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-            .ForEach(b => _fixture.Behaviors.Remove(b));
-        _fixture.Behaviors.Add(new OmitOnRecursionBehavior());
-        
-        _repository = Substitute.For<IUserGroupRepository>();
-        _userRepository = Substitute.For<IRepository<User>>();
-        _subscriptionRepository = Substitute.For<ISubscriptionRepository>();
-        _mapper = Substitute.For<IMapper>();
+        Fixture = new Fixture();
+        Fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
+           DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
+        Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+           .ForEach(b => Fixture.Behaviors.Remove(b));
+        Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
+
+        Repository = Substitute.For<IUserGroupRepository>();
+        UserRepository = Substitute.For<IRepository<User>>();
+        SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
+        Mapper = Substitute.For<IMapper>();
         _memberService = Substitute.For<IGroupMemberService>();
-        
-        _service = new BLL.Services.User.UserGroupService(
-            _repository,
-            _userRepository, 
-            _subscriptionRepository, 
-            _memberService, 
-            _mapper
-        );
+
+        Service = new BLL.Services.User.UserGroupService(
+            Repository,
+            UserRepository,
+           SubscriptionRepository,
+           _memberService,
+            Mapper
+       );
     }
 }

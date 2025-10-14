@@ -6,20 +6,20 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
     public async Task GetById_WhenUserGroupExists_ReturnsUserGroupDto()
     {
         //Arrange
-        var userGroupDto = _fixture.Create<UserGroupDto>();
-        var userGroup = _fixture.Build<UserGroup>()
+        var userGroupDto = Fixture.Create<UserGroupDto>();
+        var userGroup = Fixture.Build<UserGroup>()
             .With(x => x.Id, userGroupDto.Id)
             .With(x => x.Name, userGroupDto.Name)
             .Create();
 
-        _repository.GetById(userGroupDto.Id, default)
-            .Returns(userGroup);
+        Repository.GetById(userGroupDto.Id, default)
+           .Returns(userGroup);
 
-        _mapper.Map<UserGroupDto>(userGroup)
-            .Returns(userGroupDto);
+        Mapper.Map<UserGroupDto>(userGroup)
+           .Returns(userGroupDto);
 
         //Act
-        var result = await _service.GetById(userGroupDto.Id, default);
+        var result = await Service.GetById(userGroupDto.Id, default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -33,10 +33,10 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
     {
         //Arrange
         var emptyId = Guid.Empty;
-        
+
         //Act
-        var emptyIdResult = await _service.GetById(emptyId, default);
-        
+        var emptyIdResult = await Service.GetById(emptyId, default);
+
         //Assert
         emptyIdResult.ShouldBeNull();
     }
@@ -46,10 +46,10 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
     {
         //Arrange
         var fakeId = Guid.NewGuid();
-        
+
         //Act
-        var fakeIdResult = await _service.GetById(fakeId, default);
-        
+        var fakeIdResult = await Service.GetById(fakeId, default);
+
         //Assert
         fakeIdResult.ShouldBeNull();
     }
@@ -58,23 +58,23 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
     public async Task GetById_WhenCalled_CallsRepositoryExactlyOnce()
     {
         //Arrange
-        var userGroupDto = _fixture.Create<UserGroupDto>();
-        var userGroup = _fixture.Build<UserGroup>()
+        var userGroupDto = Fixture.Create<UserGroupDto>();
+        var userGroup = Fixture.Build<UserGroup>()
             .With(x => x.Id, userGroupDto.Id)
             .With(x => x.Name, userGroupDto.Name)
             .Create();
-        
-        _repository.GetById(userGroupDto.Id, default)
-            .Returns(userGroup);
 
-        _mapper.Map<UserGroupDto>(userGroup)
-            .Returns(userGroupDto);
-        
+        Repository.GetById(userGroupDto.Id, default)
+           .Returns(userGroup);
+
+        Mapper.Map<UserGroupDto>(userGroup)
+           .Returns(userGroupDto);
+
         //Act
-        await _service.GetById(userGroup.Id, default);
-        
+        await Service.GetById(userGroup.Id, default);
+
         //Assert
-        await _repository.Received(1).GetById(userGroup.Id, default);
-        _mapper.Received(1).Map<UserGroupDto>(userGroup);
+        await Repository.Received(1).GetById(userGroup.Id, default);
+        Mapper.Received(1).Map<UserGroupDto>(userGroup);
     }
 }

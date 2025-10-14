@@ -6,21 +6,21 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
     public async Task GetAll_WhenFilteredByName_ReturnsCorrectSubscription()
     {
         //Arrange
-        var subscriptionToFind = _fixture.Create<Subscription>();
-        var subscriptionDto = _fixture.Build<SubscriptionDto>()
+        var subscriptionToFind = Fixture.Create<Subscription>();
+        var subscriptionDto = Fixture.Build<SubscriptionDto>()
             .With(subscription => subscription.Id, subscriptionToFind.Id)
             .With(subscription => subscription.Name, subscriptionToFind.Name)
             .Create();
-        
+
         var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
 
-        _repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-            .Returns(new List<Subscription> { subscriptionToFind });
-        _mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto> { subscriptionDto });
+        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+           .Returns(new List<Subscription> { subscriptionToFind });
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto> { subscriptionDto });
 
         //Act
-        var result = await _service.GetAll(filter, default);
-        
+        var result = await Service.GetAll(filter, default);
+
         //Assert
         result.ShouldNotBeNull();
         result.ShouldHaveSingleItem();
@@ -31,21 +31,21 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
     public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
         //Arrange
-        var subscriptionToFind = _fixture.Create<Subscription>();
-        var subscriptionDto = _fixture.Build<SubscriptionDto>()
+        var subscriptionToFind = Fixture.Create<Subscription>();
+        Fixture.Build<SubscriptionDto>()
             .With(subscription => subscription.Id, subscriptionToFind.Id)
             .With(subscription => subscription.Name, subscriptionToFind.Name)
             .Create();
-        
+
         var filter = new SubscriptionFilterDto { Name = "LetThatSinkIn" };
 
-        _repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-            .Returns(new List<Subscription>());
-        _mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
-        
+        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+           .Returns(new List<Subscription>());
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
+
         //Act
-        var result = await _service.GetAll(filter, default);
-        
+        var result = await Service.GetAll(filter, default);
+
         //Assert
         result.ShouldBeEmpty();
     }
@@ -55,33 +55,33 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var filter = new SubscriptionFilterDto();
-        
-        _repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-            .Returns(new List<Subscription>());
-        _mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
-        
+
+        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+           .Returns(new List<Subscription>());
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
+
         //Act
-        var result = await _service.GetAll(filter, default);
-        
+        var result = await Service.GetAll(filter, default);
+
         //Assert
         result.ShouldBeEmpty();
     }
-    
+
     [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllSubscriptions()
     {
         //Arrange
-        var subscriptions = _fixture.CreateMany<Subscription>(3).ToList();
-        var subscriptionDtos = _fixture.CreateMany<SubscriptionDto>(3).ToList();
-        
+        var subscriptions = Fixture.CreateMany<Subscription>(3).ToList();
+        var subscriptionDtos = Fixture.CreateMany<SubscriptionDto>(3).ToList();
+
         var filter = new SubscriptionFilterDto();
 
-        _repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-            .Returns(subscriptions);
-        _mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
+        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+           .Returns(subscriptions);
+        Mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
 
         //Act
-        var result = await _service.GetAll(filter, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
         result.ShouldNotBeNull();

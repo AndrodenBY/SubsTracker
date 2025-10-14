@@ -6,26 +6,26 @@ public class UserServiceGetAllTests : UserServiceTestsBase
     public async Task GetAll_WhenFilteredByEmail_ReturnsCorrectUser()
     {
         //Arrange
-        var userToFind = _fixture.Create<User>();
-        var userDto = _fixture.Build<UserDto>()
+        var userToFind = Fixture.Create<User>();
+        var userDto = Fixture.Build<UserDto>()
             .With(user => user.Email, userToFind.Email)
             .With(user => user.Id, userToFind.Id)
             .With(user => user.FirstName, userToFind.FirstName)
             .Create();
-            
+
         var filter = new UserFilterDto { Email = userToFind.Email };
 
-        _repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(new List<User> { userToFind });
+        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+           .Returns(new List<User> { userToFind });
 
-        _mapper.Map<List<UserDto>>(Arg.Any<List<User>>())
-            .Returns(new List<UserDto> { userDto });
+        Mapper.Map<List<UserDto>>(Arg.Any<List<User>>())
+           .Returns(new List<UserDto> { userDto });
 
         //Act
-        var result = await _service.GetAll(filter, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        await _repository.Received(1).GetAll(Arg.Any<Expression<Func<User, bool>>>(), default);
+        await Repository.Received(1).GetAll(Arg.Any<Expression<Func<User, bool>>>(), default);
         result.ShouldNotBeNull();
         result.Single().Email.ShouldBe(userToFind.Email);
     }
@@ -36,13 +36,13 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         //Arrange
         var filter = new UserFilterDto { Email = "nonexistent@example.com" };
 
-        _repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(new List<User>());
-        _mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
-        
+        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+           .Returns(new List<User>());
+        Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
+
         //Act
-        var result = await _service.GetAll(filter, default);
-        
+        var result = await Service.GetAll(filter, default);
+
         //Assert
         result.ShouldBeEmpty();
     }
@@ -52,33 +52,33 @@ public class UserServiceGetAllTests : UserServiceTestsBase
     {
         //Arrange
         var filter = new UserFilterDto();
-        
-        _repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(new List<User>());
-        _mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
-        
+
+        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+           .Returns(new List<User>());
+        Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
+
         //Act
-        var result = await _service.GetAll(filter, default);
-        
+        var result = await Service.GetAll(filter, default);
+
         //Assert
         result.ShouldBeEmpty();
     }
-    
+
     [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUsers()
     {
         //Arrange
-        var users = _fixture.CreateMany<User>(3).ToList();
-        var userDtos = _fixture.CreateMany<UserDto>(3).ToList();
-        
+        var users = Fixture.CreateMany<User>(3).ToList();
+        var userDtos = Fixture.CreateMany<UserDto>(3).ToList();
+
         var filter = new UserFilterDto();
 
-        _repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(users);
-        _mapper.Map<List<UserDto>>(users).Returns(userDtos);
+        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+           .Returns(users);
+        Mapper.Map<List<UserDto>>(users).Returns(userDtos);
 
         //Act
-        var result = await _service.GetAll(filter, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
         result.ShouldNotBeNull();

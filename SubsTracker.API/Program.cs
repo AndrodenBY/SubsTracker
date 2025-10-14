@@ -9,7 +9,7 @@ public class Program
         var builder = WebApplication.CreateBuilder(new WebApplicationOptions
         {
             Args = args,
-            EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"
+            EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Development"
         });
 
         builder.Configuration

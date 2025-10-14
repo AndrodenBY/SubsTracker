@@ -7,37 +7,40 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
     {
         //Arrange
         var subscription = new Subscription { Id = Guid.NewGuid(), Type = SubscriptionType.Free, Content = SubscriptionContent.Design, DueDate = DateOnly.MinValue, Price = 9.99m };
-        var userGroup = _fixture.Build<UserGroup>()
+        var userGroup = Fixture.Build<UserGroup>()
             .With(group => group.SharedSubscriptions, new List<Subscription> { subscription })
             .Create();
-        var expectedDto = _fixture.Build<UserGroupDto>()
+        var expectedDto = Fixture.Build<UserGroupDto>()
             .With(group => group.Id, userGroup.Id)
             .With(group => group.Name, userGroup.Name)
             .Create();
 
-        _repository.GetById(userGroup.Id, default)
-            .Returns(userGroup);
-        _repository.Update(Arg.Any<UserGroup>(), default)
-            .Returns(userGroup);
+        Repository.GetById(userGroup.Id, default)
+           .Returns(userGroup);
+        Repository.Update(Arg.Any<UserGroup>(), default)
+           .Returns(userGroup);
 
-        _mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
+        Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
 
         //Act
-        var result = await _service.UnshareSubscription(userGroup.Id, subscription.Id, CancellationToken.None);
+        var result = await Service.UnshareSubscription(userGroup.Id, subscription.Id, CancellationToken.None);
 
         //Assert
         result.ShouldNotBeNull();
-        await _repository.Received(1).Update(Arg.Is<UserGroup>(g => !g.SharedSubscriptions.Contains(subscription)), default);
+        await Repository.Received(1).Update(Arg.Is<UserGroup>(g => !g.SharedSubscriptions.Contains(subscription)), default);
     }
-    
+
     [Fact]
     public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
-        _repository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns((UserGroup)null);
+        Repository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+           .Returns((UserGroup?)null);
 
-        //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(async () => await _service.UnshareSubscription(Guid.NewGuid(), Guid.NewGuid(), CancellationToken.None));
+        //Act
+        var result = async () => await Service.UnshareSubscription(Guid.NewGuid(), Guid.NewGuid(), default);
+        
+        //Assert
+        await result.ShouldThrowAsync<NotFoundException>();
     }
 }
