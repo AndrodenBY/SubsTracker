@@ -8,15 +8,15 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
         //Arrange
         var userGroupEntity = Fixture.Create<UserGroup>();
 
-        GenericRepository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
-        GroupRepository.Delete(userGroupEntity, default).Returns(true);
+        Repository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
+        Repository.Delete(userGroupEntity, default).Returns(true);
 
         //Act
         var result = await Service.Delete(userGroupEntity.Id, default);
 
         //Assert
         result.ShouldBeTrue();
-        await GroupRepository.Received(1).Delete(userGroupEntity, default);
+        await Repository.Received(1).Delete(userGroupEntity, default);
     }
 
     [Fact]
@@ -25,7 +25,7 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
         //Arrange
         var emptyId = Guid.Empty;
 
-        GroupRepository.GetById(emptyId, default).Returns((UserGroup?)null);
+        Repository.GetById(emptyId, default).Returns((UserGroup?)null);
 
         //Act
         var result = async () => await Service.Delete(emptyId, default);

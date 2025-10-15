@@ -14,7 +14,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
 
         var filter = new UserGroupFilterDto { Name = userGroupToFind.Name };
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+        Repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
            .Returns(new List<UserGroup> { userGroupToFind });
         Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto> { userGroupDto });
 
@@ -22,7 +22,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var result = await Service.GetAll(filter, default);
 
         //Assert
-        await GroupRepository.Received(1).GetAll(
+        await Repository.Received(1).GetAll(
             Arg.Any<Expression<Func<UserGroup, bool>>>(),
             default
         );
@@ -44,7 +44,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
 
         var filter = new UserGroupFilterDto { Name = "Pv$$YbR3aK3rS123" };
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+        Repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
            .Returns(new List<UserGroup>());
         Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
 
@@ -61,7 +61,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         //Arrange
         var filter = new UserGroupFilterDto();
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+        Repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
            .Returns(new List<UserGroup>());
         Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
 
@@ -81,7 +81,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
 
         var filter = new UserGroupFilterDto();
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+        Repository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
            .Returns(userGroups);
         Mapper.Map<List<UserGroupDto>>(userGroups).Returns(userGroupDtos);
 

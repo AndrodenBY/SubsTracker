@@ -15,9 +15,9 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
             .With(group => group.Name, userGroup.Name)
             .Create();
 
-        GroupRepository.GetById(userGroup.Id, default)
+        Repository.GetById(userGroup.Id, default)
            .Returns(userGroup);
-        GroupRepository.Update(Arg.Any<UserGroup>(), default)
+        Repository.Update(Arg.Any<UserGroup>(), default)
            .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
@@ -27,14 +27,14 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
 
         //Assert
         result.ShouldNotBeNull();
-        await GroupRepository.Received(1).Update(Arg.Is<UserGroup>(g => !g.SharedSubscriptions.Contains(subscription)), default);
+        await Repository.Received(1).Update(Arg.Is<UserGroup>(g => !g.SharedSubscriptions.Contains(subscription)), default);
     }
 
     [Fact]
     public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
-        GroupRepository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        Repository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
            .Returns((UserGroup?)null);
 
         //Act

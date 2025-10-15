@@ -12,7 +12,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             .With(x => x.Name, userGroupDto.Name)
             .Create();
 
-        GroupRepository.GetById(userGroupDto.Id, default)
+        Repository.GetById(userGroupDto.Id, default)
            .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(userGroup)
@@ -64,7 +64,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             .With(x => x.Name, userGroupDto.Name)
             .Create();
 
-        GroupRepository.GetById(userGroupDto.Id, default)
+        Repository.GetById(userGroupDto.Id, default)
            .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(userGroup)
@@ -74,7 +74,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         await Service.GetById(userGroup.Id, default);
 
         //Assert
-        await GroupRepository.Received(1).GetById(userGroup.Id, default);
+        await Repository.Received(1).GetById(userGroup.Id, default);
         Mapper.Received(1).Map<UserGroupDto>(userGroup);
     }
 }
