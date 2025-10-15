@@ -24,9 +24,9 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
             .With(dto => dto.GroupId, groupId)
             .Create();
 
-        Repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns((GroupMember?)null);
-        Repository.Create(Arg.Any<GroupMember>(), default)
+        MemberRepository.Create(Arg.Any<GroupMember>(), default)
            .Returns(createdMemberEntity);
         Mapper.Map<GroupMemberDto>(createdMemberEntity)
            .Returns(createdMemberDto);
@@ -38,7 +38,7 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
         result.ShouldNotBeNull();
         result.UserId.ShouldBe(userId);
         result.GroupId.ShouldBe(groupId);
-        await Repository.Received(1).Create(Arg.Any<GroupMember>(), default);
+        await MemberRepository.Received(1).Create(Arg.Any<GroupMember>(), default);
     }
 
     [Fact]
@@ -58,7 +58,7 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
             .With(gm => gm.GroupId, groupId)
             .Create();
 
-        Repository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns(existingMemberEntity);
 
         //Act

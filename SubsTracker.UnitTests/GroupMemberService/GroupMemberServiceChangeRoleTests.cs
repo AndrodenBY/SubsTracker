@@ -22,9 +22,9 @@ public class GroupMemberServiceChangeRoleTests : GroupMemberServiceTestBase
             .With(dto => dto.Role, MemberRole.Moderator)
             .Create();
 
-        Repository.GetById(memberId, default).Returns(memberEntity);
+        MemberRepository.GetFullInfoById(memberId, default).Returns(memberEntity);
         Mapper.Map(Arg.Any<UpdateGroupMemberDto>(), memberEntity).Returns(memberEntity);
-        Repository.Update(memberEntity, default).Returns(updatedMemberEntity);
+        MemberRepository.Update(memberEntity, default).Returns(updatedMemberEntity);
         Mapper.Map<GroupMemberDto>(updatedMemberEntity).Returns(memberDto);
 
         //Act
@@ -35,7 +35,7 @@ public class GroupMemberServiceChangeRoleTests : GroupMemberServiceTestBase
         result.Role.ShouldBe(MemberRole.Moderator);
         result.Role.ShouldNotBe(memberEntity.Role);
         result.Id.ShouldBe(memberEntity.Id);
-        await Repository.Received(1).Update(Arg.Any<GroupMember>(), default);
+        await MemberRepository.Received(1).Update(Arg.Any<GroupMember>(), default);
     }
 
     [Fact]
@@ -51,7 +51,7 @@ public class GroupMemberServiceChangeRoleTests : GroupMemberServiceTestBase
             .With(dto => dto.Role, MemberRole.Moderator)
             .Create();
 
-        Repository.GetById(memberEntity.Id, default).Returns(memberEntity);
+        MemberRepository.GetFullInfoById(memberEntity.Id, default).Returns(memberEntity);
 
         //Act
         var result = async () => await Service.ChangeRole(updateDto.Id, default);

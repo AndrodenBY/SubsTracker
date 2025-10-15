@@ -4,5 +4,5 @@ namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface IGroupMemberRepository : IRepository<GroupMember>
 {
-    new Task<GroupMember?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<GroupMember?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
 }
