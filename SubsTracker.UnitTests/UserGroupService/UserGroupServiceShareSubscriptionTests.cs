@@ -15,7 +15,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
             .With(group => group.Name, userGroup.Name)
             .Create();
 
-        GroupRepository.GetById(userGroup.Id, default)
+        GroupRepository.GetFullInfoById(userGroup.Id, default)
            .Returns(userGroup);
         SubscriptionRepository.GetById(subscription.Id, default)
             .Returns(subscription);
@@ -38,7 +38,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         //Arrange
         var nonExistentGroupId = Guid.NewGuid();
 
-        GroupRepository.GetById(nonExistentGroupId, Arg.Any<CancellationToken>())
+        GroupRepository.GetFullInfoById(nonExistentGroupId, Arg.Any<CancellationToken>())
            .Returns(Task.FromResult<UserGroup?>(null));
 
         //Act

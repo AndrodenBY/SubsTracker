@@ -15,7 +15,7 @@ public class UserGroupServiceUpdateTests : UserGroupServiceTestsBase
             .With(userGroup => userGroup.Id, updateDto.Id)
             .Create();
 
-        GenericRepository.GetById(updateDto.Id, default).Returns(userGroupEntity);
+        GroupRepository.GetById(updateDto.Id, default).Returns(userGroupEntity);
         GroupRepository.Update(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
         Mapper.Map(updateDto, userGroupEntity).Returns(userGroupEntity);
         Mapper.Map<UserGroupDto>(userGroupEntity).Returns(userGroupDto);

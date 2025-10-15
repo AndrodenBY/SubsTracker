@@ -16,7 +16,6 @@ namespace SubsTracker.BLL.Services.User;
 
 public class UserGroupService(
     IUserGroupRepository groupRepository,
-    IRepository<UserGroup> genericRepository,
     IRepository<UserModel> userRepository,
     ISubscriptionRepository subscriptionRepository,
     IGroupMemberService memberService,
@@ -24,11 +23,9 @@ public class UserGroupService(
     ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(groupRepository, mapper),
     IUserGroupService
 {
-    private new IUserGroupRepository GroupRepository => (IUserGroupRepository)base.Repository;
-
-    public override async Task<UserGroupDto?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var groupWithConnectedEntities = await GroupRepository.GetById(id, cancellationToken);
+        var groupWithConnectedEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
         return Mapper.Map<UserGroupDto>(groupWithConnectedEntities);
     }
 
@@ -61,18 +58,18 @@ public class UserGroupService(
 
     public new async Task<UserGroupDto> Update(Guid updateId, UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
     {
-        var existingUserGroup = await genericRepository.GetById(updateId, cancellationToken)
+        var existingUserGroup = await groupRepository.GetById(updateId, cancellationToken)
                              ?? throw new NotFoundException($"UserGroup with id {updateId} not found");
 
         Mapper.Map(updateDto, existingUserGroup);
-        var updatedEntity = await GroupRepository.Update(existingUserGroup, cancellationToken);
+        var updatedEntity = await groupRepository.Update(existingUserGroup, cancellationToken);
 
         return Mapper.Map<UserGroupDto>(updatedEntity);
     }
 
     public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var group = await GroupRepository.GetById(groupId, cancellationToken)
+        var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
                 ?? throw new NotFoundException($"Group with id {groupId} not found.");
 
         if (group.SharedSubscriptions is not null && group.SharedSubscriptions.Any(s => s.Id == subscriptionId))
@@ -85,13 +82,13 @@ public class UserGroupService(
 
         group.SharedSubscriptions?.Add(subscription);
 
-        var updatedGroup = await GroupRepository.Update(group, cancellationToken);
+        var updatedGroup = await groupRepository.Update(group, cancellationToken);
         return Mapper.Map<UserGroupDto>(updatedGroup);
     }
 
     public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var group = await GroupRepository.GetById(groupId, cancellationToken)
+        var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
                     ?? throw new NotFoundException($"Group with id {groupId} not found.");
 
         var subscriptionToRemove = group.SharedSubscriptions?.FirstOrDefault(s => s.Id == subscriptionId);
@@ -103,15 +100,15 @@ public class UserGroupService(
 
         group.SharedSubscriptions?.Remove(subscriptionToRemove);
 
-        var updatedGroup = await GroupRepository.Update(group, cancellationToken);
+        var updatedGroup = await groupRepository.Update(group, cancellationToken);
         return Mapper.Map<UserGroupDto>(updatedGroup);
     }
 
     public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var existingUserGroup = await genericRepository.GetById(id, cancellationToken)
+        var existingUserGroup = await groupRepository.GetById(id, cancellationToken)
                              ?? throw new NotFoundException($"UserGroup with id {id} not found");
 
-        return await GroupRepository.Delete(existingUserGroup, cancellationToken);
+        return await groupRepository.Delete(existingUserGroup, cancellationToken);
     }
 }

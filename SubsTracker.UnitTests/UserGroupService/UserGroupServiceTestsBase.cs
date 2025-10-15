@@ -4,7 +4,6 @@ public class UserGroupServiceTestsBase
 {
     protected readonly IFixture Fixture;
     protected readonly IUserGroupRepository GroupRepository;
-    protected readonly IRepository<UserGroup> GenericRepository;
     protected readonly IRepository<User> UserRepository;
     protected readonly ISubscriptionRepository SubscriptionRepository;
     private readonly IGroupMemberService _memberService;
@@ -21,7 +20,6 @@ public class UserGroupServiceTestsBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         GroupRepository = Substitute.For<IUserGroupRepository>();
-        GenericRepository = Substitute.For<IRepository<UserGroup>>();
         UserRepository = Substitute.For<IRepository<User>>();
         SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
         Mapper = Substitute.For<IMapper>();
@@ -29,7 +27,6 @@ public class UserGroupServiceTestsBase
 
         Service = new BLL.Services.User.UserGroupService(
             GroupRepository,
-            GenericRepository,
             UserRepository,
             SubscriptionRepository,
             _memberService,

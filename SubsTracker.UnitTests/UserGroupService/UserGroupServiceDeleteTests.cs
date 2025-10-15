@@ -8,7 +8,7 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
         //Arrange
         var userGroupEntity = Fixture.Create<UserGroup>();
 
-        GenericRepository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
+        GroupRepository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
         GroupRepository.Delete(userGroupEntity, default).Returns(true);
 
         //Act

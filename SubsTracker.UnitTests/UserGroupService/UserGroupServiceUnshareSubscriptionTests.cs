@@ -15,7 +15,7 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
             .With(group => group.Name, userGroup.Name)
             .Create();
 
-        GroupRepository.GetById(userGroup.Id, default)
+        GroupRepository.GetFullInfoById(userGroup.Id, default)
            .Returns(userGroup);
         GroupRepository.Update(Arg.Any<UserGroup>(), default)
            .Returns(userGroup);

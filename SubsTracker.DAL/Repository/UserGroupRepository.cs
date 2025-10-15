@@ -6,7 +6,7 @@ namespace SubsTracker.DAL.Repository;
 
 public class UserGroupRepository(SubsDbContext context) : Repository<UserGroup>(context), IUserGroupRepository
 {
-    public override Task<UserGroup?> GetById(Guid id, CancellationToken cancellationToken)
+    public Task<UserGroup?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         return Context.UserGroups
             .Include(g => g.SharedSubscriptions)
