@@ -11,7 +11,7 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
 
     public Task<Subscription?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        return Context.Subscriptions
+        return _dbSet
             .Include(g => g.User)
             .Include(g => g.History)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
