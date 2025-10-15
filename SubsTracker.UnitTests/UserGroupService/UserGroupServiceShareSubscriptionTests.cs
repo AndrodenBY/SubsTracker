@@ -15,11 +15,11 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
             .With(group => group.Name, userGroup.Name)
             .Create();
 
-        Repository.GetById(userGroup.Id, default)
+        GroupRepository.GetById(userGroup.Id, default)
            .Returns(userGroup);
         SubscriptionRepository.GetById(subscription.Id, default)
             .Returns(subscription);
-        Repository.Update(Arg.Any<UserGroup>(), default)
+        GroupRepository.Update(Arg.Any<UserGroup>(), default)
            .Returns(userGroup);
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
 
@@ -29,7 +29,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(userGroup.Id);
-        await Repository.Received(1).Update(Arg.Is<UserGroup>(g => g.SharedSubscriptions.Contains(subscription)), default);
+        await GroupRepository.Received(1).Update(Arg.Is<UserGroup>(g => g.SharedSubscriptions.Contains(subscription)), default);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         //Arrange
         var nonExistentGroupId = Guid.NewGuid();
 
-        Repository.GetById(nonExistentGroupId, Arg.Any<CancellationToken>())
+        GroupRepository.GetById(nonExistentGroupId, Arg.Any<CancellationToken>())
            .Returns(Task.FromResult<UserGroup?>(null));
 
         //Act

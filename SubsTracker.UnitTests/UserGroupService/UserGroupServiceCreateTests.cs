@@ -17,7 +17,7 @@ public class UserGroupServiceCreateTests : UserGroupServiceTestsBase
             .Create();
 
         UserRepository.GetById(createDto.UserId, default).Returns(new User { Id = createDto.UserId });
-        Repository.Create(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
+        GroupRepository.Create(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
         Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>()).Returns(userGroupEntity);
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(userGroupDto);
 
@@ -26,7 +26,7 @@ public class UserGroupServiceCreateTests : UserGroupServiceTestsBase
 
         //Assert
         result.ShouldNotBeNull();
-        await Repository.Received(1).Create(Arg.Any<UserGroup>(), default);
+        await GroupRepository.Received(1).Create(Arg.Any<UserGroup>(), default);
         result.ShouldBeEquivalentTo(userGroupDto);
     }
 
@@ -59,7 +59,7 @@ public class UserGroupServiceCreateTests : UserGroupServiceTestsBase
 
         UserRepository.GetById(createDto.UserId, default)
            .Returns(new User { Id = createDto.UserId });
-        Repository.Create(Arg.Any<UserGroup>(), default)
+        GroupRepository.Create(Arg.Any<UserGroup>(), default)
            .Returns(userGroupEntity);
         Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>())
            .Returns(userGroupEntity);
@@ -70,6 +70,6 @@ public class UserGroupServiceCreateTests : UserGroupServiceTestsBase
         await Service.Create(createDto, default);
 
         //Assert
-        await Repository.Received(1).Create(Arg.Any<UserGroup>(), default);
+        await GroupRepository.Received(1).Create(Arg.Any<UserGroup>(), default);
     }
 }
