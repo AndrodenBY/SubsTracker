@@ -28,7 +28,7 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
 
         UserRepository.GetById(userId, default)
            .Returns(userEntity);
-        SubscriptionRepository.GetById(subscriptionId, default)
+        SubscriptionRepository.GetFullInfoById(subscriptionId, default)
            .Returns(subscriptionEntity);
         SubscriptionRepository.Update(Arg.Any<Subscription>(), default)
            .Returns(updatedSubscriptionEntity);

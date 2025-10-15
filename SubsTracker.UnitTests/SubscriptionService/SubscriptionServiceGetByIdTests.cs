@@ -15,14 +15,14 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
 
-        SubscriptionRepository.GetById(subscriptionEntity.Id, default)
+        SubscriptionRepository.GetFullInfoById(subscriptionEntity.Id, default)
            .Returns(subscriptionEntity);
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
            .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.GetById(subscriptionEntity.Id, default);
+        var result = await Service.GetFullInfoById(subscriptionEntity.Id, default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -31,7 +31,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         result.Price.ShouldBe(subscriptionEntity.Price);
         result.DueDate.ShouldBe(subscriptionEntity.DueDate);
 
-        await SubscriptionRepository.Received(1).GetById(subscriptionEntity.Id, default);
+        await SubscriptionRepository.Received(1).GetFullInfoById(subscriptionEntity.Id, default);
     }
 
     [Fact]

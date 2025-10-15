@@ -14,7 +14,6 @@ namespace SubsTracker.BLL.Services.Subscription;
 
 public class SubscriptionService(
     ISubscriptionRepository subscriptionRepository,
-    IRepository<SubscriptionModel> genericRepository,
     //IMessageService messageService,
     IMapper mapper,
     IRepository<UserModel> userRepository,
@@ -22,11 +21,10 @@ public class SubscriptionService(
     ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper),
     ISubscriptionService
 {
-    private new ISubscriptionRepository SubscriptionRepository => (ISubscriptionRepository)base.Repository;
 
-    public override async Task<SubscriptionDto?> GetById(Guid id, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var subscriptionWithConnectedEntities = await SubscriptionRepository.GetById(id, cancellationToken);
+        var subscriptionWithConnectedEntities = await subscriptionRepository.GetFullInfoById(id, cancellationToken);
         return Mapper.Map<SubscriptionDto>(subscriptionWithConnectedEntities);
     }
     
@@ -46,7 +44,7 @@ public class SubscriptionService(
         var subscriptionToCreate = Mapper.Map<SubscriptionModel>(createDto);
         subscriptionToCreate.UserId = existingUser.Id;
 
-        var createdSubscription = await SubscriptionRepository.Create(subscriptionToCreate, cancellationToken);
+        var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
         var subscriptionDto = Mapper.Map<SubscriptionDto>(createdSubscription);
 
         await historyRepository.Create(createdSubscription.Id, SubscriptionAction.Activate, createDto.Price, cancellationToken);
@@ -58,7 +56,7 @@ public class SubscriptionService(
         var userWithSubscription = await userRepository.GetById(userId, cancellationToken)
             ?? throw new NotFoundException($"User with id {userId} does not exist");
 
-        var originalSubscription = await genericRepository.GetById(updateDto.Id, cancellationToken)
+        var originalSubscription = await subscriptionRepository.GetById(updateDto.Id, cancellationToken)
             ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
 
         if (originalSubscription.UserId != userWithSubscription.Id)
@@ -67,7 +65,7 @@ public class SubscriptionService(
         }
 
         Mapper.Map(updateDto, originalSubscription);
-        var updatedSubscription = await SubscriptionRepository.Update(originalSubscription, cancellationToken);
+        var updatedSubscription = await subscriptionRepository.Update(originalSubscription, cancellationToken);
         
         await historyRepository.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id, updatedSubscription.Price, cancellationToken);
         return Mapper.Map<SubscriptionDto>(updatedSubscription);
@@ -75,7 +73,7 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var subscription = await SubscriptionRepository.GetById(subscriptionId, cancellationToken)
+        var subscription = await subscriptionRepository.GetFullInfoById(subscriptionId, cancellationToken)
                            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
 
         if (subscription.UserId != userId)
@@ -85,7 +83,7 @@ public class SubscriptionService(
 
         subscription.Active = false;
         
-        var updatedSubscription = await SubscriptionRepository.Update(subscription, cancellationToken);
+        var updatedSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
         await historyRepository.Create(updatedSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
         //await messageService.NotifySubscriptionCanceled(subscription, cancellationToken);
@@ -99,12 +97,12 @@ public class SubscriptionService(
             throw new ValidationException("Cannot renew subscription for less than one month");
         }
 
-        var subscriptionToRenew = await SubscriptionRepository.GetById(subscriptionId, cancellationToken)
+        var subscriptionToRenew = await subscriptionRepository.GetFullInfoById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
 
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
         subscriptionToRenew.Active = true;
-        var renewedSubscription = await SubscriptionRepository.Update(subscriptionToRenew, cancellationToken);
+        var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
         await historyRepository.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price, cancellationToken);
 
         //await messageService.NotifySubscriptionRenewed(renewedSubscription, cancellationToken);
@@ -114,7 +112,7 @@ public class SubscriptionService(
 
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
-        var billsToPay = await SubscriptionRepository.GetUpcomingBills(userId, cancellationToken)
+        var billsToPay = await subscriptionRepository.GetUpcomingBills(userId, cancellationToken)
             ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
 
         return Mapper.Map<List<SubscriptionDto>>(billsToPay);

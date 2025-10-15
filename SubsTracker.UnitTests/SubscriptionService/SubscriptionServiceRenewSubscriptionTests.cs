@@ -20,7 +20,7 @@ public class SubscriptionServiceRenewSubscriptionTests : SubscriptionServiceTest
             .With(s => s.Type, subscriptionEntity.Type)
             .Create();
 
-        SubscriptionRepository.GetById(Arg.Any<Guid>(), default).Returns(subscriptionEntity);
+        SubscriptionRepository.GetFullInfoById(Arg.Any<Guid>(), default).Returns(subscriptionEntity);
         SubscriptionRepository.Update(Arg.Any<Subscription>(), default).Returns(subscriptionEntity);
         Mapper.Map<SubscriptionDto>(subscriptionEntity).Returns(subscriptionDto);
 
@@ -40,7 +40,7 @@ public class SubscriptionServiceRenewSubscriptionTests : SubscriptionServiceTest
         var monthsToRenew = -1;
         var subscription = Fixture.Create<Subscription>();
 
-        SubscriptionRepository.GetById(subscription.Id, default)
+        SubscriptionRepository.GetFullInfoById(subscription.Id, default)
            .Returns(subscription);
 
         //Act & Assert

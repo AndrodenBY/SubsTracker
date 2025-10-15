@@ -32,7 +32,7 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
 
         UserRepository.GetById(Arg.Any<Guid>(), default)
            .Returns(user);
-        GenericRepository.GetById(updateDto.Id, default).Returns(subscriptionEntity);
+        SubscriptionRepository.GetById(updateDto.Id, default).Returns(subscriptionEntity);
         SubscriptionRepository.Update(subscriptionEntity, default).Returns(subscriptionEntity);
         Mapper.Map<Subscription>(updateDto).Returns(subscriptionEntity);
         Mapper.Map<SubscriptionDto>(subscriptionEntity).Returns(subscriptionDto);

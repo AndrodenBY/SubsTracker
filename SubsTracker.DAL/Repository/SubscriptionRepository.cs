@@ -9,7 +9,7 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
 {
     private readonly DbSet<Subscription> _dbSet = context.Set<Subscription>();
 
-    public override Task<Subscription?> GetById(Guid id, CancellationToken cancellationToken)
+    public Task<Subscription?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         return Context.Subscriptions
             .Include(g => g.User)
