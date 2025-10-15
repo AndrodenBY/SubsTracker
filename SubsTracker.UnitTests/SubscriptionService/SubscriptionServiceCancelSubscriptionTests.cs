@@ -28,9 +28,9 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
 
         UserRepository.GetById(userId, default)
            .Returns(userEntity);
-        Repository.GetById(subscriptionId, default)
+        SubscriptionRepository.GetById(subscriptionId, default)
            .Returns(subscriptionEntity);
-        Repository.Update(Arg.Any<Subscription>(), default)
+        SubscriptionRepository.Update(Arg.Any<Subscription>(), default)
            .Returns(updatedSubscriptionEntity);
         Mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
            .Returns(updatedSubscriptionDto);
@@ -41,7 +41,7 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(subscriptionId);
-        await Repository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
+        await SubscriptionRepository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
     }
 
     [Fact]

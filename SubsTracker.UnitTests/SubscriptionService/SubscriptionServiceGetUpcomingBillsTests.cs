@@ -23,7 +23,7 @@ public class SubscriptionServiceGetUpcomingBillsTests : SubscriptionServiceTests
             .With(dto => dto.DueDate, s.DueDate)
             .Create()).ToList();
 
-        Repository.GetUpcomingBills(user.Id, default)
+        SubscriptionRepository.GetUpcomingBills(user.Id, default)
            .Returns(subscriptions);
 
         Mapper.Map<List<SubscriptionDto>>(subscriptions)
@@ -52,7 +52,7 @@ public class SubscriptionServiceGetUpcomingBillsTests : SubscriptionServiceTests
             .CreateMany(3)
             .ToList();
 
-        Repository.GetUpcomingBills(user.Id, default)
+        SubscriptionRepository.GetUpcomingBills(user.Id, default)
            .Returns(subscriptions);
         Mapper.Map<List<SubscriptionDto>>(subscriptions)
            .Returns(new List<SubscriptionDto>());

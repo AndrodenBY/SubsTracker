@@ -7,6 +7,7 @@ namespace SubsTracker.BLL.Interfaces.Subscription;
 public interface ISubscriptionService :
     IService<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>
 {
+    new Task<SubscriptionDto?> GetById(Guid id, CancellationToken cancellationToken);
     Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken);
     Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken);
     Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken);

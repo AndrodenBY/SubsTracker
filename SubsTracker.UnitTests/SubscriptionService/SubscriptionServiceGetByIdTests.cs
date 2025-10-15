@@ -15,7 +15,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
 
-        Repository.GetById(subscriptionEntity.Id, default)
+        SubscriptionRepository.GetById(subscriptionEntity.Id, default)
            .Returns(subscriptionEntity);
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
@@ -31,7 +31,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         result.Price.ShouldBe(subscriptionEntity.Price);
         result.DueDate.ShouldBe(subscriptionEntity.DueDate);
 
-        await Repository.Received(1).GetById(subscriptionEntity.Id, default);
+        await SubscriptionRepository.Received(1).GetById(subscriptionEntity.Id, default);
     }
 
     [Fact]

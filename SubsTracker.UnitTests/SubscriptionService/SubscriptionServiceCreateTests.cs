@@ -31,7 +31,7 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
            .Returns(existingUser);
         Mapper.Map<Subscription>(createDto)
            .Returns(subscriptionEntity);
-        Repository.Create(subscriptionEntity, default)
+        SubscriptionRepository.Create(subscriptionEntity, default)
            .Returns(subscriptionEntity);
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
            .Returns(subscriptionDto);
@@ -47,7 +47,7 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
         result.Content.ShouldBe(createDto.Content);
         result.Type.ShouldBe(createDto.Type);
         await UserRepository.Received(1).GetById(existingUser.Id, default);
-        await Repository.Received(1).Create(subscriptionEntity, default);
+        await SubscriptionRepository.Received(1).Create(subscriptionEntity, default);
     }
 
     [Fact]
