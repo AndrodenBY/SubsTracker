@@ -3,7 +3,8 @@ namespace SubsTracker.UnitTests.UserGroupService;
 public class UserGroupServiceTestsBase
 {
     protected readonly IFixture Fixture;
-    protected readonly IUserGroupRepository Repository;
+    protected readonly IUserGroupRepository GroupRepository;
+    protected readonly IRepository<UserGroup> GenericRepository;
     protected readonly IRepository<User> UserRepository;
     protected readonly ISubscriptionRepository SubscriptionRepository;
     private readonly IGroupMemberService _memberService;
@@ -19,17 +20,19 @@ public class UserGroupServiceTestsBase
            .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-        Repository = Substitute.For<IUserGroupRepository>();
+        GroupRepository = Substitute.For<IUserGroupRepository>();
+        GenericRepository = Substitute.For<IRepository<UserGroup>>();
         UserRepository = Substitute.For<IRepository<User>>();
         SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
         Mapper = Substitute.For<IMapper>();
         _memberService = Substitute.For<IGroupMemberService>();
 
         Service = new BLL.Services.User.UserGroupService(
-            Repository,
+            GroupRepository,
+            GenericRepository,
             UserRepository,
-           SubscriptionRepository,
-           _memberService,
+            SubscriptionRepository,
+            _memberService,
             Mapper
        );
     }
