@@ -60,7 +60,7 @@ public class GroupMemberService(
 
     public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
     {
-        var memberToDelete = await memberRepository.GetByPredicate(
+        var memberToDelete = await memberRepository.GetByPredicateFullInfo(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
         
