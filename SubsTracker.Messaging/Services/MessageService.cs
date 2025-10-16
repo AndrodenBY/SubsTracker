@@ -13,7 +13,7 @@ public class MessageService(IPublishEndpoint publishEndpoint) : IMessageService
         return publishEndpoint.Publish<SubscriptionCanceledEvent>(new (
             canceledSubscription.Id, 
             canceledSubscription.Name, 
-            canceledSubscription.User.Id, 
+            canceledSubscription.User!.Id, 
             canceledSubscription.User.Email
             ), cancellationToken);
     }
@@ -22,7 +22,7 @@ public class MessageService(IPublishEndpoint publishEndpoint) : IMessageService
     {
         return publishEndpoint.Publish<SubscriptionRenewedEvent>(new(
             renewedSubscription.Id, 
-            renewedSubscription.User.Id, 
+            renewedSubscription.User!.Id, 
             renewedSubscription.DueDate, 
             renewedSubscription.User.Email
             ), cancellationToken);
