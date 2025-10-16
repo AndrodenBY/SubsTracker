@@ -19,8 +19,8 @@ public static class MessagingLayerRegister
             {
                 rabbitMqConfigurator.Host(configuration["RabbitMQ:HostName"], configuration["RabbitMQ:VirtualHostName"], configure =>
                 {
-                    configure.Username(configuration["RabbitMQ:UserName"]);
-                    configure.Password(configuration["RabbitMQ:Password"]);
+                    configure.Username(configuration["RabbitMqUsername"]);
+                    configure.Password(configuration["RabbitMqPassword"]);
                 });
             });
         });
