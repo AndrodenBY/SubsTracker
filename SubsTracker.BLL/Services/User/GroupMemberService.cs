@@ -9,13 +9,14 @@ using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Messaging.Interfaces;
 using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
 public class GroupMemberService(
     IGroupMemberRepository memberRepository,
-    //IMessageService messageService,
+    IMessageService messageService,
     IMapper mapper
     ) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper),
     IGroupMemberService
@@ -63,7 +64,7 @@ public class GroupMemberService(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
         
-        //await messageService.NotifyMemberLeftGroup(memberToDelete, cancellationToken);
+        await messageService.NotifyMemberLeftGroup(memberToDelete, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }
 
@@ -83,7 +84,7 @@ public class GroupMemberService(
         Mapper.Map(updateDto, memberToUpdate);
         var updatedMember = await memberRepository.Update(memberToUpdate, cancellationToken);
         
-        //await messageService.NotifyMemberChangedRole(updatedMember, cancellationToken);
+        await messageService.NotifyMemberChangedRole(updatedMember, cancellationToken);
         return Mapper.Map<GroupMemberDto>(updatedMember);
     }
 }

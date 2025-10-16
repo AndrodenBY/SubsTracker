@@ -1,19 +1,16 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:7.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+USER $APP_UID
 WORKDIR /app
-EXPOSE 80
-EXPOSE 443
+EXPOSE 8080
+EXPOSE 8081
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
-
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - \
-    && apt-get install -y \
-        nodejs \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /src
 COPY ["SubsTracker.API/SubsTracker.API.csproj", "SubsTracker.API/"]
+COPY ["SubsTracker.BLL/SubsTracker.BLL.csproj", "SubsTracker.BLL/"]
+COPY ["SubsTracker.DAL/SubsTracker.DAL.csproj", "SubsTracker.DAL/"]
+COPY ["SubsTracker.Domain/SubsTracker.Domain.csproj", "SubsTracker.Domain/"]
 RUN dotnet restore "SubsTracker.API/SubsTracker.API.csproj"
 COPY . .
 WORKDIR "/src/SubsTracker.API"

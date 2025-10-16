@@ -32,4 +32,5 @@ global using SubsTracker.Domain.Enums;
 global using SubsTracker.Domain.Exceptions;
 global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
-//global using SubsTracker.Messaging.Interfaces;
+//Messaging
+global using SubsTracker.Messaging.Interfaces;
