@@ -22,6 +22,7 @@ public class MessageService(IPublishEndpoint publishEndpoint) : IMessageService
     {
         return publishEndpoint.Publish<SubscriptionRenewedEvent>(new(
             renewedSubscription.Id, 
+            renewedSubscription.Name,
             renewedSubscription.User!.Id, 
             renewedSubscription.DueDate, 
             renewedSubscription.User.Email
