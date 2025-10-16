@@ -9,7 +9,7 @@ namespace SubsTracker.BLL.Interfaces.User;
 public interface IUserGroupService :
     IService<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>
 {
-    new Task<UserGroupDto?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
     Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken);
     Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken);
     new Task<UserGroupDto> Update(Guid updateId, UpdateUserGroupDto updateDto, CancellationToken cancellationToken);

@@ -4,5 +4,5 @@ namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface IUserGroupRepository : IRepository<UserGroup>
 {
-    new Task<UserGroup?> GetById(Guid id, CancellationToken cancellationToken);
+    Task<UserGroup?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
 }

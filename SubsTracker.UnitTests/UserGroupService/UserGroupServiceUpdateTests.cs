@@ -15,8 +15,8 @@ public class UserGroupServiceUpdateTests : UserGroupServiceTestsBase
             .With(userGroup => userGroup.Id, updateDto.Id)
             .Create();
 
-        Repository.GetById(updateDto.Id, default).Returns(userGroupEntity);
-        Repository.Update(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
+        GroupRepository.GetById(updateDto.Id, default).Returns(userGroupEntity);
+        GroupRepository.Update(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
         Mapper.Map(updateDto, userGroupEntity).Returns(userGroupEntity);
         Mapper.Map<UserGroupDto>(userGroupEntity).Returns(userGroupDto);
 
@@ -28,7 +28,7 @@ public class UserGroupServiceUpdateTests : UserGroupServiceTestsBase
         result.Id.ShouldBeEquivalentTo(userGroupEntity.Id);
         result.Name.ShouldBe(updateDto.Name);
         result.Name.ShouldNotBe(userGroupEntity.Name);
-        await Repository.Received(1).Update(Arg.Any<UserGroup>(), default);
+        await GroupRepository.Received(1).Update(Arg.Any<UserGroup>(), default);
     }
 
     [Fact]
