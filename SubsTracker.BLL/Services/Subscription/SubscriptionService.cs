@@ -22,9 +22,9 @@ public class SubscriptionService(
     ISubscriptionService
 {
 
-    public async Task<SubscriptionDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var subscriptionWithConnectedEntities = await subscriptionRepository.GetFullInfoById(id, cancellationToken);
+        var subscriptionWithConnectedEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
         return Mapper.Map<SubscriptionDto>(subscriptionWithConnectedEntities);
     }
     
@@ -73,7 +73,7 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var subscription = await subscriptionRepository.GetFullInfoById(subscriptionId, cancellationToken)
+        var subscription = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
                            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
 
         if (subscription.UserId != userId)
@@ -97,7 +97,7 @@ public class SubscriptionService(
             throw new ValidationException("Cannot renew subscription for less than one month");
         }
 
-        var subscriptionToRenew = await subscriptionRepository.GetFullInfoById(subscriptionId, cancellationToken)
+        var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
 
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);

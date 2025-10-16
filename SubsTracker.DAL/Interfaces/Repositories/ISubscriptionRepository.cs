@@ -4,6 +4,6 @@ namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface ISubscriptionRepository : IRepository<Subscription>
 {
-    Task<Subscription?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
+    Task<Subscription?> GetUserInfoById(Guid id, CancellationToken cancellationToken);
     Task<List<Subscription>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken);
 }

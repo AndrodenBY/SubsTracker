@@ -9,11 +9,10 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
 {
     private readonly DbSet<Subscription> _dbSet = context.Set<Subscription>();
 
-    public Task<Subscription?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
+    public Task<Subscription?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         return _dbSet
             .Include(g => g.User)
-            .Include(g => g.History)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
     }
     
