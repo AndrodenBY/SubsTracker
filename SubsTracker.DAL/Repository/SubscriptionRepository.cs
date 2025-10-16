@@ -9,6 +9,13 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
 {
     private readonly DbSet<Subscription> _dbSet = context.Set<Subscription>();
 
+    public Task<Subscription?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
+    {
+        return _dbSet
+            .Include(g => g.User)
+            .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
+    }
+    
     public async Task<List<Subscription>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);

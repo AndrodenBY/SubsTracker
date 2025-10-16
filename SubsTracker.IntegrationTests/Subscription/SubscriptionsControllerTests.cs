@@ -1,6 +1,5 @@
 namespace SubsTracker.IntegrationTests.Subscription;
 
-
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly HttpClient _client;

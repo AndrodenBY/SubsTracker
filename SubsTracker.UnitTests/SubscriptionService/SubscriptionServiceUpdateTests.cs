@@ -32,8 +32,8 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
 
         UserRepository.GetById(Arg.Any<Guid>(), default)
            .Returns(user);
-        Repository.GetById(updateDto.Id, default).Returns(subscriptionEntity);
-        Repository.Update(subscriptionEntity, default).Returns(subscriptionEntity);
+        SubscriptionRepository.GetById(updateDto.Id, default).Returns(subscriptionEntity);
+        SubscriptionRepository.Update(subscriptionEntity, default).Returns(subscriptionEntity);
         Mapper.Map<Subscription>(updateDto).Returns(subscriptionEntity);
         Mapper.Map<SubscriptionDto>(subscriptionEntity).Returns(subscriptionDto);
 
@@ -45,7 +45,7 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
         result.Name.ShouldBe(updateDto.Name);
         result.Name.ShouldNotBe(subscriptionEntity.Name);
         result.Id.ShouldBeEquivalentTo(subscriptionEntity.Id);
-        await Repository.Received(1).Update(Arg.Any<Subscription>(), default);
+        await SubscriptionRepository.Received(1).Update(Arg.Any<Subscription>(), default);
     }
 
     [Fact]

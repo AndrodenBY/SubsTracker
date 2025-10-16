@@ -14,7 +14,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
 
         var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
 
-        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
            .Returns(new List<Subscription> { subscriptionToFind });
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto> { subscriptionDto });
 
@@ -39,7 +39,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
 
         var filter = new SubscriptionFilterDto { Name = "LetThatSinkIn" };
 
-        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
            .Returns(new List<Subscription>());
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
 
@@ -56,7 +56,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
         //Arrange
         var filter = new SubscriptionFilterDto();
 
-        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
            .Returns(new List<Subscription>());
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
 
@@ -76,7 +76,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
 
         var filter = new SubscriptionFilterDto();
 
-        Repository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
            .Returns(subscriptions);
         Mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
 
