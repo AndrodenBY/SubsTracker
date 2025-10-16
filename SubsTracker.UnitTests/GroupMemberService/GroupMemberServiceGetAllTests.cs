@@ -11,7 +11,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
 
         var filter = new GroupMemberFilterDto();
 
-        Repository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
+        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
            .Returns(members);
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>())
            .Returns(memberDtos);
@@ -31,7 +31,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         //Arrange
         var filter = new GroupMemberFilterDto();
 
-        Repository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
+        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
            .Returns([]);
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto>());
 
@@ -54,7 +54,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
 
         var filter = new GroupMemberFilterDto { Role = memberToFind.Role };
 
-        Repository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns(new List<GroupMember> { memberToFind });
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto> { memberDto });
 
@@ -62,7 +62,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         var result = await Service.GetAll(filter, default);
 
         //Assert
-        await Repository.Received(1).GetAll(
+        await MemberRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<GroupMember, bool>>>(),
             default
         );

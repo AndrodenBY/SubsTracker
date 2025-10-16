@@ -3,7 +3,8 @@ namespace SubsTracker.UnitTests.GroupMemberService;
 public class GroupMemberServiceTestBase
 {
     protected readonly IFixture Fixture;
-    protected readonly IRepository<GroupMember> Repository;
+    protected readonly IGroupMemberRepository MemberRepository;
+    //protected readonly IMessageService MessageService;
     protected readonly IMapper Mapper;
     protected readonly BLL.Services.User.GroupMemberService Service;
 
@@ -16,11 +17,13 @@ public class GroupMemberServiceTestBase
              .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-        Repository = Substitute.For<IRepository<GroupMember>>();
+        MemberRepository = Substitute.For<IGroupMemberRepository>();
+        //MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
 
         Service = new BLL.Services.User.GroupMemberService(
-            Repository,
+            MemberRepository,
+            //MessageService,
             Mapper
        );
     }
