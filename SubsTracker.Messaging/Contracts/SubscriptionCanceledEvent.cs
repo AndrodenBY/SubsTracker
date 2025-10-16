@@ -1,3 +1,3 @@
 namespace SubsTracker.Messaging.Contracts;
 
-public record SubscriptionCanceledEvent(Guid SubscriptionId, string SubscriptionName, Guid UserId, string Email) : BaseEvent;
+public record SubscriptionCanceledEvent(Guid SubscriptionId, string Name, Guid UserId, string Email) : BaseEvent;
