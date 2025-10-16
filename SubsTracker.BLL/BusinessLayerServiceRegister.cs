@@ -8,6 +8,7 @@ using SubsTracker.BLL.Services;
 using SubsTracker.BLL.Services.Subscription;
 using SubsTracker.BLL.Services.User;
 using SubsTracker.DAL;
+using SubsTracker.Messaging;
 
 namespace SubsTracker.BLL;
 
@@ -16,6 +17,7 @@ public static class BusinessLayerServiceRegister
     public static IServiceCollection RegisterBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services.RegisterDataLayerDependencies(configuration)
+        .RegisterMessagingLayerDependencies(configuration)
         .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
         .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
         .AddScoped<ISubscriptionService, SubscriptionService>()

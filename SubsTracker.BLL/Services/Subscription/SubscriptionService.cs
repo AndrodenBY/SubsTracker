@@ -6,7 +6,7 @@ using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
-//using SubsTracker.Messaging.Interfaces;
+using SubsTracker.Messaging.Interfaces;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 using UserModel = SubsTracker.DAL.Models.User.User;
 
@@ -14,7 +14,7 @@ namespace SubsTracker.BLL.Services.Subscription;
 
 public class SubscriptionService(
     ISubscriptionRepository subscriptionRepository,
-    //IMessageService messageService,
+    IMessageService messageService,
     IMapper mapper,
     IRepository<UserModel> userRepository,
     ISubscriptionHistoryRepository historyRepository
@@ -86,7 +86,7 @@ public class SubscriptionService(
         var updatedSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
         await historyRepository.Create(updatedSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
-        //await messageService.NotifySubscriptionCanceled(subscription, cancellationToken);
+        await messageService.NotifySubscriptionCanceled(subscription, cancellationToken);
         return Mapper.Map<SubscriptionDto>(updatedSubscription);
     }
 
@@ -105,7 +105,7 @@ public class SubscriptionService(
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
         await historyRepository.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price, cancellationToken);
 
-        //await messageService.NotifySubscriptionRenewed(renewedSubscription, cancellationToken);
+        await messageService.NotifySubscriptionRenewed(renewedSubscription, cancellationToken);
         var subscriptionDto = Mapper.Map<SubscriptionDto>(renewedSubscription);
         return subscriptionDto;
     }

@@ -4,7 +4,7 @@ public class GroupMemberServiceTestBase
 {
     protected readonly IFixture Fixture;
     protected readonly IGroupMemberRepository MemberRepository;
-    //protected readonly IMessageService MessageService;
+    protected readonly IMessageService MessageService;
     protected readonly IMapper Mapper;
     protected readonly BLL.Services.User.GroupMemberService Service;
 
@@ -18,12 +18,12 @@ public class GroupMemberServiceTestBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         MemberRepository = Substitute.For<IGroupMemberRepository>();
-        //MessageService = Substitute.For<IMessageService>();
+        MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
 
         Service = new BLL.Services.User.GroupMemberService(
             MemberRepository,
-            //MessageService,
+            MessageService,
             Mapper
        );
     }
