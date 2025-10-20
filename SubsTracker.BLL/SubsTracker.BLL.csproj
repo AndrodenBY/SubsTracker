@@ -16,6 +16,7 @@
         <PackageReference Include="Automapper" Version="15.0.1" />
         <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="9.0.8" />
         <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
+        <PackageReference Include="SubsTracker.Messaging" Version="1.0.9" />
     </ItemGroup>
 
 </Project>

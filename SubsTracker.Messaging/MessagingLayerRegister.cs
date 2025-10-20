@@ -12,16 +12,28 @@ public static class MessagingLayerRegister
     {
         services.AddScoped<IMessageService, MessageService>();
         
+        var userName = configuration["RabbitMQ:UserName"]
+                       ?? throw new InvalidOperationException("Missing configuration key RabbitMQ:UserName");
+        var password = configuration["RabbitMQ:Password"] 
+                       ?? throw new InvalidOperationException("Missing configuration key RabbitMQ:Password");
+        
+        var hostName = configuration["RabbitMQ:HostName"]
+                       ?? throw new InvalidOperationException("Missing RabbitMQ:HostName");
+        var virtualHostName = configuration["RabbitMQ:VirtualHostName"]
+                              ?? throw new InvalidOperationException("Missing RabbitMQ:VirtualHostName");
+        
         services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.SetKebabCaseEndpointNameFormatter();
             busConfigurator.UsingRabbitMq((context, rabbitMqConfigurator) =>
             {
-                rabbitMqConfigurator.Host(configuration["RabbitMQ:HostName"], configuration["RabbitMQ:VirtualHostName"], configure =>
+                rabbitMqConfigurator.Host(hostName, virtualHostName, configure =>
                 {
-                    configure.Username(configuration["RabbitMqUsername"]);
-                    configure.Password(configuration["RabbitMqPassword"]);
+                    configure.Username(userName);
+                    configure.Password(password);
                 });
+                
+                rabbitMqConfigurator.ConfigureEndpoints(context);
             });
         });
 
