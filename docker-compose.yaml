@@ -1,0 +1,121 @@
+services:
+  postgresdb:
+    image: postgres:16-alpine
+    container_name: substracker_postgres_db
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - substracker_network
+  
+  rabbitmq:
+    image: masstransit/rabbitmq:latest
+    container_name: rabbitmq_masstransit_bus
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER}
+      - EmailSettings__SMTPSetting__Host=${EmailSettings__SMTPSetting__Host}
+      - EmailSettings__Port=${EmailSettings__Port}
+      - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
+      - EmailSettings__DefaultUserName=${EmailSettings__DefaultUserName}
+      - EmailSettings__SenderEmailPassword=${EmailSettings__SenderEmailPassword}
+      - DefaultSenderEmail=${DefaultSenderEmail}
+      - RabbitMQ__HostName=${RabbitMQ__HostName}
+      - RabbitMQ__VirtualHostName=${RabbitMQ__VirtualHostName}
+      - RabbitMQ__UserName=${RabbitMQ__UserName}
+      - RabbitMQ__Password=${RabbitMQ__Password}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - BUILD_CONFIGURATION=${BUILD_CONFIGURATION}
+    networks:
+      - substracker_network
+
+  papercut:
+    image: changemakerstudiosus/papercut-smtp:latest
+    container_name: NotificationService.Papercut
+    ports:
+      - "37408:37408"
+      - "2525:25"
+    networks:
+      - substracker_network
+
+  substracker:
+    build:
+      context: ./SubsTracker.API
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    container_name: substracker
+    depends_on:
+      - rabbitmq
+      - postgresdb
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER}
+      - EmailSettings__SMTPSetting__Host=${EmailSettings__SMTPSetting__Host}
+      - EmailSettings__Port=${EmailSettings__Port}
+      - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
+      - EmailSettings__DefaultUserName=${EmailSettings__DefaultUserName}
+      - EmailSettings__SenderEmailPassword=${EmailSettings__SenderEmailPassword}
+      - DefaultSenderEmail=${DefaultSenderEmail}
+      - RabbitMQ__HostName=${RabbitMQ__HostName}
+      - RabbitMQ__VirtualHostName=${RabbitMQ__VirtualHostName}
+      - RabbitMQ__UserName=${RabbitMQ__UserName}
+      - RabbitMQ__Password=${RabbitMQ__Password}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+    ports:
+      - "7089:7089"
+#      - "5025:5025"
+      - "8080:8080"
+    networks:
+      - substracker_network
+
+  notificationservice:
+    build:
+      context: ../NotificationService
+      dockerfile: Dockerfile
+      args:
+        GITHUB_TOKEN: ${GITHUB_TOKEN}
+    container_name: notification-service
+    depends_on:
+      - substracker
+      - papercut
+      - rabbitmq
+      - postgresdb
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
+      - DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER}
+      - EmailSettings__SMTPSetting__Host=${EmailSettings__SMTPSetting__Host}
+      - EmailSettings__Port=${EmailSettings__Port}
+      - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
+      - EmailSettings__DefaultUserName=${EmailSettings__DefaultUserName}
+      - EmailSettings__SenderEmailPassword=${EmailSettings__SenderEmailPassword}
+      - DefaultSenderEmail=${DefaultSenderEmail}
+      - RabbitMQ__HostName=${RabbitMQ__HostName}
+      - RabbitMQ__VirtualHostName=${RabbitMQ__VirtualHostName}
+      - RabbitMQ__UserName=${RabbitMQ__UserName}
+      - RabbitMQ__Password=${RabbitMQ__Password}
+      - GITHUB_TOKEN=${GITHUB_TOKEN}
+      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+    ports:
+      - "5044:5044"
+    networks:
+      - substracker_network 
+      
+networks:
+  substracker_network:
+    driver: bridge
+    
+volumes:
+  postgres-data: {}
+
+
