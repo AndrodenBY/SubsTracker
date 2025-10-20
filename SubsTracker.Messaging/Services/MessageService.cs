@@ -1,6 +1,4 @@
 using MassTransit;
-using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.DAL.Models.User;
 using SubsTracker.Messaging.Contracts;
 using SubsTracker.Messaging.Interfaces;
 
@@ -8,45 +6,23 @@ namespace SubsTracker.Messaging.Services;
 
 public class MessageService(IPublishEndpoint publishEndpoint) : IMessageService
 {
-    public Task NotifySubscriptionCanceled(Subscription canceledSubscription, CancellationToken cancellationToken) 
+    public Task NotifySubscriptionCanceled(SubscriptionCanceledEvent canceledSubscription, CancellationToken cancellationToken) 
     {
-        return publishEndpoint.Publish<SubscriptionCanceledEvent>(new (
-            canceledSubscription.Id, 
-            canceledSubscription.Name, 
-            canceledSubscription.User!.Id, 
-            canceledSubscription.User.Email
-            ), cancellationToken);
+        return publishEndpoint.Publish(canceledSubscription, cancellationToken);
     }
 
-    public Task NotifySubscriptionRenewed(Subscription renewedSubscription, CancellationToken cancellationToken)
+    public Task NotifySubscriptionRenewed(SubscriptionRenewedEvent renewedSubscription, CancellationToken cancellationToken)
     {
-        return publishEndpoint.Publish<SubscriptionRenewedEvent>(new(
-            renewedSubscription.Id, 
-            renewedSubscription.Name,
-            renewedSubscription.User!.Id, 
-            renewedSubscription.DueDate, 
-            renewedSubscription.User.Email
-            ), cancellationToken);
+        return publishEndpoint.Publish(renewedSubscription, cancellationToken);
     }
     
-    public Task NotifyMemberChangedRole(GroupMember member, CancellationToken cancellationToken)
+    public Task NotifyMemberChangedRole(MemberChangedRoleEvent member, CancellationToken cancellationToken)
     {
-        return publishEndpoint.Publish<MemberChangedRoleEvent>(new (
-            member.UserId, 
-            member.GroupId,
-            member.Role,
-            member.Group.Name, 
-            member.User.Email
-        ), cancellationToken);
+        return publishEndpoint.Publish(member, cancellationToken);
     }
 
-    public Task NotifyMemberLeftGroup(GroupMember leftMember, CancellationToken cancellationToken)
+    public Task NotifyMemberLeftGroup(MemberLeftGroupEvent leftMember, CancellationToken cancellationToken)
     {
-        return publishEndpoint.Publish<MemberLeftGroupEvent>(new (
-            leftMember.UserId, 
-            leftMember.GroupId, 
-            leftMember.Group.Name, 
-            leftMember.User.Email
-            ), cancellationToken);
+        return publishEndpoint.Publish(leftMember, cancellationToken);
     }
 }
