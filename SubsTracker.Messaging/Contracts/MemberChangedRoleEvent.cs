@@ -1,5 +1,5 @@
-using SubsTracker.Domain.Enums;
+using SubsTracker.Messaging.Enums;
 
 namespace SubsTracker.Messaging.Contracts;
 
-public record MemberChangedRoleEvent(Guid MemberId, Guid GroupId, MemberRole Role, string GroupName, string Email) : BaseEvent;
+public record MemberChangedRoleEvent(Guid Id, Guid GroupId, MemberRole Role, string GroupName, string Email) : BaseEvent;
