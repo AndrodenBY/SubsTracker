@@ -23,7 +23,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER}
-      - EmailSettings__SMTPSetting__Host=${EmailSettings__SMTPSetting__Host}
+      - EmailSettings__Host=${EmailSettings__Host}
       - EmailSettings__Port=${EmailSettings__Port}
       - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
       - EmailSettings__DefaultUserName=${EmailSettings__DefaultUserName}
@@ -40,10 +40,10 @@ services:
 
   papercut:
     image: changemakerstudiosus/papercut-smtp:latest
-    container_name: NotificationService.Papercut
+    container_name: notification_service.papercut
     ports:
-      - "37408:37408"
-      - "2525:25"
+      - "37408:8080"
+      - "2525:2525"
     networks:
       - substracker_network
 
@@ -60,7 +60,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER}
-      - EmailSettings__SMTPSetting__Host=${EmailSettings__SMTPSetting__Host}
+      - EmailSettings__Host=${EmailSettings__Host}
       - EmailSettings__Port=${EmailSettings__Port}
       - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
       - EmailSettings__DefaultUserName=${EmailSettings__DefaultUserName}
@@ -85,7 +85,7 @@ services:
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
-    container_name: notification-service
+    container_name: notification_service
     depends_on:
       - substracker
       - papercut
@@ -94,7 +94,7 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT}
       - DOTNET_RUNNING_IN_CONTAINER=${DOTNET_RUNNING_IN_CONTAINER}
-      - EmailSettings__SMTPSetting__Host=${EmailSettings__SMTPSetting__Host}
+      - EmailSettings__Host=${EmailSettings__Host}
       - EmailSettings__Port=${EmailSettings__Port}
       - EmailSettings__EnableSsl=${EmailSettings__EnableSsl}
       - EmailSettings__DefaultUserName=${EmailSettings__DefaultUserName}
