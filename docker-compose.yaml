@@ -49,7 +49,6 @@ services:
 
   substracker:
     build:
-      context: ./SubsTracker.API
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
@@ -71,10 +70,10 @@ services:
       - RabbitMQ__UserName=${RabbitMQ__UserName}
       - RabbitMQ__Password=${RabbitMQ__Password}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+      - PostgreConnectionString=${PostgreConnectionString}
     ports:
       - "7089:7089"
-#      - "5025:5025"
+      - "5025:5025"
       - "8080:8080"
     networks:
       - substracker_network
@@ -105,7 +104,7 @@ services:
       - RabbitMQ__UserName=${RabbitMQ__UserName}
       - RabbitMQ__Password=${RabbitMQ__Password}
       - GITHUB_TOKEN=${GITHUB_TOKEN}
-      - DB_CONNECTION_STRING=${DB_CONNECTION_STRING}
+      - PostgreConnectionString=${PostgreConnectionString}
     ports:
       - "5044:5044"
     networks:
@@ -116,6 +115,6 @@ networks:
     driver: bridge
     
 volumes:
-  postgres-data: {}
+  postgres-data: 
 
 
