@@ -30,7 +30,7 @@ public class UserGroupsController(
     [HttpGet("{id:guid}")]
     public async Task<UserGroupViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var getById = await service.GetById(id, cancellationToken);
+        var getById = await service.GetFullInfoById(id, cancellationToken);
         return mapper.Map<UserGroupViewModel>(getById);
     }
 

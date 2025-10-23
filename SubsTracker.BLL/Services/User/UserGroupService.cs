@@ -3,6 +3,7 @@ using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Helpers.Filters;
+using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
@@ -19,14 +20,25 @@ public class UserGroupService(
     IRepository<UserModel> userRepository,
     ISubscriptionRepository subscriptionRepository,
     IGroupMemberService memberService,
-    IMapper mapper
-    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(groupRepository, mapper),
+    IMapper mapper,
+    ICacheService cacheService
+    ) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(groupRepository, mapper, cacheService),
     IUserGroupService
 {
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
+        var cacheKey = $"{id}_{nameof(UserGroupDto)}";
+        var cachedDto = CacheService.GetData<UserGroupDto>(cacheKey);
+        if (cachedDto is not null)
+        {
+            return cachedDto;
+        }
+        
         var groupWithConnectedEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
-        return Mapper.Map<UserGroupDto>(groupWithConnectedEntities);
+        var mappedGroup = Mapper.Map<UserGroupDto>(groupWithConnectedEntities);
+        
+        CacheService.SetData(cacheKey, mappedGroup, TimeSpan.FromMinutes(3));
+        return mappedGroup;
     }
 
     public async Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)

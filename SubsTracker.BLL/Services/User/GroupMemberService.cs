@@ -4,6 +4,7 @@ using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Notifications;
+using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.DAL.Models.User;
@@ -18,15 +19,28 @@ namespace SubsTracker.BLL.Services.User;
 public class GroupMemberService(
     IGroupMemberRepository memberRepository,
     IMessageService messageService,
-    IMapper mapper
-    ) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper),
+    IMapper mapper,
+    ICacheService cacheService
+    ) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper, cacheService),
     IGroupMemberService
 {
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
+        var cacheKey = $"{id}_{nameof(GroupMemberDto)}";
+        var cachedDto = CacheService.GetData<GroupMemberDto>(cacheKey);
+        
+        if (cachedDto is not null)
+        {
+            return cachedDto;    
+        }
+        
         var memberWithConnectedEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
-        return Mapper.Map<GroupMemberDto>(memberWithConnectedEntities);
+        var mappedMember = Mapper.Map<GroupMemberDto>(memberWithConnectedEntities);
+        
+        CacheService.SetData(cacheKey, mappedMember, TimeSpan.FromMinutes(3));
+        return mappedMember;
     }
+    
     public async Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = GroupMemberFilterHelper.CreatePredicate(filter);

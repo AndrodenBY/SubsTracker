@@ -11,6 +11,7 @@ public class UserGroupRepository(SubsDbContext context) : Repository<UserGroup>(
     public Task<UserGroup?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         return _dbSet
+            .AsSplitQuery()    
             .Include(g => g.SharedSubscriptions)
             .Include(g => g.Members)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
