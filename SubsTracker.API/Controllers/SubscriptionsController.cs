@@ -28,7 +28,7 @@ public class SubscriptionsController(
     [HttpGet("{id:guid}")]
     public async Task<SubscriptionViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var getById = await service.GetById(id, cancellationToken);
+        var getById = await service.GetUserInfoById(id, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(getById);
     }
 

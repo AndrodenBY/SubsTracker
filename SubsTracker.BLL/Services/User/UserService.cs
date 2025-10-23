@@ -1,5 +1,6 @@
 using AutoMapper;
 using SubsTracker.BLL.Helpers.Filters;
+using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Filter;
@@ -13,8 +14,9 @@ namespace SubsTracker.BLL.Services.User;
 
 public class UserService(
     IRepository<UserModel> repository,
-    IMapper mapper
-    ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper), IUserService
+    IMapper mapper,
+    ICacheService cacheService
+    ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper, cacheService), IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {

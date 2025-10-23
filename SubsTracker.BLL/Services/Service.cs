@@ -1,6 +1,7 @@
 using System.Linq.Expressions;
 using AutoMapper;
 using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
@@ -9,7 +10,8 @@ namespace SubsTracker.BLL.Services;
 
 public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IRepository<TEntity> repository,
-    IMapper mapper
+    IMapper mapper,
+    ICacheService cacheService
     ) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
     where TEntity : class, IBaseModel
     where TDto : class
@@ -20,6 +22,8 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     protected IMapper Mapper => mapper;
 
     protected IRepository<TEntity> Repository => repository;
+    
+    protected ICacheService CacheService => cacheService;
 
     public virtual async Task<List<TDto>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
@@ -30,8 +34,18 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
+        var cacheKey = $"{id}_{typeof(TEntity).Name}";
+        var cachedDto = CacheService.GetData<TDto>(cacheKey);
+        if (cachedDto is not null)
+        {
+            return cachedDto;
+        }
+        
         var entity = await repository.GetById(id, cancellationToken);
-        return Mapper.Map<TDto>(entity);
+        var mappedEntity =  Mapper.Map<TDto>(entity);
+        
+        CacheService.SetData(cacheKey, mappedEntity, TimeSpan.FromMinutes(3));
+        return mappedEntity;
     }
 
     public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)

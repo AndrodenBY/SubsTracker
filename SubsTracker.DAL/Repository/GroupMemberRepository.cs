@@ -12,6 +12,7 @@ public class GroupMemberRepository(SubsDbContext context) : Repository<GroupMemb
     public Task<GroupMember?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         return _dbSet
+            .AsSplitQuery()    
             .Include(g => g.User)
             .Include(g => g.Group)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
