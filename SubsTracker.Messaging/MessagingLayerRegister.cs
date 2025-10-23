@@ -14,7 +14,7 @@ public static class MessagingLayerRegister
     {
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
         
-        services.AddSingleton<IMessageService, MessageService>();
+        services.AddScoped<IMessageService, MessageService>();
         
         services.AddMassTransit(busConfigurator =>
         {
