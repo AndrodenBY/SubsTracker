@@ -3,19 +3,21 @@ using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Helpers.Filters;
+using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Messaging.Interfaces;
 using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
 public class GroupMemberService(
     IGroupMemberRepository memberRepository,
-    //IMessageService messageService,
+    IMessageService messageService,
     IMapper mapper
     ) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper),
     IGroupMemberService
@@ -59,11 +61,12 @@ public class GroupMemberService(
 
     public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
     {
-        var memberToDelete = await memberRepository.GetByPredicate(
+        var memberToDelete = await memberRepository.GetByPredicateFullInfo(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
         
-        //await messageService.NotifyMemberLeftGroup(memberToDelete, cancellationToken);
+        var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
+        await messageService.NotifyMemberLeftGroup(memberLeftEvent, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }
 
@@ -83,7 +86,8 @@ public class GroupMemberService(
         Mapper.Map(updateDto, memberToUpdate);
         var updatedMember = await memberRepository.Update(memberToUpdate, cancellationToken);
         
-        //await messageService.NotifyMemberChangedRole(updatedMember, cancellationToken);
+        var memberChangedRoleEvent = GroupMemberNotificationHelper.CreateMemberChangedRoleEvent(updatedMember);
+        await messageService.NotifyMemberChangedRole(memberChangedRoleEvent, cancellationToken);
         return Mapper.Map<GroupMemberDto>(updatedMember);
     }
 }

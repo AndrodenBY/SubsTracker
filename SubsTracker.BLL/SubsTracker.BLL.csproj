@@ -9,12 +9,14 @@
     <ItemGroup>
         <ProjectReference Include="..\SubsTracker.DAL\SubsTracker.DAL.csproj" />
         <ProjectReference Include="..\SubsTracker.Domain\SubsTracker.Domain.csproj" />
+        <ProjectReference Include="..\SubsTracker.Messaging\SubsTracker.Messaging.csproj" />
     </ItemGroup>
 
     <ItemGroup>
         <PackageReference Include="Automapper" Version="15.0.1" />
         <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="9.0.8" />
         <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
+        <PackageReference Include="SubsTracker.Messaging" Version="1.1.1" />
     </ItemGroup>
 
 </Project>

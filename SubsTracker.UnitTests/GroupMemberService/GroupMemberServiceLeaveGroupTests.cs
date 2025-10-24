@@ -14,7 +14,7 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
             .With(m => m.GroupId, groupId)
             .Create();
 
-        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns(memberToDelete);
         MemberRepository.GetFullInfoById(Arg.Any<Guid>(), default).Returns(memberToDelete);
         MemberRepository.Delete(memberToDelete, default)
@@ -25,7 +25,7 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
 
         //Assert
         result.ShouldBeTrue();
-        await MemberRepository.Received(1).GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
+        await MemberRepository.Received(1).GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
         await MemberRepository.Received(1).Delete(memberToDelete, default);
     }
 
@@ -36,7 +36,7 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
 
-        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns((GroupMember?)null);
 
         //Act
@@ -44,7 +44,7 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
 
         //Assert
         await act.ShouldThrowAsync<NotFoundException>();
-        await MemberRepository.Received(1).GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
+        await MemberRepository.Received(1).GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
         await MemberRepository.DidNotReceive().Delete(Arg.Any<GroupMember>(), default);
     }
 }

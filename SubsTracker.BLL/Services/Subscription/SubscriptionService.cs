@@ -1,12 +1,13 @@
 using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Helpers.Filters;
+using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Subscription;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
-//using SubsTracker.Messaging.Interfaces;
+using SubsTracker.Messaging.Interfaces;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 using UserModel = SubsTracker.DAL.Models.User.User;
 
@@ -14,7 +15,7 @@ namespace SubsTracker.BLL.Services.Subscription;
 
 public class SubscriptionService(
     ISubscriptionRepository subscriptionRepository,
-    //IMessageService messageService,
+    IMessageService messageService,
     IMapper mapper,
     IRepository<UserModel> userRepository,
     ISubscriptionHistoryRepository historyRepository
@@ -83,11 +84,12 @@ public class SubscriptionService(
 
         subscription.Active = false;
         
-        var updatedSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
+        var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
-        await historyRepository.Create(updatedSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
-        //await messageService.NotifySubscriptionCanceled(subscription, cancellationToken);
-        return Mapper.Map<SubscriptionDto>(updatedSubscription);
+        await historyRepository.Create(canceledSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
+        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
+        await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
+        return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
@@ -105,7 +107,8 @@ public class SubscriptionService(
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
         await historyRepository.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price, cancellationToken);
 
-        //await messageService.NotifySubscriptionRenewed(renewedSubscription, cancellationToken);
+        var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(renewedSubscription);
+        await messageService.NotifySubscriptionRenewed(subscriptionRenewedEvent, cancellationToken);
         var subscriptionDto = Mapper.Map<SubscriptionDto>(renewedSubscription);
         return subscriptionDto;
     }

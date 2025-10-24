@@ -234,4 +234,8 @@ _Pvt_Extensions
 .DS_Store
 .idea/
 
+nuget.config
+NuGet.config
+.env
+
 
