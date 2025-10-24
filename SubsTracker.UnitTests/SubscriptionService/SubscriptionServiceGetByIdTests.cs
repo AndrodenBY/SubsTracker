@@ -14,9 +14,13 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
             .With(subscription => subscription.Price, subscriptionEntity.Price)
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
-
+        
+        var cacheKey = $"{subscriptionDto.Id}_{nameof(SubscriptionDto)}";
+        
+        CacheService.GetData<SubscriptionDto>(cacheKey)
+            .Returns((SubscriptionDto)null!);
         SubscriptionRepository.GetUserInfoById(subscriptionEntity.Id, default)
-           .Returns(subscriptionEntity);
+            .Returns(subscriptionEntity);
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
            .Returns(subscriptionDto);
@@ -32,6 +36,12 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         result.DueDate.ShouldBe(subscriptionEntity.DueDate);
 
         await SubscriptionRepository.Received(1).GetUserInfoById(subscriptionEntity.Id, default);
+        CacheService.Received(1).GetData<SubscriptionDto>(cacheKey);
+        CacheService.Received(1).SetData(
+            Arg.Is<string>(key => key == cacheKey), 
+            Arg.Is<SubscriptionDto>(dto => dto.Name == subscriptionDto.Name && dto.Id == subscriptionDto.Id), 
+            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3))
+        );
     }
 
     [Fact]

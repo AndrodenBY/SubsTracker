@@ -36,6 +36,7 @@ public class GroupMemberServiceChangeRoleTests : GroupMemberServiceTestBase
         result.Role.ShouldNotBe(memberEntity.Role);
         result.Id.ShouldBe(memberEntity.Id);
         await MemberRepository.Received(1).Update(Arg.Any<GroupMember>(), default);
+        await MessageService.Received(1).NotifyMemberChangedRole(Arg.Is<MemberChangedRoleEvent>(memberEvent => memberEvent.Id == memberId), default);
     }
 
     [Fact]

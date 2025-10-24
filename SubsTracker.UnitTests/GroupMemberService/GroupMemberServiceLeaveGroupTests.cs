@@ -27,6 +27,7 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
         result.ShouldBeTrue();
         await MemberRepository.Received(1).GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
         await MemberRepository.Received(1).Delete(memberToDelete, default);
+        await MessageService.Received(1).NotifyMemberLeftGroup(Arg.Is<MemberLeftGroupEvent>(memberEvent => memberEvent.GroupId == groupId), default);
     }
 
     [Fact]

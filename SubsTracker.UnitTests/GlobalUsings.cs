@@ -36,3 +36,4 @@ global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOp
 
 //Messaging
 global using SubsTracker.Messaging.Interfaces;
+global using SubsTracker.Messaging.Contracts;
