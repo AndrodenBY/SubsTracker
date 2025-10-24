@@ -1,5 +1,3 @@
-using SubsTracker.API;
-
 namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
@@ -44,6 +42,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
             });
+            
+            services.AddMassTransitTestHarness();
         });
     }
 }
