@@ -14,7 +14,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         
         var cacheKey = $"{userGroupDto.Id}_{nameof(UserGroup)}";
 
-        CacheService.GetData<UserGroupDto>(cacheKey)
+        CacheService.GetData<UserGroupDto>(cacheKey, default)
             .Returns((UserGroupDto)null!);
         GroupRepository.GetById(userGroupDto.Id, default)
            .Returns(userGroup);
@@ -29,11 +29,12 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         result.ShouldNotBeNull();
         result.Id.ShouldBe(userGroupDto.Id);
         result.Name.ShouldBe(userGroupDto.Name);
-        CacheService.Received(1).GetData<UserGroupDto>(cacheKey);
-        CacheService.Received(1).SetData(
+        await CacheService.Received(1).GetData<UserGroupDto>(cacheKey, default);
+        await CacheService.Received(1).SetData(
             Arg.Is<string>(key => key == cacheKey), 
             Arg.Is<UserGroupDto>(dto => dto.Name == userGroupDto.Name && dto.Id == userGroupDto.Id), 
-            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3))
+            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)),
+            default
         );
     }
 

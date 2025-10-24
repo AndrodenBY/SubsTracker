@@ -15,7 +15,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         
         var cacheKey = $"{existingUser.Id}_{nameof(User)}";
         
-        CacheService.GetData<UserDto>(cacheKey)
+        CacheService.GetData<UserDto>(cacheKey, default)
             .Returns((UserDto)null!);
 
         Repository.GetById(existingUser.Id, default).Returns(existingUser);
@@ -30,11 +30,12 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         result.FirstName.ShouldBe(existingUser.FirstName);
         
         await Repository.Received(1).GetById(existingUser.Id, default);
-        CacheService.Received(1).GetData<UserDto>(cacheKey);
-        CacheService.Received(1).SetData(
+        await CacheService.Received(1).GetData<UserDto>(cacheKey, default);
+        await CacheService.Received(1).SetData(
             Arg.Is<string>(key => key == cacheKey), 
             Arg.Is<UserDto>(dto => dto.Id == existingUser.Id && dto.FirstName == existingUser.FirstName), 
-            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)) 
+            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)),
+            default
         );
     }
 

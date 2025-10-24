@@ -28,7 +28,7 @@ public class UserGroupService(
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{nameof(UserGroupDto)}";
-        var cachedDto = CacheService.GetData<UserGroupDto>(cacheKey);
+        var cachedDto = await CacheService.GetData<UserGroupDto>(cacheKey, cancellationToken);
         if (cachedDto is not null)
         {
             return cachedDto;
@@ -37,7 +37,7 @@ public class UserGroupService(
         var groupWithConnectedEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
         var mappedGroup = Mapper.Map<UserGroupDto>(groupWithConnectedEntities);
         
-        CacheService.SetData(cacheKey, mappedGroup, TimeSpan.FromMinutes(3));
+        await CacheService.SetData(cacheKey, mappedGroup, TimeSpan.FromMinutes(3), cancellationToken);
         return mappedGroup;
     }
 

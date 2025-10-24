@@ -27,7 +27,7 @@ public class GroupMemberService(
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{nameof(GroupMemberDto)}";
-        var cachedDto = CacheService.GetData<GroupMemberDto>(cacheKey);
+        var cachedDto = await CacheService.GetData<GroupMemberDto>(cacheKey, cancellationToken);
         
         if (cachedDto is not null)
         {
@@ -37,7 +37,7 @@ public class GroupMemberService(
         var memberWithConnectedEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
         var mappedMember = Mapper.Map<GroupMemberDto>(memberWithConnectedEntities);
         
-        CacheService.SetData(cacheKey, mappedMember, TimeSpan.FromMinutes(3));
+        await CacheService.SetData(cacheKey, mappedMember, TimeSpan.FromMinutes(3), cancellationToken);
         return mappedMember;
     }
     

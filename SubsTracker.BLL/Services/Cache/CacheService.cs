@@ -8,26 +8,27 @@ namespace SubsTracker.BLL.Services.Cache;
 
 public class CacheService(IDistributedCache cache, ILogger<CacheService> logger) : ICacheService
 {
-    public T? GetData<T>(string cacheKey)
+    public async Task<T?> GetData<T>(string cacheKey, CancellationToken cancellationToken)
     {
-        var data = cache.GetString(cacheKey);
+        var data = await cache.GetStringAsync(cacheKey, cancellationToken);
         logger.LogInformation(data is null ? $"Cache miss: {cacheKey}" : $"Cache hit: {cacheKey}");
         
         return data is null ? default :  JsonConvert.DeserializeObject<T>(data, NewtonsoftJsonSettings.Default);
     }
 
-    public void SetData<T>(string cacheKey, T value, TimeSpan expiration)
+    public async Task SetData<T>(string cacheKey, T value, TimeSpan expiration, CancellationToken cancellationToken)
     {
         var options = new DistributedCacheEntryOptions
         {
             SlidingExpiration = expiration
         };
 
-        cache.SetString(cacheKey, JsonConvert.SerializeObject(value, NewtonsoftJsonSettings.Default), options);
+        var serializedValue = JsonConvert.SerializeObject(value, NewtonsoftJsonSettings.Default);
+        await cache.SetStringAsync(cacheKey, serializedValue, options, cancellationToken);
     }
 
-    public void RemoveData(string cacheKey)
+    public async Task RemoveData(string cacheKey, CancellationToken cancellationToken)
     {
-        cache.Remove(cacheKey);
+        await cache.RemoveAsync(cacheKey, cancellationToken );
     }
 }

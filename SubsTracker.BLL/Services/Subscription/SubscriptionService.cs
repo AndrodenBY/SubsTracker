@@ -27,7 +27,7 @@ public class SubscriptionService(
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{nameof(SubscriptionDto)}";
-        var cachedDto = CacheService.GetData<SubscriptionDto>(cacheKey);
+        var cachedDto = await CacheService.GetData<SubscriptionDto>(cacheKey, cancellationToken);
         
         if (cachedDto != null)
         {
@@ -37,7 +37,7 @@ public class SubscriptionService(
         var subscriptionWithConnectedEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
         var mappedSubscription = Mapper.Map<SubscriptionDto>(subscriptionWithConnectedEntities);
         
-        CacheService.SetData(cacheKey, mappedSubscription, TimeSpan.FromMinutes(3));
+        await CacheService.SetData(cacheKey, mappedSubscription, TimeSpan.FromMinutes(3), cancellationToken);
         return mappedSubscription;
     }
     
@@ -102,8 +102,8 @@ public class SubscriptionService(
         var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
         await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
         
-        CacheService.RemoveData($"{subscriptionId}_{nameof(SubscriptionDto)}");
-        CacheService.RemoveData($"{userId}_upcoming_bills");
+        await CacheService.RemoveData($"{subscriptionId}_{nameof(SubscriptionDto)}", cancellationToken);
+        await CacheService.RemoveData($"{userId}_upcoming_bills", cancellationToken);
         
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
@@ -132,7 +132,7 @@ public class SubscriptionService(
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var cacheKey = $"{userId}_upcoming_bills";
-        var cachedList = CacheService.GetData<List<SubscriptionDto>>(cacheKey);
+        var cachedList = await CacheService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
         if (cachedList is not null)
         {
             return cachedList;
@@ -142,7 +142,7 @@ public class SubscriptionService(
             ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
 
         var mappedList = Mapper.Map<List<SubscriptionDto>>(billsToPay);
-        CacheService.SetData(cacheKey, mappedList, TimeSpan.FromMinutes(3));
+        await CacheService.SetData(cacheKey, mappedList, TimeSpan.FromMinutes(3), cancellationToken);
         return mappedList;
     }
 }
