@@ -5,7 +5,8 @@ public class UserServiceTestsBase
     protected readonly IFixture Fixture;
     protected readonly IRepository<User> Repository;
     protected readonly IMapper Mapper;
-    protected readonly BLL.Services.User.UserService Service;
+    protected readonly UserModelService Service;
+    protected readonly ICacheService CacheService;
 
     protected UserServiceTestsBase()
     {
@@ -18,6 +19,12 @@ public class UserServiceTestsBase
 
         Repository = Substitute.For<IRepository<User>>();
         Mapper = Substitute.For<IMapper>();
-        Service = new BLL.Services.User.UserService(Repository, Mapper);
+        CacheService = Substitute.For<ICacheService>();
+        
+        Service = new UserModelService(
+            Repository,
+            Mapper,
+            CacheService
+        );
     }
 }

@@ -31,6 +31,7 @@ public class SubscriptionServiceRenewSubscriptionTests : SubscriptionServiceTest
         result.ShouldNotBeNull();
         result.DueDate.ShouldBe(originalDueDate.AddMonths(monthsToRenew));
         await SubscriptionRepository.Received(1).Update(Arg.Is<Subscription>(s => s.DueDate == originalDueDate.AddMonths(monthsToRenew)), default);
+        await MessageService.Received(1).NotifySubscriptionRenewed(Arg.Is<SubscriptionRenewedEvent>(subscriptionCanceledEvent => subscriptionCanceledEvent.Id == subscriptionDto.Id), default);
     }
 
     [Fact]

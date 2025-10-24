@@ -42,6 +42,7 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
         result.ShouldNotBeNull();
         result.Id.ShouldBe(subscriptionId);
         await SubscriptionRepository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
+        await MessageService.Received(1).NotifySubscriptionCanceled(Arg.Is<SubscriptionCanceledEvent>(subscriptionCanceledEvent => subscriptionCanceledEvent.Id == subscriptionId), default);
     }
 
     [Fact]

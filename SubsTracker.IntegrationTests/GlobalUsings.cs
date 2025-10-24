@@ -22,3 +22,4 @@ global using SubsTracker.BLL.DTOs.User.Create;
 global using SubsTracker.BLL.DTOs.User.Update;
 global using Microsoft.AspNetCore.Hosting;
 global using SubsTracker.API;
+global using MassTransit;

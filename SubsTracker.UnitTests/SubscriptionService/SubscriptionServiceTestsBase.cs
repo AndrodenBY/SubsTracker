@@ -8,7 +8,8 @@ public class SubscriptionServiceTestsBase
     protected readonly IRepository<User> UserRepository;
     protected readonly IMessageService MessageService;
     private readonly ISubscriptionHistoryRepository _historyRepository;
-    protected readonly BLL.Services.Subscription.SubscriptionService Service;
+    protected readonly SubscriptionModelService Service;
+    protected readonly ICacheService CacheService;
 
     protected SubscriptionServiceTestsBase()
     {
@@ -24,12 +25,15 @@ public class SubscriptionServiceTestsBase
         MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
         _historyRepository = Substitute.For<ISubscriptionHistoryRepository>();
-        Service = new BLL.Services.Subscription.SubscriptionService(
+        CacheService = Substitute.For<ICacheService>();
+        
+        Service = new SubscriptionModelService(
             SubscriptionRepository, 
             MessageService, 
             Mapper, 
             UserRepository, 
-            _historyRepository
+            _historyRepository,
+            CacheService
         );
     }
 }
