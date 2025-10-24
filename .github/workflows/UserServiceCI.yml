@@ -6,12 +6,23 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
-
+    
 jobs:
   build-and-analyze:
     name: Build and analyze
     runs-on: ubuntu-latest
     timeout-minutes: 10
+
+    services:
+      redis:
+        image: redis:7.2
+        ports:
+          - "5140:6379"
+        options:
+          --health-cmd="redis-cli ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
       - name: Set up JDK 17
@@ -48,6 +59,7 @@ jobs:
           PR_KEY: ${{ github.event.pull_request.number }}
           PR_BRANCH: ${{ github.head_ref }}
           PR_BASE: ${{ github.base_ref }}
+          REDIS: localhost:5140
           
         run: |
           [string[]]$PR_ARGS = @()
