@@ -6,7 +6,7 @@ on:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
-    
+
 jobs:
   build-and-analyze:
     name: Build and analyze
@@ -48,6 +48,7 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/SubsTracker.sln') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
+          source-url : https://nuget.pkg.github.com/androdenby/index.json
 
       - name: Install SonarScanner for .NET
         run: dotnet tool install --global dotnet-sonarscanner
@@ -87,6 +88,7 @@ jobs:
             @PR_ARGS
           
           dotnet restore SubsTracker.sln
+          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json -u androdenby -p ${{ secrets.GITHUB_TOKEN }}
           dotnet build SubsTracker.sln --no-restore --configuration Release
           
           dotnet test SubsTracker.sln `
@@ -95,6 +97,11 @@ jobs:
             --logger `
             trx --collect:"XPlat Code Coverage" `
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+           if ($LASTEXITCODE -ne 0) {
+              Write-Host "Tests failed with exit code $LASTEXITCODE"
+              exit $LASTEXITCODE
+            } 
             
           dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
           
