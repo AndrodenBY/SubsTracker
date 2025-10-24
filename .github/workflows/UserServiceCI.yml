@@ -60,6 +60,7 @@ jobs:
           PR_KEY: ${{ github.event.pull_request.number }}
           PR_BRANCH: ${{ github.head_ref }}
           PR_BASE: ${{ github.base_ref }}
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REDIS: localhost:5140
           
         run: |
@@ -88,7 +89,7 @@ jobs:
             @PR_ARGS
           
           dotnet restore SubsTracker.sln
-          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json -u androdenby -p ${{ secrets.GITHUB_TOKEN }}
+          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json -u andodenby
           dotnet build SubsTracker.sln --no-restore --configuration Release
           
           dotnet test SubsTracker.sln `
