@@ -21,7 +21,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
 
         //Assert
         result.ShouldBe(cachedDto);
-        result.Role.ShouldBe(MemberRole.Admin);
+        result?.Role.ShouldBe(MemberRole.Admin);
         
         await MemberRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), default);
         await CacheService.Received(1).GetData<GroupMemberDto>(cacheKey, default);
@@ -56,7 +56,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
 
         //Assert
         result.ShouldBe(memberDto);
-        result.Id.ShouldBe(memberId);
+        result?.Id.ShouldBe(memberId);
         
         await MemberRepository.Received(1).GetFullInfoById(memberId, default);
         await CacheService.Received(1).GetData<GroupMemberDto>(cacheKey, default);

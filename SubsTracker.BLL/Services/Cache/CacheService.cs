@@ -11,7 +11,7 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger)
     public async Task<T?> GetData<T>(string cacheKey, CancellationToken cancellationToken)
     {
         var data = await cache.GetStringAsync(cacheKey, cancellationToken);
-        logger.LogInformation(data is null ? $"Cache miss: {cacheKey}" : $"Cache hit: {cacheKey}");
+        logger.LogInformation("{DataState}: {CacheKey}", data is null ? "Cache miss" : "Cache hit", cacheKey);
         
         return data is null ? default :  JsonConvert.DeserializeObject<T>(data, NewtonsoftJsonSettings.Default);
     }
