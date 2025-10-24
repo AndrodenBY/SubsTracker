@@ -29,7 +29,7 @@ public class SubscriptionService(
         var cacheKey = $"{id}_{nameof(SubscriptionDto)}";
         var cachedDto = await CacheService.GetData<SubscriptionDto>(cacheKey, cancellationToken);
         
-        if (cachedDto != null)
+        if (cachedDto is not null)
         {
             return cachedDto;
         }
