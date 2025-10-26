@@ -1,5 +1,8 @@
+using Medallion.Threading;
+using Medallion.Threading.Redis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using StackExchange.Redis;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.Subscription;
@@ -26,15 +29,34 @@ public static class BusinessLayerServiceRegister
             .AddScoped<IUserService, UserService>()
             .AddScoped<IUserGroupService, UserGroupService>()
             .AddScoped<IGroupMemberService, GroupMemberService>();
-        
+
         services.AddStackExchangeRedisCache(option =>
         {
             option.Configuration = configuration["Redis"];
             option.InstanceName = "Redis_";
         });
 
+        services.AddSingleton<IConnectionMultiplexer>(sp =>
+        {
+            var redisConnectionString = configuration["Redis"] ?? "localhost:5140";
+            return ConnectionMultiplexer.Connect(redisConnectionString);
+        });
+
+        services.AddSingleton<IDistributedLockProvider>(sp =>
+        {
+            var multiplexer = sp.GetRequiredService<IConnectionMultiplexer>();
+            return new RedisDistributedSynchronizationProvider(multiplexer.GetDatabase());
+        });
+
+        services.AddScoped<IDatabase>(sp =>
+        {
+            var multiplexer = sp.GetRequiredService<IConnectionMultiplexer>();
+            return multiplexer.GetDatabase();
+        });
+
         services.AddScoped<ICacheService, CacheService>();
 
         return services;
     }
+
 }
