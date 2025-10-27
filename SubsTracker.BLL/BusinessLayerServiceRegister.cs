@@ -36,11 +36,16 @@ public static class BusinessLayerServiceRegister
         services
             .AddStackExchangeRedisCache(redisOptions =>
             {
-                redisOptions.Configuration = configuration["Redis"];
+                redisOptions.Configuration = configuration["Redis"] ?? "localhost:6379,abortConnect=false";
                 redisOptions.InstanceName = "Redis_";
             })
             .AddSingleton<IConnectionMultiplexer>(serviceProvider =>
-                ConnectionMultiplexer.Connect(configuration["Redis"]!))
+            {
+                var redisConnection = configuration["Redis"] ?? "localhost:6379,abortConnect=false";
+                var options = ConfigurationOptions.Parse(redisConnection);
+                options.AbortOnConnectFail = false;
+                return ConnectionMultiplexer.Connect(options);
+            })
             .AddSingleton<IDistributedLockFactory>(serviceProvider =>
                 RedLockFactory.Create(new List<RedLockMultiplexer>
                 {

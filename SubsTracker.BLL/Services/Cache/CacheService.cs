@@ -2,6 +2,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using RedLockNet;
 using SubsTracker.BLL.Interfaces.Cache;
+using SubsTracker.BLL.RedisSettings;
 
 namespace SubsTracker.BLL.Services.Cache;
 
@@ -17,22 +18,22 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
             return cachedData;
         }
         
-        var lockKey = $"lock:{cacheKey}";
-        var lockExpiry = TimeSpan.FromSeconds(10);
-        var waitTime = TimeSpan.FromSeconds(5);
-        var retryTime = TimeSpan.FromMilliseconds(200);
-        
         while (true)
         {
-            using var redLock =
-                await lockFactory.CreateLockAsync(lockKey, lockExpiry, waitTime, retryTime, cancellationToken);
+            await using var redLock = await lockFactory.CreateLockAsync(
+                RedisKeySetter.SetLockKey(cacheKey), 
+                    RedisConstants.LockExpiry, 
+                    RedisConstants.LockWaitTime, 
+                    RedisConstants.LockRetryTime, 
+                    cancellationToken
+                    );
 
             if (redLock.IsAcquired)
             {
                 return await EnsureCached(cacheKey, expirationTime, dataFactory, cancellationToken);
             }
             
-            var dataAfterWait = await WaitForCachedData<TValue>(cacheKey, waitTime, cancellationToken);
+            var dataAfterWait = await WaitForCachedData<TValue>(cacheKey, RedisConstants.LockWaitTime, cancellationToken);
             if (dataAfterWait is not null)
             {
                 return dataAfterWait;

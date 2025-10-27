@@ -5,6 +5,7 @@ using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
@@ -27,8 +28,8 @@ public class UserGroupService(
 {
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{id}:{nameof(UserGroupDto)}";
-        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetUserGroup, cancellationToken);
+        var cacheKey = RedisKeySetter.SetCacheKey<UserGroupDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup, cancellationToken);
 
         async Task<UserGroupDto> GetUserGroup()
         {

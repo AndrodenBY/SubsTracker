@@ -2,6 +2,7 @@ using System.Linq.Expressions;
 using AutoMapper;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
+using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
@@ -34,10 +35,10 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{id}:{typeof(TEntity).Name}";
-        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetEntityMapped, cancellationToken);
+        var cacheKey = RedisKeySetter.SetCacheKey<TEntity>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken);
 
-        async Task<TDto> GetEntityMapped()
+        async Task<TDto> GetEntity()
         {
             var entity = await repository.GetById(id, cancellationToken);
             return Mapper.Map<TDto>(entity);

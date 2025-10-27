@@ -30,8 +30,9 @@ public class CacheAccessService(IDistributedCache cache, ILogger<CacheAccessServ
         await cache.SetStringAsync(cacheKey, serializedValue, cacheEntryOptions, cancellationToken);
     }
     
-    public async Task RemoveData(string cacheKey, CancellationToken cancellationToken)
+    public async Task RemoveData(List<string> cacheKeys, CancellationToken cancellationToken)
     {
-        await cache.RemoveAsync(cacheKey, cancellationToken);
+        var keys = cacheKeys.Select(key => cache.RemoveAsync(key, cancellationToken));
+        await Task.WhenAll(keys);
     }
 }

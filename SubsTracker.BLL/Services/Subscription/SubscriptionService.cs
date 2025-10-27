@@ -4,6 +4,7 @@ using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.Subscription;
+using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
@@ -27,8 +28,8 @@ public class SubscriptionService(
 {
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{id}:{nameof(SubscriptionDto)}";
-        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetSubscription, cancellationToken);
+        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
 
         async Task<SubscriptionDto> GetSubscription()
         {
@@ -117,7 +118,7 @@ public class SubscriptionService(
 
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{userId}:upcoming_bills";
+        var cacheKey = RedisKeySetter.SetCahceKey(userId, "upcoming_bills");
         var cachedList = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
         if (cachedList is not null)
         {
@@ -128,7 +129,7 @@ public class SubscriptionService(
             ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
 
         var mappedList = Mapper.Map<List<SubscriptionDto>>(billsToPay);
-        await cacheAccessService.SetData(cacheKey, mappedList, TimeSpan.FromMinutes(3), cancellationToken);
+        await cacheAccessService.SetData(cacheKey, mappedList, RedisConstants.ExpirationTime, cancellationToken);
         return mappedList;
     }
     
@@ -137,7 +138,12 @@ public class SubscriptionService(
         var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
         await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
 
-        await cacheAccessService.RemoveData($"{canceledSubscription.Id}:{nameof(SubscriptionDto)}", cancellationToken);
-        await cacheAccessService.RemoveData($"{userId}:upcoming_bills", cancellationToken);
+        var keysToRemove = new List<string>
+        {
+            RedisKeySetter.SetCacheKey<SubscriptionDto>(canceledSubscription.Id),
+            RedisKeySetter.SetCahceKey(userId, "upcoming_bills")
+        };
+
+        await cacheAccessService.RemoveData(keysToRemove, cancellationToken);
     }
 }

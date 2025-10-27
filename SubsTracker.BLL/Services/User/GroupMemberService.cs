@@ -7,6 +7,7 @@ using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
@@ -27,8 +28,8 @@ public class GroupMemberService(
 {
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{id}:{nameof(GroupMemberDto)}";
-        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetGroupMember, cancellationToken);
+        var cacheKey = RedisKeySetter.SetCacheKey<GroupMemberDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember, cancellationToken);
 
         async Task<GroupMemberDto> GetGroupMember()
         {
@@ -74,7 +75,7 @@ public class GroupMemberService(
         
         var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
         
-        await cacheAccessService.RemoveData($"{memberToDelete.Id}_{nameof(GroupMemberDto)}", cancellationToken);
+        await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<GroupMemberDto>(memberToDelete.Id)], cancellationToken);
         await messageService.NotifyMemberLeftGroup(memberLeftEvent, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }
