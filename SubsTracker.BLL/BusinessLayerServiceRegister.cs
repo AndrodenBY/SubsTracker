@@ -2,6 +2,9 @@ using Medallion.Threading;
 using Medallion.Threading.Redis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using RedLockNet;
+using RedLockNet.SERedis;
+using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
@@ -30,29 +33,19 @@ public static class BusinessLayerServiceRegister
             .AddScoped<IUserGroupService, UserGroupService>()
             .AddScoped<IGroupMemberService, GroupMemberService>();
 
-        services.AddStackExchangeRedisCache(option =>
-        {
-            option.Configuration = configuration["Redis"];
-            option.InstanceName = "Redis_";
-        });
-
-        services.AddSingleton<IConnectionMultiplexer>(sp =>
-        {
-            var redisConnectionString = configuration["Redis"] ?? "localhost:5140";
-            return ConnectionMultiplexer.Connect(redisConnectionString);
-        });
-
-        services.AddSingleton<IDistributedLockProvider>(sp =>
-        {
-            var multiplexer = sp.GetRequiredService<IConnectionMultiplexer>();
-            return new RedisDistributedSynchronizationProvider(multiplexer.GetDatabase());
-        });
-
-        services.AddScoped<IDatabase>(sp =>
-        {
-            var multiplexer = sp.GetRequiredService<IConnectionMultiplexer>();
-            return multiplexer.GetDatabase();
-        });
+        services
+            .AddStackExchangeRedisCache(redisOptions =>
+            {
+                redisOptions.Configuration = configuration["Redis"];
+                redisOptions.InstanceName = "Redis_";
+            })
+            .AddSingleton<IConnectionMultiplexer>(serviceProvider =>
+                ConnectionMultiplexer.Connect(configuration["Redis"] ?? "localhost:5140"))
+            .AddSingleton<IDistributedLockFactory>(serviceProvider =>
+                RedLockFactory.Create(new List<RedLockMultiplexer>
+                {
+                    new(serviceProvider.GetRequiredService<IConnectionMultiplexer>())
+                }));
 
         services.AddScoped<ICacheService, CacheService>();
 

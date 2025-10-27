@@ -1,5 +1,6 @@
 using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Helpers.Cache;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
@@ -21,24 +22,21 @@ public class SubscriptionService(
     IRepository<UserModel> userRepository,
     ISubscriptionHistoryRepository historyRepository,
     ICacheService cacheService
-    ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
+) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
     ISubscriptionService
 {
+    
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{nameof(SubscriptionDto)}";
-        var cachedDto = await CacheService.GetData<SubscriptionDto>(cacheKey, cancellationToken);
-        
-        if (cachedDto is not null)
+        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetSubscription, cancellationToken);
+
+        async Task<SubscriptionDto> GetSubscription()
         {
-            return cachedDto;
+            var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
+            var mappedSubscription = Mapper.Map<SubscriptionDto>(subscriptionWithEntities);
+            return mappedSubscription;
         }
-        
-        var subscriptionWithConnectedEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
-        var mappedSubscription = Mapper.Map<SubscriptionDto>(subscriptionWithConnectedEntities);
-        
-        await CacheService.SetData(cacheKey, mappedSubscription, TimeSpan.FromMinutes(3), cancellationToken);
-        return mappedSubscription;
     }
     
     public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
@@ -95,15 +93,11 @@ public class SubscriptionService(
         }
 
         subscription.Active = false;
-        
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
         await historyRepository.Create(canceledSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
-        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
-        await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
-        
-        await CacheService.RemoveData($"{subscriptionId}_{nameof(SubscriptionDto)}", cancellationToken);
-        await CacheService.RemoveData($"{userId}_upcoming_bills", cancellationToken);
+
+        await HandlePostCancellationActions(canceledSubscription, userId, cancellationToken);
         
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
@@ -144,5 +138,14 @@ public class SubscriptionService(
         var mappedList = Mapper.Map<List<SubscriptionDto>>(billsToPay);
         await CacheService.SetData(cacheKey, mappedList, TimeSpan.FromMinutes(3), cancellationToken);
         return mappedList;
+    }
+    
+    private async Task HandlePostCancellationActions(SubscriptionModel canceledSubscription, Guid userId, CancellationToken cancellationToken)
+    {
+        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
+        await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
+
+        await CacheService.RemoveData($"{canceledSubscription.Id}_{nameof(SubscriptionDto)}", cancellationToken);
+        await CacheService.RemoveData($"{userId}_upcoming_bills", cancellationToken);
     }
 }

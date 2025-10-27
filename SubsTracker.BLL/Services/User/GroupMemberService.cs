@@ -27,18 +27,15 @@ public class GroupMemberService(
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{nameof(GroupMemberDto)}";
-        var cachedDto = await CacheService.GetData<GroupMemberDto>(cacheKey, cancellationToken);
         
-        if (cachedDto is not null)
+        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetGroupMember, cancellationToken);
+
+        async Task<GroupMemberDto> GetGroupMember()
         {
-            return cachedDto;    
+            var memberWithEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
+            var mappedMember = Mapper.Map<GroupMemberDto>(memberWithEntities);
+            return mappedMember;
         }
-        
-        var memberWithConnectedEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
-        var mappedMember = Mapper.Map<GroupMemberDto>(memberWithConnectedEntities);
-        
-        await CacheService.SetData(cacheKey, mappedMember, TimeSpan.FromMinutes(3), cancellationToken);
-        return mappedMember;
     }
     
     public async Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
@@ -80,6 +77,8 @@ public class GroupMemberService(
                              ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
         
         var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
+        
+        await CacheService.RemoveData($"{memberToDelete.Id}_{nameof(GroupMemberDto)}", cancellationToken);
         await messageService.NotifyMemberLeftGroup(memberLeftEvent, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }

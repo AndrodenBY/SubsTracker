@@ -35,17 +35,15 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{typeof(TEntity).Name}";
-        var cachedDto = await CacheService.GetData<TDto>(cacheKey, cancellationToken);
-        if (cachedDto is not null)
+
+        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetEntityMapped, cancellationToken);
+
+        async Task<TDto> GetEntityMapped()
         {
-            return cachedDto;
+            var entity = await repository.GetById(id, cancellationToken);
+            var mappedEntity = Mapper.Map<TDto>(entity);
+            return mappedEntity!;
         }
-        
-        var entity = await repository.GetById(id, cancellationToken);
-        var mappedEntity =  Mapper.Map<TDto>(entity);
-        
-        await CacheService.SetData(cacheKey, mappedEntity, TimeSpan.FromMinutes(3), cancellationToken);
-        return mappedEntity;
     }
 
     public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)

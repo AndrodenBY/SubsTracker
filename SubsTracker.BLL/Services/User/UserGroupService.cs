@@ -28,17 +28,15 @@ public class UserGroupService(
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = $"{id}_{nameof(UserGroupDto)}";
-        var cachedDto = await CacheService.GetData<UserGroupDto>(cacheKey, cancellationToken);
-        if (cachedDto is not null)
+        
+        return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetUserGroup, cancellationToken);
+
+        async Task<UserGroupDto> GetUserGroup()
         {
-            return cachedDto;
+            var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
+            var mappedGroup = Mapper.Map<UserGroupDto>(groupWithEntities);
+            return mappedGroup;
         }
-        
-        var groupWithConnectedEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
-        var mappedGroup = Mapper.Map<UserGroupDto>(groupWithConnectedEntities);
-        
-        await CacheService.SetData(cacheKey, mappedGroup, TimeSpan.FromMinutes(3), cancellationToken);
-        return mappedGroup;
     }
 
     public async Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
