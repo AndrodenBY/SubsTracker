@@ -7,7 +7,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
     {
         //Arrange
         var memberId = Fixture.Create<Guid>();
-        var cacheKey = $"{memberId}_{nameof(GroupMemberDto)}";
+        var cacheKey = $"{memberId}:{nameof(GroupMemberDto)}";
 
         var cachedDto = Fixture.Build<GroupMemberDto>()
             .With(dto => dto.Id, memberId)
@@ -42,7 +42,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
     {
         //Arrange
         var memberId = Fixture.Create<Guid>();
-        var cacheKey = $"{memberId}_{nameof(GroupMemberDto)}";
+        var cacheKey = $"{memberId}:{nameof(GroupMemberDto)}";
 
         var memberEntity = Fixture.Create<GroupMember>();
         memberEntity.Id = memberId;

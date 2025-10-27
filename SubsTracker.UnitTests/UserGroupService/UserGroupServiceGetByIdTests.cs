@@ -12,7 +12,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             .With(x => x.Name, userGroupDto.Name)
             .Create();
         
-        var cacheKey = $"{userGroupDto.Id}_{nameof(UserGroup)}";
+        var cacheKey = $"{userGroupDto.Id}:{nameof(UserGroup)}";
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),

@@ -22,9 +22,9 @@ public class SubscriptionServiceGetUpcomingBillsTests : SubscriptionServiceTests
             .With(dto => dto.DueDate, s.DueDate)
             .Create()).ToList();
         
-        var cacheKey = $"{user.Id}_upcoming_bills";
+        var cacheKey = $"{user.Id}:upcoming_bills";
 
-        CacheService.GetData<List<SubscriptionDto>>(cacheKey, default)
+        CacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, default)
             .Returns((List<SubscriptionDto>)null!);
         SubscriptionRepository.GetUpcomingBills(user.Id, default)
             .Returns(subscriptions);
@@ -39,8 +39,8 @@ public class SubscriptionServiceGetUpcomingBillsTests : SubscriptionServiceTests
         result.Count.ShouldBe(3);
         
         await SubscriptionRepository.Received(1).GetUpcomingBills(user.Id, default);
-        await CacheService.Received(1).GetData<List<SubscriptionDto>>(cacheKey, default);
-        await CacheService.Received(1).SetData(
+        await CacheAccessService.Received(1).GetData<List<SubscriptionDto>>(cacheKey, default);
+        await CacheAccessService.Received(1).SetData(
             Arg.Is<string>(key => key == cacheKey), 
             Arg.Is<List<SubscriptionDto>>(list => list.Count == 3 && list.First().Id == subscriptionDtos.First().Id), 
             Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)),

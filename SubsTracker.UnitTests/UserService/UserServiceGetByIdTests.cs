@@ -13,7 +13,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
             .With(user => user.Email, existingUser.Email)
             .Create();
         
-        var cacheKey = $"{existingUser.Id}_{nameof(User)}";
+        var cacheKey = $"{existingUser.Id}:{nameof(User)}";
     
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),

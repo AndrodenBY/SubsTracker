@@ -10,6 +10,7 @@ public class SubscriptionServiceTestsBase
     private readonly ISubscriptionHistoryRepository _historyRepository;
     protected readonly SubscriptionModelService Service;
     protected readonly ICacheService CacheService;
+    protected readonly ICacheAccessService CacheAccessService;
 
     protected SubscriptionServiceTestsBase()
     {
@@ -26,6 +27,7 @@ public class SubscriptionServiceTestsBase
         Mapper = Substitute.For<IMapper>();
         _historyRepository = Substitute.For<ISubscriptionHistoryRepository>();
         CacheService = Substitute.For<ICacheService>();
+        CacheAccessService = Substitute.For<ICacheAccessService>();
         
         Service = new SubscriptionModelService(
             SubscriptionRepository, 
@@ -33,7 +35,8 @@ public class SubscriptionServiceTestsBase
             Mapper, 
             UserRepository, 
             _historyRepository,
-            CacheService
+            CacheService,
+            CacheAccessService
         );
     }
 }

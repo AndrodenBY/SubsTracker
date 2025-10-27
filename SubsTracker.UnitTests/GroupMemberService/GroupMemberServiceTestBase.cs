@@ -8,6 +8,7 @@ public class GroupMemberServiceTestBase
     protected readonly IMapper Mapper;
     protected readonly MemberModelService Service;
     protected readonly ICacheService CacheService;
+    protected readonly ICacheAccessService CacheAccessService;
 
     protected GroupMemberServiceTestBase()
     {
@@ -22,12 +23,14 @@ public class GroupMemberServiceTestBase
         MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
+        CacheAccessService = Substitute.For<ICacheAccessService>();
 
         Service = new MemberModelService(
             MemberRepository,
             MessageService,
             Mapper,
-            CacheService
+            CacheService,
+            CacheAccessService
        );
     }
 }

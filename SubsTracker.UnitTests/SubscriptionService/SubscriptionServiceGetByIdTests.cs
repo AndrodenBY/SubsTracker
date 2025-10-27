@@ -15,7 +15,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
         
-        var cacheKey = $"{subscriptionDto.Id}_{nameof(SubscriptionDto)}";
+        var cacheKey = $"{subscriptionDto.Id}:{nameof(SubscriptionDto)}";
         
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
