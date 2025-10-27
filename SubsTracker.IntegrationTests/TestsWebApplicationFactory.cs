@@ -42,14 +42,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 services.Remove(descriptor);
             }
-            
-            services.AddDistributedMemoryCache();
-            var redLockFactoryMock = Substitute.For<IDistributedLockFactory>();
-            redLockFactoryMock.CreateLockAsync(Arg.Any<string>(), Arg.Any<TimeSpan>(), Arg.Any<TimeSpan>(), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>())
-                .Returns(Task.FromResult(Substitute.For<IRedLock>()));
-
-            services.AddSingleton(redLockFactoryMock)
-                .AddScoped<ICacheService, CacheService>();
 
             services.AddDbContext<SubsDbContext>(options =>
             {

@@ -17,8 +17,16 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         
         var cacheKey = $"{subscriptionDto.Id}_{nameof(SubscriptionDto)}";
         
-        CacheService.GetData<SubscriptionDto>(cacheKey, default)
-            .Returns((SubscriptionDto)null!);
+        CacheService.CacheDataWithLock(
+            Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            default
+        )!.Returns(callInfo =>
+        {
+            var factory = callInfo.Arg<Func<Task<SubscriptionDto>>>();
+            return factory();
+        });
         SubscriptionRepository.GetUserInfoById(subscriptionEntity.Id, default)
             .Returns(subscriptionEntity);
 
@@ -36,11 +44,10 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         result.DueDate.ShouldBe(subscriptionEntity.DueDate);
 
         await SubscriptionRepository.Received(1).GetUserInfoById(subscriptionEntity.Id, default);
-        await CacheService.Received(1).GetData<SubscriptionDto>(cacheKey, default);
-        await CacheService.Received(1).SetData(
-            Arg.Is<string>(key => key == cacheKey), 
-            Arg.Is<SubscriptionDto>(dto => dto.Name == subscriptionDto.Name && dto.Id == subscriptionDto.Id), 
-            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)),
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<SubscriptionDto>>>(),
             default
         );
     }

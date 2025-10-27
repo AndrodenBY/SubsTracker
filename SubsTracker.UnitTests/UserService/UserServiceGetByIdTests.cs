@@ -14,10 +14,17 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
             .Create();
         
         var cacheKey = $"{existingUser.Id}_{nameof(User)}";
-        
-        CacheService.GetData<UserDto>(cacheKey, default)
-            .Returns((UserDto)null!);
-
+    
+        CacheService.CacheDataWithLock(
+            Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserDto>>>(),
+            default
+        )!.Returns(callInfo =>
+        {
+            var factory = callInfo.Arg<Func<Task<UserDto>>>();
+            return factory();
+        });
         Repository.GetById(existingUser.Id, default).Returns(existingUser);
         Mapper.Map<UserDto>(existingUser).Returns(expectedDto);
 
@@ -30,11 +37,10 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         result.FirstName.ShouldBe(existingUser.FirstName);
         
         await Repository.Received(1).GetById(existingUser.Id, default);
-        await CacheService.Received(1).GetData<UserDto>(cacheKey, default);
-        await CacheService.Received(1).SetData(
-            Arg.Is<string>(key => key == cacheKey), 
-            Arg.Is<UserDto>(dto => dto.Id == existingUser.Id && dto.FirstName == existingUser.FirstName), 
-            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)),
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserDto>>>(),
             default
         );
     }

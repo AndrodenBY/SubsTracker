@@ -14,8 +14,16 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         
         var cacheKey = $"{userGroupDto.Id}_{nameof(UserGroup)}";
 
-        CacheService.GetData<UserGroupDto>(cacheKey, default)
-            .Returns((UserGroupDto)null!);
+        CacheService.CacheDataWithLock(
+            Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserGroupDto>>>(),
+            default
+        )!.Returns(callInfo =>
+        {
+            var factory = callInfo.Arg<Func<Task<UserGroupDto>>>();
+            return factory();
+        });
         GroupRepository.GetById(userGroupDto.Id, default)
            .Returns(userGroup);
 
@@ -29,15 +37,13 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         result.ShouldNotBeNull();
         result.Id.ShouldBe(userGroupDto.Id);
         result.Name.ShouldBe(userGroupDto.Name);
-        await CacheService.Received(1).GetData<UserGroupDto>(cacheKey, default);
-        await CacheService.Received(1).SetData(
-            Arg.Is<string>(key => key == cacheKey), 
-            Arg.Is<UserGroupDto>(dto => dto.Name == userGroupDto.Name && dto.Id == userGroupDto.Id), 
-            Arg.Is<TimeSpan>(ts => ts == TimeSpan.FromMinutes(3)),
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserGroupDto>>>(),
             default
         );
     }
-
 
     [Fact]
     public async Task GetById_WhenEmptyGuid_ReturnsNull()
@@ -74,15 +80,25 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             .With(x => x.Id, userGroupDto.Id)
             .With(x => x.Name, userGroupDto.Name)
             .Create();
-
+        
+        CacheService.CacheDataWithLock(
+            Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserGroupDto>>>(),
+            default
+        )!.Returns(callInfo =>
+        {
+            var factory = callInfo.Arg<Func<Task<UserGroupDto>>>();
+            return factory();
+        });
         GroupRepository.GetById(userGroupDto.Id, default)
-           .Returns(userGroup);
+            .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(userGroup)
-           .Returns(userGroupDto);
+            .Returns(userGroupDto);
 
         //Act
-        await Service.GetById(userGroup.Id, default);
+        await Service.GetById(userGroupDto.Id, default);
 
         //Assert
         await GroupRepository.Received(1).GetById(userGroup.Id, default);
