@@ -40,7 +40,7 @@ public static class BusinessLayerServiceRegister
                 redisOptions.InstanceName = "Redis_";
             })
             .AddSingleton<IConnectionMultiplexer>(serviceProvider =>
-                ConnectionMultiplexer.Connect(configuration["Redis"]))
+                ConnectionMultiplexer.Connect(configuration["Redis"]!))
             .AddSingleton<IDistributedLockFactory>(serviceProvider =>
                 RedLockFactory.Create(new List<RedLockMultiplexer>
                 {
