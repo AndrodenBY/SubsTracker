@@ -56,5 +56,4 @@ public static class BusinessLayerServiceRegister
         
         return services;
     }
-
 }
