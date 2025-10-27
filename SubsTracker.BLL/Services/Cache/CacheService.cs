@@ -1,38 +1,13 @@
-using Medallion.Threading;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using RedLockNet;
 using SubsTracker.BLL.Interfaces.Cache;
-using SubsTracker.BLL.Json;
 
 namespace SubsTracker.BLL.Services.Cache;
 
 public class CacheService(IDistributedCache cache, ILogger<CacheService> logger, IDistributedLockFactory lockFactory)
-    : ICacheService
+    : CacheAccessService(cache, logger), ICacheService
 {
-    public async Task<TValue?> GetData<TValue>(string cacheKey, CancellationToken cancellationToken)
-    {
-        var cachedData = await cache.GetStringAsync(cacheKey, cancellationToken);
-        logger.LogInformation("{DataState}: {CacheKey}", cachedData is null ? "Cache miss" : "Cache hit", cacheKey);
-
-        return cachedData is null
-            ? default
-            : JsonConvert.DeserializeObject<TValue>(cachedData, NewtonsoftJsonSettings.Default);
-    }
-
-    public async Task SetData<TValue>(string cacheKey, TValue value, TimeSpan expirationTime,
-        CancellationToken cancellationToken)
-    {
-        var cacheEntryOptions = new DistributedCacheEntryOptions
-        {
-            SlidingExpiration = expirationTime
-        };
-
-        var serializedValue = JsonConvert.SerializeObject(value, NewtonsoftJsonSettings.Default);
-        await cache.SetStringAsync(cacheKey, serializedValue, cacheEntryOptions, cancellationToken);
-    }
-
     public async Task<TValue?> CacheDataWithLock<TValue>(string cacheKey, TimeSpan expirationTime,
         Func<Task<TValue>> dataFactory, CancellationToken cancellationToken) where TValue : class
     {
@@ -63,11 +38,6 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
                 return dataAfterWait;
             }
         }
-    }
-
-    public async Task RemoveData(string cacheKey, CancellationToken cancellationToken)
-    {
-        await cache.RemoveAsync(cacheKey, cancellationToken);
     }
 
     private async Task<TValue?> EnsureCached<TValue>(string cacheKey, TimeSpan expirationTime,

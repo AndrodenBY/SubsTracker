@@ -40,15 +40,15 @@ public static class BusinessLayerServiceRegister
                 redisOptions.InstanceName = "Redis_";
             })
             .AddSingleton<IConnectionMultiplexer>(serviceProvider =>
-                ConnectionMultiplexer.Connect(configuration["Redis"] ?? "localhost:5140"))
+                ConnectionMultiplexer.Connect(configuration["Redis"]))
             .AddSingleton<IDistributedLockFactory>(serviceProvider =>
                 RedLockFactory.Create(new List<RedLockMultiplexer>
                 {
                     new(serviceProvider.GetRequiredService<IConnectionMultiplexer>())
-                }));
-
-        services.AddScoped<ICacheService, CacheService>();
-
+                }))
+            .AddScoped<ICacheService, CacheService>()
+            .AddScoped<ICacheAccessService, CacheAccessService>();
+        
         return services;
     }
 

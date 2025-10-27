@@ -27,24 +27,20 @@ public class UserGroupService(
 {
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = $"{id}_{nameof(UserGroupDto)}";
-        
+        var cacheKey = $"{id}:{nameof(UserGroupDto)}";
         return await CacheService.CacheDataWithLock(cacheKey, TimeSpan.FromMinutes(3), GetUserGroup, cancellationToken);
 
         async Task<UserGroupDto> GetUserGroup()
         {
             var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
-            var mappedGroup = Mapper.Map<UserGroupDto>(groupWithEntities);
-            return mappedGroup;
+            return Mapper.Map<UserGroupDto>(groupWithEntities);
         }
     }
 
     public async Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = UserGroupFilterHelper.CreatePredicate(filter);
-
-        var entities = await base.GetAll(predicate, cancellationToken);
-        return entities;
+        return await base.GetAll(predicate, cancellationToken);
     }
 
     public async Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken)
