@@ -8,7 +8,8 @@ public class UserGroupServiceTestsBase
     protected readonly ISubscriptionRepository SubscriptionRepository;
     private readonly IGroupMemberService _memberService;
     protected readonly IMapper Mapper;
-    protected readonly BLL.Services.User.UserGroupService Service;
+    protected readonly GroupModelService Service;
+    protected readonly ICacheService CacheService;
 
     protected UserGroupServiceTestsBase()
     {
@@ -24,13 +25,15 @@ public class UserGroupServiceTestsBase
         SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
         Mapper = Substitute.For<IMapper>();
         _memberService = Substitute.For<IGroupMemberService>();
+        CacheService = Substitute.For<ICacheService>();
 
-        Service = new BLL.Services.User.UserGroupService(
+        Service = new GroupModelService(
             GroupRepository,
             UserRepository,
             SubscriptionRepository,
             _memberService,
-            Mapper
+            Mapper,
+            CacheService
        );
     }
 }

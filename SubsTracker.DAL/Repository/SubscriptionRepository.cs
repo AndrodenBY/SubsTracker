@@ -12,6 +12,7 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
     public Task<Subscription?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         return _dbSet
+            .AsSplitQuery()    
             .Include(g => g.User)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
     }

@@ -1,5 +1,3 @@
-using SubsTracker.API;
-
 namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
@@ -7,21 +5,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("IntegrationTest");
-
-        builder.ConfigureAppConfiguration(configBuilder =>
-        {
-            var sources = configBuilder.Sources.ToList();
-            configBuilder.Sources.Clear();
-
-            foreach (var source in sources)
-            {
-                var typeName = source.GetType().FullName ?? string.Empty;
-                if (!typeName.Contains("UserSecrets", StringComparison.OrdinalIgnoreCase))
-                {
-                    configBuilder.Sources.Add(source);
-                }
-            }
-        });
 
         builder.ConfigureServices(services =>
         {
@@ -44,6 +27,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
             });
+            
+            services.AddMassTransitTestHarness();
         });
     }
 }

@@ -12,7 +12,19 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
             .With(user => user.FirstName, existingUser.FirstName)
             .With(user => user.Email, existingUser.Email)
             .Create();
-
+        
+        var cacheKey = $"{existingUser.Id}:{nameof(User)}";
+    
+        CacheService.CacheDataWithLock(
+            Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserDto>>>(),
+            default
+        )!.Returns(callInfo =>
+        {
+            var factory = callInfo.Arg<Func<Task<UserDto>>>();
+            return factory();
+        });
         Repository.GetById(existingUser.Id, default).Returns(existingUser);
         Mapper.Map<UserDto>(existingUser).Returns(expectedDto);
 
@@ -23,7 +35,14 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         result.ShouldNotBeNull();
         result.Id.ShouldBe(existingUser.Id);
         result.FirstName.ShouldBe(existingUser.FirstName);
+        
         await Repository.Received(1).GetById(existingUser.Id, default);
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserDto>>>(),
+            default
+        );
     }
 
     [Fact]

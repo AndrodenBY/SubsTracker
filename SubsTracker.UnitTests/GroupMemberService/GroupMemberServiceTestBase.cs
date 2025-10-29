@@ -6,7 +6,9 @@ public class GroupMemberServiceTestBase
     protected readonly IGroupMemberRepository MemberRepository;
     protected readonly IMessageService MessageService;
     protected readonly IMapper Mapper;
-    protected readonly BLL.Services.User.GroupMemberService Service;
+    protected readonly MemberModelService Service;
+    protected readonly ICacheService CacheService;
+    protected readonly ICacheAccessService CacheAccessService;
 
     protected GroupMemberServiceTestBase()
     {
@@ -20,11 +22,15 @@ public class GroupMemberServiceTestBase
         MemberRepository = Substitute.For<IGroupMemberRepository>();
         MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
+        CacheService = Substitute.For<ICacheService>();
+        CacheAccessService = Substitute.For<ICacheAccessService>();
 
-        Service = new BLL.Services.User.GroupMemberService(
+        Service = new MemberModelService(
             MemberRepository,
             MessageService,
-            Mapper
+            Mapper,
+            CacheService,
+            CacheAccessService
        );
     }
 }

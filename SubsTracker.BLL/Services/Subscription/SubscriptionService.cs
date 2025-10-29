@@ -2,7 +2,9 @@ using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Notifications;
+using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.Subscription;
+using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
@@ -18,23 +20,28 @@ public class SubscriptionService(
     IMessageService messageService,
     IMapper mapper,
     IRepository<UserModel> userRepository,
-    ISubscriptionHistoryRepository historyRepository
-    ) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper),
+    ISubscriptionHistoryRepository historyRepository,
+    ICacheService cacheService,
+    ICacheAccessService cacheAccessService
+) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
     ISubscriptionService
 {
-
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var subscriptionWithConnectedEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
-        return Mapper.Map<SubscriptionDto>(subscriptionWithConnectedEntities);
+        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
+
+        async Task<SubscriptionDto> GetSubscription()
+        {
+            var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
+            return Mapper.Map<SubscriptionDto>(subscriptionWithEntities); 
+        }
     }
     
     public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = SubscriptionFilterHelper.CreatePredicate(filter);
-
-        var entities = await base.GetAll(predicate, cancellationToken);
-        return entities;
+        return await base.GetAll(predicate, cancellationToken);
     }
 
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
@@ -46,10 +53,9 @@ public class SubscriptionService(
         subscriptionToCreate.UserId = existingUser.Id;
 
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
-        var subscriptionDto = Mapper.Map<SubscriptionDto>(createdSubscription);
 
         await historyRepository.Create(createdSubscription.Id, SubscriptionAction.Activate, createDto.Price, cancellationToken);
-        return subscriptionDto;
+        return Mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
     public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
@@ -83,12 +89,10 @@ public class SubscriptionService(
         }
 
         subscription.Active = false;
-        
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
         await historyRepository.Create(canceledSubscription.Id, SubscriptionAction.Cancel, null, cancellationToken);
-        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
-        await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
+        await HandlePostCancellationActions(canceledSubscription, userId, cancellationToken);
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
@@ -109,15 +113,37 @@ public class SubscriptionService(
 
         var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(renewedSubscription);
         await messageService.NotifySubscriptionRenewed(subscriptionRenewedEvent, cancellationToken);
-        var subscriptionDto = Mapper.Map<SubscriptionDto>(renewedSubscription);
-        return subscriptionDto;
+        return Mapper.Map<SubscriptionDto>(renewedSubscription);
     }
 
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
+        var cacheKey = RedisKeySetter.SetCahceKey(userId, "upcoming_bills");
+        var cachedList = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
+        if (cachedList is not null)
+        {
+            return cachedList;
+        }
+        
         var billsToPay = await subscriptionRepository.GetUpcomingBills(userId, cancellationToken)
             ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
 
-        return Mapper.Map<List<SubscriptionDto>>(billsToPay);
+        var mappedList = Mapper.Map<List<SubscriptionDto>>(billsToPay);
+        await cacheAccessService.SetData(cacheKey, mappedList, RedisConstants.ExpirationTime, cancellationToken);
+        return mappedList;
+    }
+    
+    private async Task HandlePostCancellationActions(SubscriptionModel canceledSubscription, Guid userId, CancellationToken cancellationToken)
+    {
+        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
+        await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
+
+        var keysToRemove = new List<string>
+        {
+            RedisKeySetter.SetCacheKey<SubscriptionDto>(canceledSubscription.Id),
+            RedisKeySetter.SetCahceKey(userId, "upcoming_bills")
+        };
+
+        await cacheAccessService.RemoveData(keysToRemove, cancellationToken);
     }
 }
