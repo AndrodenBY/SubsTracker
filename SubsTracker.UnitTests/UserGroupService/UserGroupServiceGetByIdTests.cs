@@ -104,4 +104,33 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         await GroupRepository.Received(1).GetById(userGroup.Id, default);
         Mapper.Received(1).Map<UserGroupDto>(userGroup);
     }
+    
+    [Fact]
+    public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
+    {
+        //Arrange
+        var cachedDto = Fixture.Create<UserGroupDto>();
+        var cacheKey = RedisKeySetter.SetCacheKey<UserGroupDto>(cachedDto.Id);
+
+        CacheService.CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserGroupDto>>>(),
+            default
+        ).Returns(cachedDto);
+
+        //Act
+        var result = await Service.GetFullInfoById(cachedDto.Id, default);
+
+        //Assert
+        result.ShouldBe(cachedDto);
+
+        await GroupRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), default);
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserGroupDto>>>(),
+            default
+        );
+    }
 }

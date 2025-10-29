@@ -3,7 +3,7 @@ namespace SubsTracker.UnitTests.UserService;
 public class UserServiceTestsBase
 {
     protected readonly IFixture Fixture;
-    protected readonly IRepository<User> Repository;
+    protected readonly IRepository<User> UserRepository;
     protected readonly IMapper Mapper;
     protected readonly UserModelService Service;
     protected readonly ICacheService CacheService;
@@ -17,12 +17,12 @@ public class UserServiceTestsBase
            .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-        Repository = Substitute.For<IRepository<User>>();
+        UserRepository = Substitute.For<IRepository<User>>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
         
         Service = new UserModelService(
-            Repository,
+            UserRepository,
             Mapper,
             CacheService
         );

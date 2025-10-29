@@ -77,4 +77,33 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         //Assert
         fakeIdResult.ShouldBeNull();
     }
+    
+    [Fact]
+    public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
+    {
+        //Arrange
+        var cachedDto = Fixture.Create<SubscriptionDto>();
+        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(cachedDto.Id);
+
+        CacheService.CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            default
+        ).Returns(cachedDto);
+
+        //Act
+        var result = await Service.GetUserInfoById(cachedDto.Id, default);
+
+        //Assert
+        result.ShouldBe(cachedDto);
+
+        await SubscriptionRepository.DidNotReceive().GetUserInfoById(Arg.Any<Guid>(), default);
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            default
+        );
+    }
 }

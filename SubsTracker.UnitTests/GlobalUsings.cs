@@ -27,6 +27,7 @@ global using SubscriptionModelService = SubsTracker.BLL.Services.Subscription.Su
 global using UserModelService = SubsTracker.BLL.Services.User.UserService;
 global using GroupModelService = SubsTracker.BLL.Services.User.UserGroupService;
 global using SubsTracker.BLL.Interfaces.Cache;
+global using SubsTracker.BLL.RedisSettings;
 
 //Domain
 global using SubsTracker.Domain.Filter;

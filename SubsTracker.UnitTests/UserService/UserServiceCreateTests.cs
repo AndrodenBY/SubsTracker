@@ -23,7 +23,7 @@ public class UserServiceCreateTests : UserServiceTestsBase
         };
 
         Mapper.Map<User>(createDto).Returns(userEntity);
-        Repository.Create(userEntity, default).Returns(userEntity);
+        UserRepository.Create(userEntity, default).Returns(userEntity);
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
         //Act
@@ -35,7 +35,7 @@ public class UserServiceCreateTests : UserServiceTestsBase
         result.Email.ShouldBe(userEntity.Email);
         result.FirstName.ShouldBe(userEntity.FirstName);
         result.LastName.ShouldBe(userEntity.LastName);
-        await Repository.Received(1).Create(userEntity, default);
+        await UserRepository.Received(1).Create(userEntity, default);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class UserServiceCreateTests : UserServiceTestsBase
             .With(x => x.Email, createDto.Email)
             .Create();
 
-        Repository.GetByPredicate(Arg.Is<Expression<Func<User, bool>>>(expr => expr.Compile().Invoke(existingUser)), default)
+        UserRepository.GetByPredicate(Arg.Is<Expression<Func<User, bool>>>(expr => expr.Compile().Invoke(existingUser)), default)
            .Returns(existingUser);
 
         //Act
