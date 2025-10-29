@@ -23,7 +23,7 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
 
         //Act
-        var result = await Service.UnshareSubscription(userGroup.Id, subscription.Id, CancellationToken.None);
+        var result = await Service.UnshareSubscription(userGroup.Id, subscription.Id, default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -34,7 +34,7 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
     public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
-        GroupRepository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        GroupRepository.GetById(Arg.Any<Guid>(), default)
            .Returns((UserGroup?)null);
 
         //Act

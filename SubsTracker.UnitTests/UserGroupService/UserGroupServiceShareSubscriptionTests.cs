@@ -24,7 +24,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
 
         //Act
-        var result = await Service.ShareSubscription(userGroup.Id, subscription.Id, CancellationToken.None);
+        var result = await Service.ShareSubscription(userGroup.Id, subscription.Id, default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -38,7 +38,7 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         //Arrange
         var nonExistentGroupId = Guid.NewGuid();
 
-        GroupRepository.GetFullInfoById(nonExistentGroupId, Arg.Any<CancellationToken>())
+        GroupRepository.GetFullInfoById(nonExistentGroupId, default)
            .Returns(Task.FromResult<UserGroup?>(null));
 
         //Act

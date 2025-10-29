@@ -118,7 +118,7 @@ public class SubscriptionService(
 
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCahceKey(userId, "upcoming_bills");
+        var cacheKey = RedisKeySetter.SetCacheKey(userId, "upcoming_bills");
         var cachedList = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
         if (cachedList is not null)
         {
@@ -141,7 +141,7 @@ public class SubscriptionService(
         var keysToRemove = new List<string>
         {
             RedisKeySetter.SetCacheKey<SubscriptionDto>(canceledSubscription.Id),
-            RedisKeySetter.SetCahceKey(userId, "upcoming_bills")
+            RedisKeySetter.SetCacheKey(userId, "upcoming_bills")
         };
 
         await cacheAccessService.RemoveData(keysToRemove, cancellationToken);
