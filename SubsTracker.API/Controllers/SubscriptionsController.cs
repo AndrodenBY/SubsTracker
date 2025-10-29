@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.API.ViewModel.Subscription;
@@ -8,6 +9,7 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class SubscriptionsController(

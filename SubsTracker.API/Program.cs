@@ -43,8 +43,12 @@ public class Program
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.UseHttpsRedirection();
-        app.UseStaticFiles();
+        app.UseStaticFiles(); 
         app.UseRouting();
+
+        app.UseAuthentication();
+        app.UseAuthorization();
+
         app.MapControllers();
 
         await app.RunAsync();

@@ -1,4 +1,5 @@
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
@@ -9,6 +10,7 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController(
