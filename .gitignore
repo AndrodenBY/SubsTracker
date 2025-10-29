@@ -237,5 +237,6 @@ _Pvt_Extensions
 nuget.config
 NuGet.config
 .env
+.editorconfig
 
 

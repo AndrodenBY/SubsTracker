@@ -15,7 +15,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var filter = new UserGroupFilterDto { Name = userGroupToFind.Name };
 
         GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
-           .Returns(new List<UserGroup> { userGroupToFind });
+            .Returns(new List<UserGroup> { userGroupToFind });
         Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto> { userGroupDto });
 
         //Act
@@ -45,7 +45,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var filter = new UserGroupFilterDto { Name = "Pv$$YbR3aK3rS123" };
 
         GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
-           .Returns(new List<UserGroup>());
+            .Returns(new List<UserGroup>());
         Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
 
         //Act
@@ -62,7 +62,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var filter = new UserGroupFilterDto();
 
         GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
-           .Returns(new List<UserGroup>());
+            .Returns(new List<UserGroup>());
         Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
 
         //Act
@@ -82,7 +82,7 @@ public class UserGroupServiceGetAllTests : UserGroupServiceTestsBase
         var filter = new UserGroupFilterDto();
 
         GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
-           .Returns(userGroups);
+            .Returns(userGroups);
         Mapper.Map<List<UserGroupDto>>(userGroups).Returns(userGroupDtos);
 
         //Act

@@ -1,5 +1,3 @@
-using Medallion.Threading;
-using Medallion.Threading.Redis;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RedLockNet;
@@ -22,7 +20,8 @@ namespace SubsTracker.BLL;
 
 public static class BusinessLayerServiceRegister
 {
-    public static IServiceCollection RegisterBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterBusinessLayerDependencies(this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.RegisterDataLayerDependencies(configuration)
             .RegisterMessagingLayerDependencies(configuration)
@@ -53,7 +52,7 @@ public static class BusinessLayerServiceRegister
                 }))
             .AddScoped<ICacheService, CacheService>()
             .AddScoped<ICacheAccessService, CacheAccessService>();
-        
+
         return services;
     }
 }

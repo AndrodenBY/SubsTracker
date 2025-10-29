@@ -31,7 +31,7 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
             .Create();
 
         UserRepository.GetById(Arg.Any<Guid>(), default)
-           .Returns(user);
+            .Returns(user);
         SubscriptionRepository.GetById(updateDto.Id, default).Returns(subscriptionEntity);
         SubscriptionRepository.Update(subscriptionEntity, default).Returns(subscriptionEntity);
         Mapper.Map<Subscription>(updateDto).Returns(subscriptionEntity);
@@ -55,8 +55,8 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
         var emptyDto = new UpdateSubscriptionDto();
 
         //Act
-        var result = async() => await Service.Update(Guid.Empty, emptyDto, default); 
-        
+        var result = async () => await Service.Update(Guid.Empty, emptyDto, default);
+
         //Assert
         await result.ShouldThrowAsync<NotFoundException>();
     }

@@ -12,9 +12,9 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
             .With(user => user.FirstName, existingUser.FirstName)
             .With(user => user.Email, existingUser.Email)
             .Create();
-        
+
         var cacheKey = $"{existingUser.Id}:{nameof(User)}";
-    
+
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
@@ -35,7 +35,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         result.ShouldNotBeNull();
         result.Id.ShouldBe(existingUser.Id);
         result.FirstName.ShouldBe(existingUser.FirstName);
-        
+
         await UserRepository.Received(1).GetById(existingUser.Id, default);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
@@ -70,7 +70,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         //Assert
         fakeIdResult.ShouldBeNull();
     }
-    
+
     [Fact]
     public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
     {
@@ -100,4 +100,3 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         );
     }
 }
-

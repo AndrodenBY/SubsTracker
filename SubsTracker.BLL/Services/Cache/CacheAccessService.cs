@@ -29,7 +29,7 @@ public class CacheAccessService(IDistributedCache cache, ILogger<CacheAccessServ
         var serializedValue = JsonConvert.SerializeObject(value, NewtonsoftJsonSettings.Default);
         await cache.SetStringAsync(cacheKey, serializedValue, cacheEntryOptions, cancellationToken);
     }
-    
+
     public async Task RemoveData(List<string> cacheKeys, CancellationToken cancellationToken)
     {
         var keys = cacheKeys.Select(key => cache.RemoveAsync(key, cancellationToken));

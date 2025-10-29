@@ -13,31 +13,23 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
         Func<Task<TValue>> dataFactory, CancellationToken cancellationToken) where TValue : class
     {
         var cachedData = await GetData<TValue>(cacheKey, cancellationToken);
-        if (cachedData is not null)
-        {
-            return cachedData;
-        }
-        
+        if (cachedData is not null) return cachedData;
+
         while (true)
         {
             await using var redLock = await lockFactory.CreateLockAsync(
-                RedisKeySetter.SetLockKey(cacheKey), 
-                    RedisConstants.LockExpiry, 
-                    RedisConstants.LockWaitTime, 
-                    RedisConstants.LockRetryTime, 
-                    cancellationToken
-                    );
+                RedisKeySetter.SetLockKey(cacheKey),
+                RedisConstants.LockExpiry,
+                RedisConstants.LockWaitTime,
+                RedisConstants.LockRetryTime,
+                cancellationToken
+            );
 
-            if (redLock.IsAcquired)
-            {
-                return await EnsureCached(cacheKey, expirationTime, dataFactory, cancellationToken);
-            }
-            
-            var dataAfterWait = await WaitForCachedData<TValue>(cacheKey, RedisConstants.LockWaitTime, cancellationToken);
-            if (dataAfterWait is not null)
-            {
-                return dataAfterWait;
-            }
+            if (redLock.IsAcquired) return await EnsureCached(cacheKey, expirationTime, dataFactory, cancellationToken);
+
+            var dataAfterWait =
+                await WaitForCachedData<TValue>(cacheKey, RedisConstants.LockWaitTime, cancellationToken);
+            if (dataAfterWait is not null) return dataAfterWait;
         }
     }
 
@@ -51,10 +43,7 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
         logger.LogInformation("Lock acquired. Executing expensive data factory for key: {CacheKey}", cacheKey);
 
         var newCachedData = await dataFactory();
-        if (newCachedData is not null)
-        {
-            await SetData(cacheKey, newCachedData, expirationTime, cancellationToken);
-        }
+        if (newCachedData is not null) await SetData(cacheKey, newCachedData, expirationTime, cancellationToken);
         return newCachedData;
     }
 

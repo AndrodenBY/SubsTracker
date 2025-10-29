@@ -1,6 +1,5 @@
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Messaging.Contracts;
-using SubsTracker.Messaging.Enums;
 
 namespace SubsTracker.BLL.Helpers.Notifications;
 
@@ -16,7 +15,7 @@ public static class GroupMemberNotificationHelper
             member.User.Email
         );
     }
-    
+
     public static MemberLeftGroupEvent CreateMemberLeftGroupEvent(GroupMember member)
     {
         return new MemberLeftGroupEvent(

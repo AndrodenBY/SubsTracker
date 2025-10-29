@@ -9,18 +9,22 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         var userGroup = Fixture.Build<UserGroup>()
             .With(group => group.SharedSubscriptions, new List<Subscription>())
             .Create();
-        var subscription = new Subscription { Id = Guid.NewGuid(), Price = 9.99m, Content = SubscriptionContent.Design, DueDate = DateOnly.MaxValue, Type = SubscriptionType.Free };
+        var subscription = new Subscription
+        {
+            Id = Guid.NewGuid(), Price = 9.99m, Content = SubscriptionContent.Design, DueDate = DateOnly.MaxValue,
+            Type = SubscriptionType.Free
+        };
         var expectedDto = Fixture.Build<UserGroupDto>()
             .With(group => group.Id, userGroup.Id)
             .With(group => group.Name, userGroup.Name)
             .Create();
 
         GroupRepository.GetFullInfoById(userGroup.Id, default)
-           .Returns(userGroup);
+            .Returns(userGroup);
         SubscriptionRepository.GetById(subscription.Id, default)
             .Returns(subscription);
         GroupRepository.Update(Arg.Any<UserGroup>(), default)
-           .Returns(userGroup);
+            .Returns(userGroup);
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
 
         //Act
@@ -29,7 +33,8 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(userGroup.Id);
-        await GroupRepository.Received(1).Update(Arg.Is<UserGroup>(g => g.SharedSubscriptions.Contains(subscription)), default);
+        await GroupRepository.Received(1)
+            .Update(Arg.Is<UserGroup>(g => g.SharedSubscriptions.Contains(subscription)), default);
     }
 
     [Fact]
@@ -39,11 +44,11 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         var nonExistentGroupId = Guid.NewGuid();
 
         GroupRepository.GetFullInfoById(nonExistentGroupId, default)
-           .Returns(Task.FromResult<UserGroup?>(null));
+            .Returns(Task.FromResult<UserGroup?>(null));
 
         //Act
         var result = async () => await Service.ShareSubscription(nonExistentGroupId, Guid.NewGuid(), default);
-        
+
         //Assert
         await result.ShouldThrowAsync<NotFoundException>();
     }

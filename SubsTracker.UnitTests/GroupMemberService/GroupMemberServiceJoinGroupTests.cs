@@ -25,11 +25,11 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
             .Create();
 
         MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-           .Returns((GroupMember?)null);
+            .Returns((GroupMember?)null);
         MemberRepository.Create(Arg.Any<GroupMember>(), default)
-           .Returns(createdMemberEntity);
+            .Returns(createdMemberEntity);
         Mapper.Map<GroupMemberDto>(createdMemberEntity)
-           .Returns(createdMemberDto);
+            .Returns(createdMemberDto);
 
         //Act
         var result = await Service.JoinGroup(createDto, default);
@@ -59,7 +59,7 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
             .Create();
 
         MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-           .Returns(existingMemberEntity);
+            .Returns(existingMemberEntity);
 
         //Act
         var act = async () => await Service.JoinGroup(createDto, default);

@@ -6,11 +6,11 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-    
+
     <ItemGroup>
-        <PackageReference Include="MassTransit" Version="8.5.4" />
-        <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.4" />
-        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0-rc.2.25502.107" />
+        <PackageReference Include="MassTransit" Version="8.5.4"/>
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.5.4"/>
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="10.0.0-rc.2.25502.107"/>
     </ItemGroup>
 
 </Project>

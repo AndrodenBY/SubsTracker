@@ -2,9 +2,9 @@ namespace SubsTracker.IntegrationTests.Subscription;
 
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
+    private readonly SubscriptionTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly SubscriptionTestsDataSeedingHelper _dataSeedingHelper;
-    private readonly SubscriptionTestsAssertionHelper _assertHelper;
 
     public SubscriptionsControllerTests(TestsWebApplicationFactory factory)
     {
@@ -62,7 +62,8 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var dataSeedObject = await _dataSeedingHelper.AddSeedUserOnly();
 
         //Act
-        var response = await _client.PostAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", subscriptionDto);
+        var response =
+            await _client.PostAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", subscriptionDto);
 
         //Assert
         await _assertHelper.CreateValidAssert(response);
@@ -77,7 +78,8 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var updateDto = _dataSeedingHelper.AddUpdateSubscriptionDto(subscription.Id);
 
         //Act
-        var response = await _client.PutAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", updateDto);
+        var response =
+            await _client.PutAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", updateDto);
 
         //Assert
         await _assertHelper.UpdateValidAssert(response, subscription.Id, updateDto.Name);
@@ -91,7 +93,9 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var subscription = seedData.Subscriptions.FirstOrDefault();
 
         //Act
-        var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}", null);
+        var response =
+            await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}",
+                null);
 
         //Assert
         await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
@@ -108,7 +112,9 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var expectedDueDate = subscription.DueDate.AddMonths(monthsToRenew);
 
         //Act
-        var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}", null);
+        var response =
+            await _client.PatchAsync(
+                $"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}", null);
 
         //Assert
         await _assertHelper.RenewSubscriptionValidAssert(response, subscription, expectedDueDate);

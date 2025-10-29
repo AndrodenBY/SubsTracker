@@ -2,22 +2,22 @@ namespace SubsTracker.UnitTests.UserGroupService;
 
 public class UserGroupServiceTestsBase
 {
+    private readonly IGroupMemberService _memberService;
+    protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
     protected readonly IUserGroupRepository GroupRepository;
-    protected readonly IRepository<User> UserRepository;
-    protected readonly ISubscriptionRepository SubscriptionRepository;
-    private readonly IGroupMemberService _memberService;
     protected readonly IMapper Mapper;
     protected readonly GroupModelService Service;
-    protected readonly ICacheService CacheService;
+    protected readonly ISubscriptionRepository SubscriptionRepository;
+    protected readonly IRepository<User> UserRepository;
 
     protected UserGroupServiceTestsBase()
     {
         Fixture = new Fixture();
         Fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
-           DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
+            DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
         Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-           .ForEach(b => Fixture.Behaviors.Remove(b));
+            .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         GroupRepository = Substitute.For<IUserGroupRepository>();
@@ -34,6 +34,6 @@ public class UserGroupServiceTestsBase
             _memberService,
             Mapper,
             CacheService
-       );
+        );
     }
 }

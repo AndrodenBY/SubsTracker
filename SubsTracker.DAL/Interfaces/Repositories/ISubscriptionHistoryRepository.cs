@@ -5,6 +5,9 @@ namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface ISubscriptionHistoryRepository : IRepository<SubscriptionHistory>
 {
-    Task<bool> Create(Guid subscriptionId, SubscriptionAction action, decimal? pricePaid, CancellationToken cancellationToken);
-    Task UpdateType(SubscriptionType originalType, SubscriptionType updatedType, Guid subscriptionId, decimal? price, CancellationToken cancellationToken);
+    Task<bool> Create(Guid subscriptionId, SubscriptionAction action, decimal? pricePaid,
+        CancellationToken cancellationToken);
+
+    Task UpdateType(SubscriptionType originalType, SubscriptionType updatedType, Guid subscriptionId, decimal? price,
+        CancellationToken cancellationToken);
 }

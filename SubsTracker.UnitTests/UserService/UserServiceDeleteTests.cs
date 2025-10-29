@@ -9,10 +9,10 @@ public class UserServiceDeleteTests : UserServiceTestsBase
         var existingUser = Fixture.Create<User>();
 
         UserRepository.GetById(existingUser.Id, default)
-           .Returns(existingUser);
+            .Returns(existingUser);
 
         UserRepository.Delete(existingUser, default)
-           .Returns(true);
+            .Returns(true);
 
         //Act
         var result = await Service.Delete(existingUser.Id, default);
@@ -34,9 +34,8 @@ public class UserServiceDeleteTests : UserServiceTestsBase
 
         //Act
         var result = async () => await Service.Delete(emptyGuid, default);
-        
+
         //Assert
         await result.ShouldThrowAsync<NotFoundException>();
     }
 }
-

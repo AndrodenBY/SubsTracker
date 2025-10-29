@@ -100,7 +100,8 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity.Active.ShouldBeFalse();
     }
 
-    public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original, DateOnly expectedDueDate)
+    public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original,
+        DateOnly expectedDueDate)
     {
         response.EnsureSuccessStatusCode();
 

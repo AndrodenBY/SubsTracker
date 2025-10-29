@@ -2,15 +2,15 @@ namespace SubsTracker.UnitTests.SubscriptionService;
 
 public class SubscriptionServiceTestsBase
 {
-    protected readonly IFixture Fixture;
-    protected readonly ISubscriptionRepository SubscriptionRepository;
-    protected readonly IMapper Mapper;
-    protected readonly IRepository<User> UserRepository;
-    protected readonly IMessageService MessageService;
-    protected readonly ISubscriptionHistoryRepository HistoryRepository;
-    protected readonly SubscriptionModelService Service;
-    protected readonly ICacheService CacheService;
     protected readonly ICacheAccessService CacheAccessService;
+    protected readonly ICacheService CacheService;
+    protected readonly IFixture Fixture;
+    protected readonly ISubscriptionHistoryRepository HistoryRepository;
+    protected readonly IMapper Mapper;
+    protected readonly IMessageService MessageService;
+    protected readonly SubscriptionModelService Service;
+    protected readonly ISubscriptionRepository SubscriptionRepository;
+    protected readonly IRepository<User> UserRepository;
 
     protected SubscriptionServiceTestsBase()
     {
@@ -28,12 +28,12 @@ public class SubscriptionServiceTestsBase
         HistoryRepository = Substitute.For<ISubscriptionHistoryRepository>();
         CacheService = Substitute.For<ICacheService>();
         CacheAccessService = Substitute.For<ICacheAccessService>();
-        
+
         Service = new SubscriptionModelService(
-            SubscriptionRepository, 
-            MessageService, 
-            Mapper, 
-            UserRepository, 
+            SubscriptionRepository,
+            MessageService,
+            Mapper,
+            UserRepository,
             HistoryRepository,
             CacheService,
             CacheAccessService

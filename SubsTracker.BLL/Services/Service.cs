@@ -13,7 +13,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IRepository<TEntity> repository,
     IMapper mapper,
     ICacheService cacheService
-    ) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
+) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
@@ -23,7 +23,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     protected IMapper Mapper => mapper;
 
     protected IRepository<TEntity> Repository => repository;
-    
+
     protected ICacheService CacheService => cacheService;
 
     public virtual async Task<List<TDto>> GetAll(
@@ -36,7 +36,8 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<TEntity>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity,
+            cancellationToken);
 
         async Task<TDto> GetEntity()
         {
@@ -71,7 +72,8 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         return await repository.Delete(existingEntity, cancellationToken);
     }
 
-    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate,
+        CancellationToken cancellationToken)
     {
         var entity = await repository.GetByPredicate(predicate, cancellationToken);
 

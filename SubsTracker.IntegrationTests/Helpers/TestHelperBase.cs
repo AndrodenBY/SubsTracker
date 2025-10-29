@@ -2,8 +2,8 @@ namespace SubsTracker.IntegrationTests.Helpers;
 
 public abstract class TestHelperBase
 {
-    protected readonly TestsWebApplicationFactory Factory;
     private readonly IServiceScopeFactory _scopeFactory;
+    protected readonly TestsWebApplicationFactory Factory;
     protected readonly IFixture Fixture;
 
     protected TestHelperBase(TestsWebApplicationFactory factory)
@@ -19,5 +19,8 @@ public abstract class TestHelperBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
-    public IServiceScope CreateScope() => _scopeFactory.CreateScope();
+    public IServiceScope CreateScope()
+    {
+        return _scopeFactory.CreateScope();
+    }
 }

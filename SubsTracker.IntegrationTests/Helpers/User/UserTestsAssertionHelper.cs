@@ -3,7 +3,8 @@ namespace SubsTracker.IntegrationTests.Helpers.User;
 public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
-    public async Task GetByIdValidAssert(HttpResponseMessage response, DAL.Models.User.User expected)
+
+    public async Task GetByIdValidAssert(HttpResponseMessage response, UserModel expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -59,7 +60,8 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         entity.LastName.ShouldBe(expected.LastName);
     }
 
-    public async Task UpdateValidAssert(HttpResponseMessage response, Guid userId, string? expectedFirstName, string? expectedEmail)
+    public async Task UpdateValidAssert(HttpResponseMessage response, Guid userId, string? expectedFirstName,
+        string? expectedEmail)
     {
         response.EnsureSuccessStatusCode();
 

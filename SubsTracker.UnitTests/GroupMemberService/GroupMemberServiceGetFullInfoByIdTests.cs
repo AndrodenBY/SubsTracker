@@ -36,7 +36,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
             default
         );
     }
-    
+
     [Fact]
     public async Task GetFullInfoById_WhenCacheMiss_FetchesFromRepoAndCaches()
     {

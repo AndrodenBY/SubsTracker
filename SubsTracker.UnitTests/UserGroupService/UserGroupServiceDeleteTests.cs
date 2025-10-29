@@ -29,7 +29,7 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
 
         //Act
         var result = async () => await Service.Delete(emptyId, default);
-        
+
         //Assert
         await result.ShouldThrowAsync<NotFoundException>();
     }

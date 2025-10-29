@@ -83,7 +83,8 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         entity.ShouldBeNull();
     }
 
-    public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity, MemberRole targetRole)
+    public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity,
+        MemberRole targetRole)
     {
         response.EnsureSuccessStatusCode();
 

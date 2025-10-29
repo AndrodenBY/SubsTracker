@@ -16,7 +16,8 @@ public class UserService(
     IRepository<UserModel> repository,
     IMapper mapper,
     ICacheService cacheService
-    ) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper, cacheService), IUserService
+) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper, cacheService),
+    IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
@@ -28,14 +29,13 @@ public class UserService(
     {
         var userExists = await Repository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
         if (userExists is not null)
-        {
             throw new InvalidOperationException($"User with email {userExists.Email} already exists");
-        }
-        
+
         return await base.Create(createDto, cancellationToken);
     }
 
-    public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto,
+        CancellationToken cancellationToken)
     {
         var userExists = await Repository.GetById(updateId, cancellationToken)
                          ?? throw new InvalidOperationException($"Cannot update user with id {updateId}");

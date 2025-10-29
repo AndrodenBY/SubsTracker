@@ -11,7 +11,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             .With(x => x.Id, userGroupDto.Id)
             .With(x => x.Name, userGroupDto.Name)
             .Create();
-        
+
         var cacheKey = $"{userGroupDto.Id}:{nameof(UserGroup)}";
 
         CacheService.CacheDataWithLock(
@@ -25,10 +25,10 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             return factory();
         });
         GroupRepository.GetById(userGroupDto.Id, default)
-           .Returns(userGroup);
+            .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(userGroup)
-           .Returns(userGroupDto);
+            .Returns(userGroupDto);
 
         //Act
         var result = await Service.GetById(userGroupDto.Id, default);
@@ -80,7 +80,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
             .With(x => x.Id, userGroupDto.Id)
             .With(x => x.Name, userGroupDto.Name)
             .Create();
-        
+
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
@@ -104,7 +104,7 @@ public class UserGroupServiceGetByIdTests : UserGroupServiceTestsBase
         await GroupRepository.Received(1).GetById(userGroup.Id, default);
         Mapper.Received(1).Map<UserGroupDto>(userGroup);
     }
-    
+
     [Fact]
     public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
     {
