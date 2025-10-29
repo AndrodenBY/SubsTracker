@@ -10,14 +10,11 @@ public class SubsDbContext : DbContext
     public SubsDbContext(DbContextOptions<SubsDbContext> options) : base(options)
     {
         if (Database.IsRelational())
-        {
             Database.Migrate();
-        }
         else
-        {
             Database.EnsureCreated();
-        }
     }
+
     public DbSet<User> Users { get; set; }
     public DbSet<Subscription> Subscriptions { get; set; }
     public DbSet<SubscriptionHistory> SubscriptionHistory { get; set; }
@@ -41,7 +38,6 @@ public class SubsDbContext : DbContext
         var entries = ChangeTracker.Entries<IBaseModel>();
 
         foreach (var entry in entries)
-        {
             switch (entry.State)
             {
                 case EntityState.Added:
@@ -52,6 +48,5 @@ public class SubsDbContext : DbContext
                     entry.Entity.ModifiedAt = DateTime.UtcNow;
                     break;
             }
-        }
     }
 }

@@ -27,13 +27,13 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
             .Create();
 
         UserRepository.GetById(userId, default)
-           .Returns(userEntity);
+            .Returns(userEntity);
         SubscriptionRepository.GetUserInfoById(subscriptionId, default)
-           .Returns(subscriptionEntity);
+            .Returns(subscriptionEntity);
         SubscriptionRepository.Update(Arg.Any<Subscription>(), default)
-           .Returns(updatedSubscriptionEntity);
+            .Returns(updatedSubscriptionEntity);
         Mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
-           .Returns(updatedSubscriptionDto);
+            .Returns(updatedSubscriptionDto);
 
         //Act
         var result = await Service.CancelSubscription(userId, subscriptionId, default);
@@ -41,8 +41,11 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(subscriptionId);
-        await SubscriptionRepository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
-        await MessageService.Received(1).NotifySubscriptionCanceled(Arg.Is<SubscriptionCanceledEvent>(subscriptionCanceledEvent => subscriptionCanceledEvent.Id == subscriptionId), default);
+        await SubscriptionRepository.Received(1)
+            .Update(Arg.Is<Subscription>(s => s.Id == subscriptionId && s.Active == false), default);
+        await MessageService.Received(1).NotifySubscriptionCanceled(
+            Arg.Is<SubscriptionCanceledEvent>(subscriptionCanceledEvent =>
+                subscriptionCanceledEvent.Id == subscriptionId), default);
     }
 
     [Fact]
@@ -52,19 +55,19 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
         var emptyDto = new UpdateSubscriptionDto();
 
         //Act
-        var result = async() => await Service.Update(Guid.Empty, emptyDto, default);
-        
+        var result = async () => await Service.Update(Guid.Empty, emptyDto, default);
+
         //Assert
         await result.ShouldThrowAsync<NotFoundException>();
     }
-    
+
     [Fact]
     public async Task CancelSubscription_WhenSuccessful_InvalidatesSubscriptionAndBillsCache()
     {
         //Arrange
         var userId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
-        
+
         var subscriptionEntity = Fixture.Build<Subscription>()
             .With(s => s.Id, subscriptionId)
             .With(s => s.UserId, userId)
@@ -76,11 +79,11 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
             .With(s => s.UserId, userId)
             .With(s => s.Active, false)
             .Create();
-        
+
         SubscriptionRepository.GetUserInfoById(subscriptionId, default).Returns(subscriptionEntity);
         SubscriptionRepository.Update(subscriptionEntity, default).Returns(cancelledEntity);
         Mapper.Map<SubscriptionDto>(cancelledEntity).Returns(Fixture.Create<SubscriptionDto>());
-        
+
         var subscriptionCacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(subscriptionId);
         var billsCacheKey = RedisKeySetter.SetCacheKey(userId, "upcoming_bills");
 
@@ -89,14 +92,15 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
 
         //Assert
         await CacheAccessService.Received(1).RemoveData(
-            Arg.Is<List<string>>(list => 
-                list.Contains(subscriptionCacheKey) && 
+            Arg.Is<List<string>>(list =>
+                list.Contains(subscriptionCacheKey) &&
                 list.Contains(billsCacheKey) &&
                 list.Count == 2
-            ), 
+            ),
             default);
-        
-        await HistoryRepository.Received(1).Create(Arg.Any<Guid>(), SubscriptionAction.Cancel, Arg.Any<decimal?>(), default);
+
+        await HistoryRepository.Received(1)
+            .Create(Arg.Any<Guid>(), SubscriptionAction.Cancel, Arg.Any<decimal?>(), default);
         await MessageService.Received(1).NotifySubscriptionCanceled(Arg.Any<SubscriptionCanceledEvent>(), default);
     }
 }

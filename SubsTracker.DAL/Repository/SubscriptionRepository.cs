@@ -2,7 +2,6 @@ using Microsoft.EntityFrameworkCore;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.Subscription;
 
-
 namespace SubsTracker.DAL.Repository;
 
 public class SubscriptionRepository(SubsDbContext context) : Repository<Subscription>(context), ISubscriptionRepository
@@ -12,11 +11,11 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
     public Task<Subscription?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         return _dbSet
-            .AsSplitQuery()    
+            .AsSplitQuery()
             .Include(g => g.User)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
     }
-    
+
     public async Task<List<Subscription>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         var today = DateOnly.FromDateTime(DateTime.Now);

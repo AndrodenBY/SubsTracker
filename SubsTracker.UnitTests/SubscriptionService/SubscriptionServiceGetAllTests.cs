@@ -15,8 +15,9 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
         var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
 
         SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-           .Returns(new List<Subscription> { subscriptionToFind });
-        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto> { subscriptionDto });
+            .Returns(new List<Subscription> { subscriptionToFind });
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>())
+            .Returns(new List<SubscriptionDto> { subscriptionDto });
 
         //Act
         var result = await Service.GetAll(filter, default);
@@ -40,7 +41,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
         var filter = new SubscriptionFilterDto { Name = "LetThatSinkIn" };
 
         SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-           .Returns(new List<Subscription>());
+            .Returns(new List<Subscription>());
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
 
         //Act
@@ -57,7 +58,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
         var filter = new SubscriptionFilterDto();
 
         SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-           .Returns(new List<Subscription>());
+            .Returns(new List<Subscription>());
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
 
         //Act
@@ -77,7 +78,7 @@ public class SubscriptionServiceGetAllTests : SubscriptionServiceTestsBase
         var filter = new SubscriptionFilterDto();
 
         SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
-           .Returns(subscriptions);
+            .Returns(subscriptions);
         Mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
 
         //Act

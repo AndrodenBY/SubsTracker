@@ -7,22 +7,22 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\SubsTracker.DAL\SubsTracker.DAL.csproj" />
-        <ProjectReference Include="..\SubsTracker.Domain\SubsTracker.Domain.csproj" />
-        <ProjectReference Include="..\SubsTracker.Messaging\SubsTracker.Messaging.csproj" />
+        <ProjectReference Include="..\SubsTracker.DAL\SubsTracker.DAL.csproj"/>
+        <ProjectReference Include="..\SubsTracker.Domain\SubsTracker.Domain.csproj"/>
+        <ProjectReference Include="..\SubsTracker.Messaging\SubsTracker.Messaging.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
-        <PackageReference Include="Automapper" Version="15.0.1" />
-        <PackageReference Include="DistributedLock" Version="2.7.1" />
-        <PackageReference Include="DistributedLock.Redis" Version="1.1.1" />
-        <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="9.0.8" />
-        <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
-        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10" />
-        <PackageReference Include="RedLock.net" Version="2.3.2" />
-        <PackageReference Include="StackExchange.Redis" Version="2.9.32" />
-        <PackageReference Include="SubsTracker.Messaging" Version="1.1.1" />
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <PackageReference Include="Automapper" Version="15.0.1"/>
+        <PackageReference Include="DistributedLock" Version="2.7.1"/>
+        <PackageReference Include="DistributedLock.Redis" Version="1.1.1"/>
+        <PackageReference Include="LinqKit.Microsoft.EntityFrameworkCore" Version="9.0.8"/>
+        <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0"/>
+        <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="9.0.10"/>
+        <PackageReference Include="RedLock.net" Version="2.3.2"/>
+        <PackageReference Include="StackExchange.Redis" Version="2.9.32"/>
+        <PackageReference Include="SubsTracker.Messaging" Version="1.1.1"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
 
 </Project>

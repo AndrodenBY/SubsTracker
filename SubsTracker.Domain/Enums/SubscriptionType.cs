@@ -9,5 +9,5 @@ public enum SubscriptionType
     Trial = 4,
     Family = 5,
     Student = 6,
-    Standard = 7,
+    Standard = 7
 }

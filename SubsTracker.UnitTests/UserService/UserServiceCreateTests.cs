@@ -47,12 +47,13 @@ public class UserServiceCreateTests : UserServiceTestsBase
             .With(x => x.Email, createDto.Email)
             .Create();
 
-        UserRepository.GetByPredicate(Arg.Is<Expression<Func<User, bool>>>(expr => expr.Compile().Invoke(existingUser)), default)
-           .Returns(existingUser);
+        UserRepository.GetByPredicate(Arg.Is<Expression<Func<User, bool>>>(expr => expr.Compile().Invoke(existingUser)),
+                default)
+            .Returns(existingUser);
 
         //Act
         var result = async () => await Service.Create(createDto, default);
-        
+
         //Assert
         await result.ShouldThrowAsync<InvalidOperationException>();
     }
@@ -67,4 +68,3 @@ public class UserServiceCreateTests : UserServiceTestsBase
         result.ShouldBeNull();
     }
 }
-

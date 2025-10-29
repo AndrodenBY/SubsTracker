@@ -16,10 +16,10 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         var filter = new UserFilterDto { Email = userToFind.Email };
 
         UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-           .Returns(new List<User> { userToFind });
+            .Returns(new List<User> { userToFind });
 
         Mapper.Map<List<UserDto>>(Arg.Any<List<User>>())
-           .Returns(new List<UserDto> { userDto });
+            .Returns(new List<UserDto> { userDto });
 
         //Act
         var result = await Service.GetAll(filter, default);
@@ -37,7 +37,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         var filter = new UserFilterDto { Email = "nonexistent@example.com" };
 
         UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-           .Returns(new List<User>());
+            .Returns(new List<User>());
         Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
 
         //Act
@@ -54,7 +54,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         var filter = new UserFilterDto();
 
         UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-           .Returns(new List<User>());
+            .Returns(new List<User>());
         Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
 
         //Act
@@ -74,7 +74,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         var filter = new UserFilterDto();
 
         UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-           .Returns(users);
+            .Returns(users);
         Mapper.Map<List<UserDto>>(users).Returns(userDtos);
 
         //Act
@@ -87,4 +87,3 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         result.ShouldBe(userDtos);
     }
 }
-

@@ -5,9 +5,9 @@ using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
-using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.RedisSettings;
+using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
@@ -23,13 +23,15 @@ public class GroupMemberService(
     IMapper mapper,
     ICacheService cacheService,
     ICacheAccessService cacheAccessService
-    ) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper, cacheService),
+) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(
+        memberRepository, mapper, cacheService),
     IGroupMemberService
 {
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<GroupMemberDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember,
+            cancellationToken);
 
         async Task<GroupMemberDto> GetGroupMember()
         {
@@ -37,7 +39,7 @@ public class GroupMemberService(
             return Mapper.Map<GroupMemberDto>(memberWithEntities);
         }
     }
-    
+
     public async Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = GroupMemberFilterHelper.CreatePredicate(filter);
@@ -47,22 +49,15 @@ public class GroupMemberService(
     public async Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
         var user = memberRepository.GetFullInfoById(createDto.UserId, cancellationToken);
-        if (user is null)
-        {
-            throw new NotFoundException($"User with id {createDto.UserId} not found");
-        }
+        if (user is null) throw new NotFoundException($"User with id {createDto.UserId} not found");
 
         var group = memberRepository.GetFullInfoById(createDto.GroupId, cancellationToken);
-        if (group is null)
-        {
-            throw new NotFoundException($"Group with id {createDto.GroupId} not found");
-        }
+        if (group is null) throw new NotFoundException($"Group with id {createDto.GroupId} not found");
 
-        var existingMember = await memberRepository.GetByPredicate(gm => gm.UserId == createDto.UserId && gm.GroupId == createDto.GroupId, cancellationToken);
-        if (existingMember is not null)
-        {
-            throw new ValidationException("Member already exists");
-        }
+        var existingMember =
+            await memberRepository.GetByPredicate(
+                gm => gm.UserId == createDto.UserId && gm.GroupId == createDto.GroupId, cancellationToken);
+        if (existingMember is not null) throw new ValidationException("Member already exists");
 
         return await base.Create(createDto, cancellationToken);
     }
@@ -72,10 +67,11 @@ public class GroupMemberService(
         var memberToDelete = await memberRepository.GetByPredicateFullInfo(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
-        
+
         var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
-        
-        await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<GroupMemberDto>(memberToDelete.Id)], cancellationToken);
+
+        await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<GroupMemberDto>(memberToDelete.Id)],
+            cancellationToken);
         await messageService.NotifyMemberLeftGroup(memberLeftEvent, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }
@@ -95,7 +91,7 @@ public class GroupMemberService(
         var updateDto = new UpdateGroupMemberDto { Id = memberToUpdate.Id, Role = newRole };
         Mapper.Map(updateDto, memberToUpdate);
         var updatedMember = await memberRepository.Update(memberToUpdate, cancellationToken);
-        
+
         var memberChangedRoleEvent = GroupMemberNotificationHelper.CreateMemberChangedRoleEvent(updatedMember);
         await messageService.NotifyMemberChangedRole(memberChangedRoleEvent, cancellationToken);
         return Mapper.Map<GroupMemberDto>(updatedMember);

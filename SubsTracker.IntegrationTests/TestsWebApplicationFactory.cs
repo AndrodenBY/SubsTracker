@@ -8,7 +8,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
@@ -18,10 +17,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 d.ImplementationType?.Namespace?.Contains("Npgsql") == true
             ).ToList();
 
-            foreach (var descriptor in descriptorsToRemove)
-            {
-                services.Remove(descriptor);
-            }
+            foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
 
             services.AddDbContext<SubsDbContext>(options =>
             {
@@ -33,7 +29,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 options.Authority = "https://test.authority";
                 options.Audience = "test.audience";
             });
-            
+
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "TestAuthScheme";
@@ -41,7 +37,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 })
                 .AddScheme<AuthenticationSchemeOptions, TestsAuthHandler>(
                     "TestAuthScheme", options => { });
-            
+
             services.AddMassTransitTestHarness();
         });
     }

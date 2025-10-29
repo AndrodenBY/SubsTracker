@@ -12,9 +12,9 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         var filter = new GroupMemberFilterDto();
 
         MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-           .Returns(members);
+            .Returns(members);
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>())
-           .Returns(memberDtos);
+            .Returns(memberDtos);
 
         //Act
         var result = await Service.GetAll(filter, default);
@@ -32,7 +32,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         var filter = new GroupMemberFilterDto();
 
         MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-           .Returns([]);
+            .Returns([]);
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto>());
 
         //Act
@@ -55,7 +55,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         var filter = new GroupMemberFilterDto { Role = memberToFind.Role };
 
         MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-           .Returns(new List<GroupMember> { memberToFind });
+            .Returns(new List<GroupMember> { memberToFind });
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto> { memberDto });
 
         //Act

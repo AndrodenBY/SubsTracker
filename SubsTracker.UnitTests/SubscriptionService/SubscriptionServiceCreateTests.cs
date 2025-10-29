@@ -28,13 +28,13 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
             .Create();
 
         UserRepository.GetById(existingUser.Id, default)
-           .Returns(existingUser);
+            .Returns(existingUser);
         Mapper.Map<Subscription>(createDto)
-           .Returns(subscriptionEntity);
+            .Returns(subscriptionEntity);
         SubscriptionRepository.Create(subscriptionEntity, default)
-           .Returns(subscriptionEntity);
+            .Returns(subscriptionEntity);
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
-           .Returns(subscriptionDto);
+            .Returns(subscriptionDto);
 
         //Act
         var result = await Service.Create(existingUser.Id, createDto, default);
@@ -57,6 +57,7 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
         var createDto = Fixture.Create<CreateSubscriptionDto>();
 
         //Act & Assert
-        await Should.ThrowAsync<NotFoundException>(async () => await Service.Create(Guid.NewGuid(), createDto, default));
+        await Should.ThrowAsync<NotFoundException>(async () =>
+            await Service.Create(Guid.NewGuid(), createDto, default));
     }
 }

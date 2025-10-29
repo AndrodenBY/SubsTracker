@@ -13,14 +13,11 @@ public class Program
         });
 
         builder.Configuration
-            .AddJsonFile("appsettings.json", optional: false)
-            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true)
+            .AddJsonFile("appsettings.json", false)
+            .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
             .AddEnvironmentVariables();
 
-        if (!builder.Environment.IsEnvironment("IntegrationTest"))
-        {
-            builder.Configuration.AddUserSecrets<Program>();
-        }
+        if (!builder.Environment.IsEnvironment("IntegrationTest")) builder.Configuration.AddUserSecrets<Program>();
 
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
@@ -29,10 +26,7 @@ public class Program
 
         var app = builder.Build();
 
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseHsts();
-        }
+        if (!app.Environment.IsDevelopment()) app.UseHsts();
 
         if (app.Environment.IsDevelopment())
         {
@@ -43,7 +37,7 @@ public class Program
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.UseHttpsRedirection();
-        app.UseStaticFiles(); 
+        app.UseStaticFiles();
         app.UseRouting();
 
         app.UseAuthentication();

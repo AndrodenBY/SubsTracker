@@ -5,7 +5,8 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.DAL.Repository;
 
-public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<SubscriptionHistory>(context), ISubscriptionHistoryRepository
+public class SubscriptionHistoryRepository(SubsDbContext context)
+    : Repository<SubscriptionHistory>(context), ISubscriptionHistoryRepository
 {
     private readonly DbSet<SubscriptionHistory> _dbSet = context.Set<SubscriptionHistory>();
 
@@ -16,7 +17,7 @@ public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<S
         {
             SubscriptionId = subscriptionId,
             Action = action,
-            PricePaid = pricePaid,
+            PricePaid = pricePaid
         };
         await _dbSet.AddAsync(createHistoryItem, cancellationToken);
         return await Context.SaveChangesAsync(cancellationToken) > 0;
@@ -26,8 +27,6 @@ public class SubscriptionHistoryRepository(SubsDbContext context) : Repository<S
         Guid subscriptionId, decimal? price, CancellationToken cancellationToken)
     {
         if (originalType != updatedType)
-        {
             await Create(subscriptionId, SubscriptionAction.ChangeType, price, cancellationToken);
-        }
     }
 }

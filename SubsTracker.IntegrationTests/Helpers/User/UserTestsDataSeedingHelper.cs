@@ -18,12 +18,13 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         return new UserSeedEntity
         {
             User = user,
-            Subscriptions = new(),
-            UserGroups = new()
+            Subscriptions = new List<SubscriptionModel>(),
+            UserGroups = new List<Group>()
         };
     }
 
-    public async Task<UserSeedEntity> AddSeedUserWithGroupsAndSubscriptions(string[] groupNames, string[] subscriptionNames)
+    public async Task<UserSeedEntity> AddSeedUserWithGroupsAndSubscriptions(string[] groupNames,
+        string[] subscriptionNames)
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();

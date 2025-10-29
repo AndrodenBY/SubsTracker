@@ -4,9 +4,9 @@ namespace SubsTracker.IntegrationTests.User;
 
 public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
+    private readonly UserTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly UserTestsDataSeedingHelper _dataSeedingHelper;
-    private readonly UserTestsAssertionHelper _assertHelper;
 
     public UsersControllerTests(TestsWebApplicationFactory factory)
     {

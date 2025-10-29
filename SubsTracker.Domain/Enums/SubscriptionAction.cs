@@ -6,5 +6,5 @@ public enum SubscriptionAction
     Activate = 1,
     Renew = 2,
     Cancel = 3,
-    ChangeType = 4,
+    ChangeType = 4
 }

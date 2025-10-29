@@ -58,13 +58,13 @@ public class UserGroupServiceCreateTests : UserGroupServiceTestsBase
             .Create();
 
         UserRepository.GetById(createDto.UserId, default)
-           .Returns(new User { Id = createDto.UserId });
+            .Returns(new User { Id = createDto.UserId });
         GroupRepository.Create(Arg.Any<UserGroup>(), default)
-           .Returns(userGroupEntity);
+            .Returns(userGroupEntity);
         Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>())
-           .Returns(userGroupEntity);
+            .Returns(userGroupEntity);
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>())
-           .Returns(userGroupDto);
+            .Returns(userGroupDto);
 
         //Act
         await Service.Create(createDto, default);

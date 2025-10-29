@@ -23,70 +23,74 @@ public class SubscriptionService(
     ISubscriptionHistoryRepository historyRepository,
     ICacheService cacheService,
     ICacheAccessService cacheAccessService
-) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
+) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(
+        subscriptionRepository, mapper, cacheService),
     ISubscriptionService
 {
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription,
+            cancellationToken);
 
         async Task<SubscriptionDto> GetSubscription()
         {
             var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
-            return Mapper.Map<SubscriptionDto>(subscriptionWithEntities); 
+            return Mapper.Map<SubscriptionDto>(subscriptionWithEntities);
         }
     }
-    
+
     public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = SubscriptionFilterHelper.CreatePredicate(filter);
         return await base.GetAll(predicate, cancellationToken);
     }
 
-    public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto,
+        CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetById(userId, cancellationToken)
-            ?? throw new NotFoundException($"User with id {userId} does not exist");
+                           ?? throw new NotFoundException($"User with id {userId} does not exist");
 
         var subscriptionToCreate = Mapper.Map<SubscriptionModel>(createDto);
         subscriptionToCreate.UserId = existingUser.Id;
 
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
 
-        await historyRepository.Create(createdSubscription.Id, SubscriptionAction.Activate, createDto.Price, cancellationToken);
+        await historyRepository.Create(createdSubscription.Id, SubscriptionAction.Activate, createDto.Price,
+            cancellationToken);
         return Mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
-    public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
+    public override async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto,
+        CancellationToken cancellationToken)
     {
         var userWithSubscription = await userRepository.GetById(userId, cancellationToken)
-            ?? throw new NotFoundException($"User with id {userId} does not exist");
+                                   ?? throw new NotFoundException($"User with id {userId} does not exist");
 
         var originalSubscription = await subscriptionRepository.GetById(updateDto.Id, cancellationToken)
-            ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
+                                   ?? throw new NotFoundException($"Subscription with id {updateDto.Id} not found");
 
         if (originalSubscription.UserId != userWithSubscription.Id)
-        {
-            throw new NotFoundException($"Subscription with id {updateDto.Id} does not belong to user {userWithSubscription.Id}");
-        }
+            throw new NotFoundException(
+                $"Subscription with id {updateDto.Id} does not belong to user {userWithSubscription.Id}");
 
         Mapper.Map(updateDto, originalSubscription);
         var updatedSubscription = await subscriptionRepository.Update(originalSubscription, cancellationToken);
-        
-        await historyRepository.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id, updatedSubscription.Price, cancellationToken);
+
+        await historyRepository.UpdateType(originalSubscription.Type, updatedSubscription.Type, updatedSubscription.Id,
+            updatedSubscription.Price, cancellationToken);
         return Mapper.Map<SubscriptionDto>(updatedSubscription);
     }
 
-    public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId,
+        CancellationToken cancellationToken)
     {
         var subscription = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
                            ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
 
         if (subscription.UserId != userId)
-        {
             throw new NotFoundException($"Subscription with id {subscriptionId} does not belong to user {userId}");
-        }
 
         subscription.Active = false;
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
@@ -96,12 +100,10 @@ public class SubscriptionService(
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
-    public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew,
+        CancellationToken cancellationToken)
     {
-        if (monthsToRenew <= 0)
-        {
-            throw new ValidationException("Cannot renew subscription for less than one month");
-        }
+        if (monthsToRenew <= 0) throw new ValidationException("Cannot renew subscription for less than one month");
 
         var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
                                   ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found");
@@ -109,9 +111,11 @@ public class SubscriptionService(
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
         subscriptionToRenew.Active = true;
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
-        await historyRepository.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price, cancellationToken);
+        await historyRepository.Create(renewedSubscription.Id, SubscriptionAction.Renew, renewedSubscription.Price,
+            cancellationToken);
 
-        var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(renewedSubscription);
+        var subscriptionRenewedEvent =
+            SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(renewedSubscription);
         await messageService.NotifySubscriptionRenewed(subscriptionRenewedEvent, cancellationToken);
         return Mapper.Map<SubscriptionDto>(renewedSubscription);
     }
@@ -120,22 +124,21 @@ public class SubscriptionService(
     {
         var cacheKey = RedisKeySetter.SetCacheKey(userId, "upcoming_bills");
         var cachedList = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
-        if (cachedList is not null)
-        {
-            return cachedList;
-        }
-        
+        if (cachedList is not null) return cachedList;
+
         var billsToPay = await subscriptionRepository.GetUpcomingBills(userId, cancellationToken)
-            ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
+                         ?? throw new NotFoundException($"Subscriptions with UserId {userId} not found");
 
         var mappedList = Mapper.Map<List<SubscriptionDto>>(billsToPay);
         await cacheAccessService.SetData(cacheKey, mappedList, RedisConstants.ExpirationTime, cancellationToken);
         return mappedList;
     }
-    
-    private async Task HandlePostCancellationActions(SubscriptionModel canceledSubscription, Guid userId, CancellationToken cancellationToken)
+
+    private async Task HandlePostCancellationActions(SubscriptionModel canceledSubscription, Guid userId,
+        CancellationToken cancellationToken)
     {
-        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
+        var subscriptionCanceledEvent =
+            SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
         await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
 
         var keysToRemove = new List<string>

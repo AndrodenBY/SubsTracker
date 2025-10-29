@@ -9,5 +9,5 @@ public enum SubscriptionContent
     Work = 4,
     News = 5,
     Fitness = 6,
-    Lifestyle = 7,
+    Lifestyle = 7
 }

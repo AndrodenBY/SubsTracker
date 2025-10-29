@@ -30,8 +30,11 @@ public class SubscriptionServiceRenewSubscriptionTests : SubscriptionServiceTest
         //Assert
         result.ShouldNotBeNull();
         result.DueDate.ShouldBe(originalDueDate.AddMonths(monthsToRenew));
-        await SubscriptionRepository.Received(1).Update(Arg.Is<Subscription>(s => s.DueDate == originalDueDate.AddMonths(monthsToRenew)), default);
-        await MessageService.Received(1).NotifySubscriptionRenewed(Arg.Is<SubscriptionRenewedEvent>(subscriptionCanceledEvent => subscriptionCanceledEvent.Id == subscriptionDto.Id), default);
+        await SubscriptionRepository.Received(1)
+            .Update(Arg.Is<Subscription>(s => s.DueDate == originalDueDate.AddMonths(monthsToRenew)), default);
+        await MessageService.Received(1).NotifySubscriptionRenewed(
+            Arg.Is<SubscriptionRenewedEvent>(subscriptionCanceledEvent =>
+                subscriptionCanceledEvent.Id == subscriptionDto.Id), default);
     }
 
     [Fact]
@@ -42,9 +45,10 @@ public class SubscriptionServiceRenewSubscriptionTests : SubscriptionServiceTest
         var subscription = Fixture.Create<Subscription>();
 
         SubscriptionRepository.GetUserInfoById(subscription.Id, default)
-           .Returns(subscription);
+            .Returns(subscription);
 
         //Act & Assert
-        await Should.ThrowAsync<ValidationException>(async () => await Service.RenewSubscription(subscription.Id, monthsToRenew, default));
+        await Should.ThrowAsync<ValidationException>(async () =>
+            await Service.RenewSubscription(subscription.Id, monthsToRenew, default));
     }
 }

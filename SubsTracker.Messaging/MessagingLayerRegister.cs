@@ -10,12 +10,13 @@ namespace SubsTracker.Messaging;
 
 public static class MessagingLayerRegister
 {
-    public static IServiceCollection RegisterMessagingLayerDependencies(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterMessagingLayerDependencies(this IServiceCollection services,
+        IConfiguration configuration)
     {
         services.Configure<RabbitMqOptions>(configuration.GetSection(RabbitMqOptions.SectionName));
-        
+
         services.AddScoped<IMessageService, MessageService>();
-        
+
         services.AddMassTransit(busConfigurator =>
         {
             busConfigurator.SetKebabCaseEndpointNameFormatter();
@@ -27,7 +28,7 @@ public static class MessagingLayerRegister
                     configure.Username(rabbitMqOptions.UserName);
                     configure.Password(rabbitMqOptions.Password);
                 });
-                
+
                 rabbitMqConfigurator.ConfigureEndpoints(context);
             });
         });

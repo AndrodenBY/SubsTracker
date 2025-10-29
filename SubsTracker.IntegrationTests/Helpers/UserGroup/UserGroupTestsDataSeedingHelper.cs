@@ -58,10 +58,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .Without(m => m.User)
             .CreateMany(3).ToList();
 
-        for (int i = 0; i < participantMembers.Count; i++)
-        {
-            participantMembers[i].UserId = memberUsers[i].Id;
-        }
+        for (var i = 0; i < participantMembers.Count; i++) participantMembers[i].UserId = memberUsers[i].Id;
 
         var allMembers = new List<GroupMember>();
         allMembers.Add(ownerMember);
@@ -87,7 +84,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             User = owner,
             Group = group,
             Members = allMembers,
-            Subscriptions = new()
+            Subscriptions = new List<SubscriptionModel>()
         };
     }
 
@@ -159,8 +156,8 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         {
             User = user,
             Group = group,
-            Members = new(),
-            Subscriptions = new()
+            Members = new List<GroupMember>(),
+            Subscriptions = new List<SubscriptionModel>()
         };
     }
 
@@ -235,7 +232,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             User = user,
             Group = group,
             Subscriptions = new List<SubscriptionModel> { subscription },
-            Members = new()
+            Members = new List<GroupMember>()
         };
     }
 
@@ -251,7 +248,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         await dbContext.Users.AddAsync(user);
         await dbContext.SaveChangesAsync();
 
-        return new UserGroupSeedEntity()
+        return new UserGroupSeedEntity
         {
             User = user,
             Subscriptions = null!,

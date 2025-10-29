@@ -8,7 +8,8 @@ namespace SubsTracker.DAL;
 
 public static class DataLayerServiceRegister
 {
-    public static IServiceCollection RegisterDataLayerDependencies(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection RegisterDataLayerDependencies(this IServiceCollection services,
+        IConfiguration configuration)
     {
         var postgreConnectionString = configuration["PostgreConnectionString"];
 

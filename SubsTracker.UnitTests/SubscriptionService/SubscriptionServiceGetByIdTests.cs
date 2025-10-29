@@ -14,9 +14,9 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
             .With(subscription => subscription.Price, subscriptionEntity.Price)
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
-        
+
         var cacheKey = $"{subscriptionDto.Id}:{nameof(SubscriptionDto)}";
-        
+
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
@@ -31,7 +31,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
             .Returns(subscriptionEntity);
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
-           .Returns(subscriptionDto);
+            .Returns(subscriptionDto);
 
         //Act
         var result = await Service.GetUserInfoById(subscriptionEntity.Id, default);
@@ -77,7 +77,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         //Assert
         fakeIdResult.ShouldBeNull();
     }
-    
+
     [Fact]
     public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
     {

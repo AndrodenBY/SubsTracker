@@ -2,9 +2,9 @@ namespace SubsTracker.IntegrationTests.UserGroup;
 
 public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
+    private readonly UserGroupTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly UserGroupTestsDataSeedingHelper _dataSeedingHelper;
-    private readonly UserGroupTestsAssertionHelper _assertHelper;
 
     public UserGroupsControllerTests(TestsWebApplicationFactory factory)
     {
@@ -129,7 +129,8 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var member = seedData.Members.FirstOrDefault();
 
         //Act
-        var response = await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
+        var response =
+            await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
 
         //Assert
         await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
@@ -156,7 +157,9 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var subscription = await _dataSeedingHelper.AddSubscription();
 
         //Act
-        var response = await _client.PostAsync($"{EndpointConst.Group}/share?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
+        var response =
+            await _client.PostAsync(
+                $"{EndpointConst.Group}/share?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
 
         //Assert
         await _assertHelper.ShareSubscriptionValidAssert(response);
@@ -170,7 +173,9 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var subscription = seedData.Group.SharedSubscriptions.FirstOrDefault();
 
         //Act
-        var response = await _client.PostAsync($"{EndpointConst.Group}/unshare?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
+        var response =
+            await _client.PostAsync(
+                $"{EndpointConst.Group}/unshare?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
 
         //Assert
         await _assertHelper.UnshareSubscriptionValidAssert(response);

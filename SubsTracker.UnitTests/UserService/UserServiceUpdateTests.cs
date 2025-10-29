@@ -38,4 +38,3 @@ public class UserServiceUpdateTests : UserServiceTestsBase
         await result.ShouldThrowAsync<InvalidOperationException>();
     }
 }
-

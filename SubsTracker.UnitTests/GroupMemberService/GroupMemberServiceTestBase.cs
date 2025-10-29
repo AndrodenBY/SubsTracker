@@ -2,21 +2,21 @@ namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceTestBase
 {
+    protected readonly ICacheAccessService CacheAccessService;
+    protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
+    protected readonly IMapper Mapper;
     protected readonly IGroupMemberRepository MemberRepository;
     protected readonly IMessageService MessageService;
-    protected readonly IMapper Mapper;
     protected readonly MemberModelService Service;
-    protected readonly ICacheService CacheService;
-    protected readonly ICacheAccessService CacheAccessService;
 
     protected GroupMemberServiceTestBase()
     {
         Fixture = new Fixture();
         Fixture.Customize<DateOnly>(composer => composer.FromFactory(() =>
-             DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
+            DateOnly.FromDateTime(DateTime.Today.AddDays(Fixture.Create<int>()))));
         Fixture.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
-             .ForEach(b => Fixture.Behaviors.Remove(b));
+            .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         MemberRepository = Substitute.For<IGroupMemberRepository>();
@@ -31,6 +31,6 @@ public class GroupMemberServiceTestBase
             Mapper,
             CacheService,
             CacheAccessService
-       );
+        );
     }
 }
