@@ -11,7 +11,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
 
         var filter = new GroupMemberFilterDto();
 
-        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
+        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns(members);
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>())
            .Returns(memberDtos);
@@ -31,7 +31,7 @@ public class GroupMemberServiceGetAllTests : GroupMemberServiceTestBase
         //Arrange
         var filter = new GroupMemberFilterDto();
 
-        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), Arg.Any<CancellationToken>())
+        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
            .Returns([]);
         Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto>());
 

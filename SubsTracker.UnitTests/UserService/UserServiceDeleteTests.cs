@@ -8,10 +8,10 @@ public class UserServiceDeleteTests : UserServiceTestsBase
         //Arrange
         var existingUser = Fixture.Create<User>();
 
-        Repository.GetById(existingUser.Id, default)
+        UserRepository.GetById(existingUser.Id, default)
            .Returns(existingUser);
 
-        Repository.Delete(existingUser, default)
+        UserRepository.Delete(existingUser, default)
            .Returns(true);
 
         //Act
@@ -19,8 +19,8 @@ public class UserServiceDeleteTests : UserServiceTestsBase
 
         //Assert
         result.ShouldBeTrue();
-        await Repository.Received(1).GetById(existingUser.Id, default);
-        await Repository.Received(1).Delete(existingUser, default);
+        await UserRepository.Received(1).GetById(existingUser.Id, default);
+        await UserRepository.Received(1).Delete(existingUser, default);
     }
 
 
@@ -30,7 +30,7 @@ public class UserServiceDeleteTests : UserServiceTestsBase
         //Arrange
         var emptyGuid = Guid.Empty;
 
-        Repository.GetById(emptyGuid, default).Returns((User?)null);
+        UserRepository.GetById(emptyGuid, default).Returns((User?)null);
 
         //Act
         var result = async () => await Service.Delete(emptyGuid, default);

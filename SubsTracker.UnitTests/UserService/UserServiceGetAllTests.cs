@@ -15,7 +15,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
 
         var filter = new UserFilterDto { Email = userToFind.Email };
 
-        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
            .Returns(new List<User> { userToFind });
 
         Mapper.Map<List<UserDto>>(Arg.Any<List<User>>())
@@ -25,7 +25,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         var result = await Service.GetAll(filter, default);
 
         //Assert
-        await Repository.Received(1).GetAll(Arg.Any<Expression<Func<User, bool>>>(), default);
+        await UserRepository.Received(1).GetAll(Arg.Any<Expression<Func<User, bool>>>(), default);
         result.ShouldNotBeNull();
         result.Single().Email.ShouldBe(userToFind.Email);
     }
@@ -36,7 +36,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         //Arrange
         var filter = new UserFilterDto { Email = "nonexistent@example.com" };
 
-        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
            .Returns(new List<User>());
         Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
 
@@ -53,7 +53,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
         //Arrange
         var filter = new UserFilterDto();
 
-        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
            .Returns(new List<User>());
         Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
 
@@ -73,7 +73,7 @@ public class UserServiceGetAllTests : UserServiceTestsBase
 
         var filter = new UserFilterDto();
 
-        Repository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
            .Returns(users);
         Mapper.Map<List<UserDto>>(users).Returns(userDtos);
 

@@ -7,7 +7,7 @@ public class SubscriptionServiceTestsBase
     protected readonly IMapper Mapper;
     protected readonly IRepository<User> UserRepository;
     protected readonly IMessageService MessageService;
-    private readonly ISubscriptionHistoryRepository _historyRepository;
+    protected readonly ISubscriptionHistoryRepository HistoryRepository;
     protected readonly SubscriptionModelService Service;
     protected readonly ICacheService CacheService;
     protected readonly ICacheAccessService CacheAccessService;
@@ -25,7 +25,7 @@ public class SubscriptionServiceTestsBase
         UserRepository = Substitute.For<IRepository<User>>();
         MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
-        _historyRepository = Substitute.For<ISubscriptionHistoryRepository>();
+        HistoryRepository = Substitute.For<ISubscriptionHistoryRepository>();
         CacheService = Substitute.For<ICacheService>();
         CacheAccessService = Substitute.For<ICacheAccessService>();
         
@@ -34,7 +34,7 @@ public class SubscriptionServiceTestsBase
             MessageService, 
             Mapper, 
             UserRepository, 
-            _historyRepository,
+            HistoryRepository,
             CacheService,
             CacheAccessService
         );

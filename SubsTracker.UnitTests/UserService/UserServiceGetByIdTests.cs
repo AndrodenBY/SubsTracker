@@ -25,7 +25,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
             var factory = callInfo.Arg<Func<Task<UserDto>>>();
             return factory();
         });
-        Repository.GetById(existingUser.Id, default).Returns(existingUser);
+        UserRepository.GetById(existingUser.Id, default).Returns(existingUser);
         Mapper.Map<UserDto>(existingUser).Returns(expectedDto);
 
         //Act
@@ -36,7 +36,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         result.Id.ShouldBe(existingUser.Id);
         result.FirstName.ShouldBe(existingUser.FirstName);
         
-        await Repository.Received(1).GetById(existingUser.Id, default);
+        await UserRepository.Received(1).GetById(existingUser.Id, default);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
@@ -69,6 +69,35 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
 
         //Assert
         fakeIdResult.ShouldBeNull();
+    }
+    
+    [Fact]
+    public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
+    {
+        //Arrange
+        var cachedDto = Fixture.Create<UserDto>();
+        var cacheKey = RedisKeySetter.SetCacheKey<User>(cachedDto.Id);
+
+        CacheService.CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserDto>>>(),
+            default
+        ).Returns(cachedDto);
+
+        //Act
+        var result = await Service.GetById(cachedDto.Id, default);
+
+        //Assert
+        result.ShouldBe(cachedDto);
+
+        await UserRepository.DidNotReceive().GetById(Arg.Any<Guid>(), default);
+        await CacheService.Received(1).CacheDataWithLock(
+            cacheKey,
+            Arg.Any<TimeSpan>(),
+            Arg.Any<Func<Task<UserDto>>>(),
+            default
+        );
     }
 }
 

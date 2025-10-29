@@ -57,4 +57,46 @@ public class SubscriptionServiceCancelSubscriptionTests : SubscriptionServiceTes
         //Assert
         await result.ShouldThrowAsync<NotFoundException>();
     }
+    
+    [Fact]
+    public async Task CancelSubscription_WhenSuccessful_InvalidatesSubscriptionAndBillsCache()
+    {
+        //Arrange
+        var userId = Guid.NewGuid();
+        var subscriptionId = Guid.NewGuid();
+        
+        var subscriptionEntity = Fixture.Build<Subscription>()
+            .With(s => s.Id, subscriptionId)
+            .With(s => s.UserId, userId)
+            .With(s => s.Active, true)
+            .Create();
+
+        var cancelledEntity = Fixture.Build<Subscription>()
+            .With(s => s.Id, subscriptionId)
+            .With(s => s.UserId, userId)
+            .With(s => s.Active, false)
+            .Create();
+        
+        SubscriptionRepository.GetUserInfoById(subscriptionId, default).Returns(subscriptionEntity);
+        SubscriptionRepository.Update(subscriptionEntity, default).Returns(cancelledEntity);
+        Mapper.Map<SubscriptionDto>(cancelledEntity).Returns(Fixture.Create<SubscriptionDto>());
+        
+        var subscriptionCacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(subscriptionId);
+        var billsCacheKey = RedisKeySetter.SetCacheKey(userId, "upcoming_bills");
+
+        //Act
+        await Service.CancelSubscription(userId, subscriptionId, default);
+
+        //Assert
+        await CacheAccessService.Received(1).RemoveData(
+            Arg.Is<List<string>>(list => 
+                list.Contains(subscriptionCacheKey) && 
+                list.Contains(billsCacheKey) &&
+                list.Count == 2
+            ), 
+            default);
+        
+        await HistoryRepository.Received(1).Create(Arg.Any<Guid>(), SubscriptionAction.Cancel, Arg.Any<decimal?>(), default);
+        await MessageService.Received(1).NotifySubscriptionCanceled(Arg.Any<SubscriptionCanceledEvent>(), default);
+    }
 }
