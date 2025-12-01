@@ -9,6 +9,16 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
   
+  mongodb:
+    image: mongo:7
+    container_name: notification_service_mongo_db
+    ports:
+      - "27017:27017"
+    env_file:
+      ".env"
+    volumes:
+      - mongo-data:/data/db
+  
   redis:
     image: redis:7.2
     container_name: substracker_redis
@@ -60,12 +70,12 @@ services:
       - papercut
       - rabbitmq
       - postgresdb
+      - mongodb
     env_file:
       - ".env"
-    ports:
-      - "5044:5044"
 
 volumes:
   postgres-data: 
+  mongo-data:
 
 
