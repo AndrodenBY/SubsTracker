@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SubsTracker.Domain.Enums;
 
 public enum SubscriptionAction
