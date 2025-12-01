@@ -1,7 +1,6 @@
-using System.Text.Json.Serialization;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-
+using Microsoft.Extensions.Options;
 using SubsTracker.API.Mapper;
 using SubsTracker.API.Validators.User;
 using SubsTracker.BLL;
@@ -31,12 +30,6 @@ public static class ApplicationLayerServiceRegister
             {
                 options.Authority = Environment.GetEnvironmentVariable("Auth0__Domain");
                 options.Audience = Environment.GetEnvironmentVariable("Auth0__Audience");
-            });
-        
-        services.AddControllers()
-            .AddJsonOptions(options =>
-            {
-                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
             });
 
         return services;
