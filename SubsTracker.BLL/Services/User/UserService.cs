@@ -31,15 +31,39 @@ public class UserService(
         if (userExists is not null)
             throw new InvalidOperationException($"User with email {userExists.Email} already exists");
 
-        return await base.Create(createDto, cancellationToken);
+        if (existingUser is null)
+        {
+            var newUser = mapper.Map<UserModel>(createDto);
+            newUser.Auth0Id = auth0Id; 
+            var createdUser = await userRepository.Create(newUser, cancellationToken);
+            return mapper.Map<UserDto>(createdUser);
+        }
+        
+        if (string.IsNullOrEmpty(existingUser.Auth0Id))
+        {
+            existingUser.Auth0Id = auth0Id;
+            await userRepository.Update(existingUser, cancellationToken);
+        }
+    
+        return mapper.Map<UserDto>(existingUser);
     }
 
-    public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto,
-        CancellationToken cancellationToken)
+    public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var userExists = await Repository.GetById(updateId, cancellationToken)
-                         ?? throw new InvalidOperationException($"Cannot update user with id {updateId}");
+        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
+        
+        Mapper.Map(updateDto, user);
+        var updatedEntity = await userRepository.Update(user, cancellationToken);
+    
+        return Mapper.Map<UserDto>(updatedEntity);
+    }
 
-        return await base.Update(userExists.Id, updateDto, cancellationToken);
+    public async Task<bool> Delete(string auth0Id, CancellationToken cancellationToken)
+    {
+        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
+        
+        return await userRepository.Delete(user, cancellationToken);
     }
 }

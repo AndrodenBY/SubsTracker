@@ -71,47 +71,49 @@ public class UsersController(
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(createDto, cancellationToken);
+        
+        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
 
     /// <summary>
-    ///     Updates an existing user.
+    ///     Updates an existing user both in DB and in Auth0
     /// </summary>
-    /// <param name="id">The ID of the user to update.</param>
     /// <param name="updateDto">The updated user data.</param>
+    /// <param name="updateOrchestrator">Orchestrates the update of a user on both sides.</param>>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <remarks>
     ///     Sample request:
-    ///     PUT /api/users/{id}
+    ///     PUT /api/users/me
     ///     {
     ///     "firstName": "John"
     ///     }
     /// </remarks>
     /// <returns>The updated user view model.</returns>
     /// <exception cref="InvalidOperationException">Thrown if cannot find the user with that ID</exception>
-    [HttpPut("{id:guid}")]
-    public async Task<UserViewModel> Update(Guid id, [FromBody] UpdateUserDto updateDto,
-        CancellationToken cancellationToken)
+    [HttpPut("me")]
+    public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
-        var update = await service.Update(id, updateDto, cancellationToken);
-        return mapper.Map<UserViewModel>(update);
+        var auth0Id =  User.GetAuth0IdFromToken();
+        var updatedUser = await updateOrchestrator.FullUserUpdate(auth0Id, updateDto, cancellationToken);
+    
+        return mapper.Map<UserViewModel>(updatedUser);
     }
 
     /// <summary>
-    ///     Deletes a user by their ID
+    ///     Deletes a user by their Auth0 ID
     /// </summary>
-    /// <param name="id">The ID of the user to delete</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <remarks>
     ///     Sample request:
-    ///     DELETE /api/users/{id}
+    ///     DELETE /api/users
     /// </remarks>
     /// <returns>No content if successful</returns>
+    /// <exception cref="UnauthorizedAccessException">Thrown if the subject claim is missing from token</exception>
     /// <exception cref="Domain.Exceptions.NotFoundException">Thrown if the user not found</exception>
-    [HttpDelete("{id:guid}")]
-    public async Task Delete(Guid id, CancellationToken cancellationToken)
+    [HttpDelete]
+    public async Task Delete(CancellationToken cancellationToken)
     {
-        await service.Delete(id, cancellationToken);
+        await service.Delete(User.GetAuth0IdFromToken(), cancellationToken);
     }
 }
