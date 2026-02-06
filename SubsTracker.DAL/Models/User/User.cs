@@ -2,6 +2,7 @@ namespace SubsTracker.DAL.Models.User;
 
 public class User : BaseModel
 {
+    public string? Auth0Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string? LastName { get; set; }
     public string Email { get; set; } = string.Empty;

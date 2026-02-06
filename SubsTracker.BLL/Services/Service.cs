@@ -36,8 +36,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<TEntity>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity,
-            cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken);
 
         async Task<TDto> GetEntity()
         {

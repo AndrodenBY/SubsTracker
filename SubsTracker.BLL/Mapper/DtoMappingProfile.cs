@@ -17,7 +17,8 @@ public class DtoMappingProfile : Profile
         CreateMap<GroupMember, GroupMemberDto>();
         CreateMap<Subscription, SubscriptionDto>();
 
-        CreateMap<CreateUserDto, User>();
+        CreateMap<CreateUserDto, User>()
+            .ForMember(dest => dest.Auth0Id, opt => opt.Ignore());
         CreateMap<CreateUserGroupDto, UserGroup>();
         CreateMap<CreateGroupMemberDto, GroupMember>();
         CreateMap<CreateSubscriptionDto, Subscription>();
