@@ -2,7 +2,6 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Extension;
-using SubsTracker.API.Helpers;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -90,49 +89,48 @@ public class UsersController(
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        
-        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
+        var create = await service.Create(createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
 
     /// <summary>
-    ///     Updates an existing user both in DB and in Auth0
+    ///     Updates an existing user.
     /// </summary>
+    /// <param name="id">The ID of the user to update.</param>
     /// <param name="updateDto">The updated user data.</param>
-    /// <param name="updateOrchestrator">Orchestrates the update of a user on both sides.</param>>
     /// <param name="cancellationToken">The cancellation token.</param>
     /// <remarks>
     ///     Sample request:
-    ///     PUT /api/users/me
+    ///     PUT /api/users/{id}
     ///     {
     ///     "firstName": "John"
     ///     }
     /// </remarks>
     /// <returns>The updated user view model.</returns>
     /// <exception cref="InvalidOperationException">Thrown if cannot find the user with that ID</exception>
-    [HttpPut("me")]
-    public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
+    [HttpPut("{id:guid}")]
+    public async Task<UserViewModel> Update(Guid id, [FromBody] UpdateUserDto updateDto,
+        CancellationToken cancellationToken)
     {
-        var auth0Id =  User.GetAuth0IdFromToken();
-        var updatedUser = await updateOrchestrator.FullUserUpdate(auth0Id, updateDto, cancellationToken);
-    
-        return mapper.Map<UserViewModel>(updatedUser);
+        var update = await service.Update(id, updateDto, cancellationToken);
+        return mapper.Map<UserViewModel>(update);
     }
 
     /// <summary>
-    ///     Deletes a user by their Auth0 ID
+    ///     Deletes a user by their ID
     /// </summary>
+    /// <param name="id">The ID of the user to delete</param>
     /// <param name="cancellationToken">The cancellation token</param>
     /// <remarks>
     ///     Sample request:
-    ///     DELETE /api/users
+    ///     DELETE /api/users/{id}
     /// </remarks>
     /// <returns>No content if successful</returns>
-    /// <exception cref="UnauthorizedAccessException">Thrown if the subject claim is missing from token</exception>
     /// <exception cref="Domain.Exceptions.NotFoundException">Thrown if the user not found</exception>
-    [HttpDelete]
-    public async Task Delete(CancellationToken cancellationToken)
+    [HttpDelete("{id:guid}")]
+    public async Task Delete(Guid id, CancellationToken cancellationToken)
     {
-        await service.Delete(User.GetAuth0IdFromToken(), cancellationToken);
+        await service.Delete(id, cancellationToken);
     }
 }
+

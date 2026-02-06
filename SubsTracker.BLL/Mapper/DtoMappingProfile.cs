@@ -17,13 +17,14 @@ public class DtoMappingProfile : Profile
         CreateMap<GroupMember, GroupMemberDto>();
         CreateMap<Subscription, SubscriptionDto>();
 
-        CreateMap<CreateUserDto, User>()
-            .ForMember(dest => dest.Auth0Id, opt => opt.Ignore());
+        CreateMap<CreateUserDto, User>();
         CreateMap<CreateUserGroupDto, UserGroup>();
         CreateMap<CreateGroupMemberDto, GroupMember>();
         CreateMap<CreateSubscriptionDto, Subscription>();
 
-        CreateMap<UpdateUserDto, User>();
+        CreateMap<UpdateUserDto, User>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore())
+            .ForMember(dest => dest.Auth0Id, opt => opt.Ignore());
         CreateMap<UpdateUserGroupDto, UserGroup>();
         CreateMap<UpdateGroupMemberDto, GroupMember>();
         CreateMap<UpdateSubscriptionDto, Subscription>();

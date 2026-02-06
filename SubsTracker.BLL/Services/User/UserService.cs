@@ -9,6 +9,7 @@ using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
 using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
 using UserModel = SubsTracker.DAL.Models.User.User;
+using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
@@ -33,43 +34,21 @@ public class UserService(
         return Mapper.Map<UserDto>(user);
     }
     
-    public async Task<UserDto> Create(string auth0Id, CreateUserDto createDto, CancellationToken cancellationToken)
+    public override async Task<UserDto> Create(CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
+        var userExists = await Repository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
+        if (userExists is not null)
+            throw new InvalidOperationException($"User with email {userExists.Email} already exists");
 
-        if (existingUser is null)
-        {
-            var newUser = mapper.Map<UserModel>(createDto);
-            newUser.Auth0Id = auth0Id; 
-            var createdUser = await userRepository.Create(newUser, cancellationToken);
-            return mapper.Map<UserDto>(createdUser);
-        }
-        
-        if (string.IsNullOrEmpty(existingUser.Auth0Id))
-        {
-            existingUser.Auth0Id = auth0Id;
-            await userRepository.Update(existingUser, cancellationToken);
-        }
-    
-        return mapper.Map<UserDto>(existingUser);
+        return await base.Create(createDto, cancellationToken);
     }
 
-    public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto,
+        CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
-        
-        Mapper.Map(updateDto, user);
-        var updatedEntity = await userRepository.Update(user, cancellationToken);
-    
-        return Mapper.Map<UserDto>(updatedEntity);
-    }
+        var userExists = await Repository.GetById(updateId, cancellationToken)
+                         ?? throw new InvalidOperationException($"Cannot update user with id {updateId}");
 
-    public async Task<bool> Delete(string auth0Id, CancellationToken cancellationToken)
-    {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
-        
-        return await userRepository.Delete(user, cancellationToken);
+        return await base.Update(userExists.Id, updateDto, cancellationToken);
     }
 }
