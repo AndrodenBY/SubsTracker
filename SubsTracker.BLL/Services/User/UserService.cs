@@ -33,6 +33,12 @@ public class UserService(
         return Mapper.Map<UserDto>(user);
     }
 
+    public override async Task<UserDto> Create(CreateUserDto createDto, CancellationToken cancellationToken)
+    {
+        var userExists = await Repository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
+        if (userExists is not null)
+            throw new InvalidOperationException($"User with email {userExists.Email} already exists");
+
         return await base.Create(createDto, cancellationToken);
     }
 
