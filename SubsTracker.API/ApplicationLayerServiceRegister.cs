@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using Auth0.AuthenticationApi;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using SubsTracker.API.Auth0;
+using SubsTracker.API.Helpers;
 using SubsTracker.API.Mapper;
 using SubsTracker.API.Validators.User;
 using SubsTracker.BLL;
@@ -26,13 +29,16 @@ public static class ApplicationLayerServiceRegister
         
         var auth0Section = configuration.GetSection(Auth0Options.SectionName);
         var auth0Options = auth0Section.Get<Auth0Options>();
-
-        services.Configure<Auth0Options>(auth0Section);
+        
+        services.Configure<Auth0Options>(auth0Section)
+            .AddSingleton(new AuthenticationApiClient(new Uri(auth0Options!.Authority)))
+            .AddScoped<UserUpdateOrchestrator>()
+            .AddScoped<Auth0Service>();
         
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = auth0Options!.Authority;
+                options.Authority = auth0Options.Authority;
                 options.Audience = auth0Options.Audience;
                 
                 options.TokenValidationParameters = new()
