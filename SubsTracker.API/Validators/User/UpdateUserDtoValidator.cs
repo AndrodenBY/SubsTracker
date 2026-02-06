@@ -8,10 +8,6 @@ public class UpdateUserDtoValidator : AbstractValidator<UpdateUserDto>
 {
     public UpdateUserDtoValidator()
     {
-        RuleFor(model => model.Id)
-            .NotEmpty()
-            .WithMessage(ValidatorMessages.Required(nameof(UpdateUserDto.Id)));
-
         RuleFor(model => model.FirstName)
             .MaximumLength(ValidatorConstants.MaximumNameLength)
             .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.FirstName)))

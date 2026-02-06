@@ -45,8 +45,7 @@ public class UsersController(
     /// </remarks>
     /// <returns>A list of user view models.</returns>
     [HttpGet]
-    public async Task<List<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto,
-        CancellationToken cancellationToken)
+    public async Task<List<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var getAll = await service.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<UserViewModel>>(getAll);
