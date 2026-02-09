@@ -1,7 +1,11 @@
+using Microsoft.EntityFrameworkCore.Storage;
+
 namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 {
+    private static readonly InMemoryDatabaseRoot DbRoot = new();
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("IntegrationTest");
@@ -21,7 +25,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 
             services.AddDbContext<SubsDbContext>(options =>
             {
-                options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName);
+                options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
 
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
