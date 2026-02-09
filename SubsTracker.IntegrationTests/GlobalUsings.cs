@@ -34,3 +34,5 @@ global using Microsoft.Extensions.Configuration;
 global using SubsTracker.Domain.Options;
 global using System.Diagnostics;
 global using NSubstitute;
+global using Microsoft.EntityFrameworkCore.Storage;
+global using SubsTracker.API.Auth0;

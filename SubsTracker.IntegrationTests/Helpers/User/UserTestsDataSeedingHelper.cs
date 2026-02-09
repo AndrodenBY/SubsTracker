@@ -81,7 +81,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         return createDto;
     }
 
-    public UpdateUserDto AddUpdateUserDto(Guid userId)
+    public UpdateUserDto AddUpdateUserDto()
     {
         var updateDto = Fixture.Build<UpdateUserDto>()
             .With(u => u.FirstName, "UpdatedName")

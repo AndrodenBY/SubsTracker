@@ -1,4 +1,5 @@
-using Microsoft.EntityFrameworkCore.Storage;
+using Auth0.AuthenticationApi;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace SubsTracker.IntegrationTests;
 
@@ -27,6 +28,13 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
+            
+            var auth0Mock = Substitute.For<IAuth0Service>(); 
+            auth0Mock.UpdateUserProfile(Arg.Any<string>(), Arg.Any<UpdateUserDto>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+            
+            services.RemoveAll(typeof(IAuth0Service));
+            services.AddSingleton(auth0Mock);
 
             services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
             {

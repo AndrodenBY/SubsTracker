@@ -6,26 +6,31 @@ public class UserServiceUpdateTests : UserServiceTestsBase
     public async Task Update_WhenCalled_ReturnsUpdatedUser()
     {
         //Arrange
-        var userEntity = Fixture.Create<User>();
-        var updateDto = Fixture.Build<UpdateUserDto>()
-            .With(userGroup => userGroup.Id, userEntity.Id)
+        var auth0Id = "auth0|test-user-12345";
+        var userEntity = Fixture.Build<User>()
+            .With(u => u.Auth0Id, auth0Id)
             .Create();
+        
+        var updateDto = Fixture.Create<UpdateUserDto>();
+    
         var userDto = Fixture.Build<UserDto>()
-            .With(userGroup => userGroup.Id, updateDto.Id)
+            .With(d => d.Id, userEntity.Id)
             .Create();
-
-        UserRepository.GetById(updateDto.Id, default).Returns(userEntity);
-        UserRepository.Update(Arg.Any<User>(), default).Returns(userEntity);
+        
+        UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>()).Returns(userEntity);
+        UserRepository.Update(Arg.Any<User>(), Arg.Any<CancellationToken>()).Returns(userEntity);
+        
         Mapper.Map(updateDto, userEntity).Returns(userEntity);
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
         //Act
-        var result = await Service.Update(updateDto.Id, updateDto, default);
+        var result = await Service.Update(auth0Id, updateDto, default);
 
         //Assert
         result.ShouldNotBeNull();
-        result.Id.ShouldBeEquivalentTo(userEntity.Id);
-        await UserRepository.Received(1).Update(Arg.Any<User>(), default);
+        result.Id.ShouldBe(userEntity.Id);
+        await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
+        await UserRepository.Received(1).Update(userEntity, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -35,6 +40,6 @@ public class UserServiceUpdateTests : UserServiceTestsBase
         var result = async () => await Service.Update(Guid.Empty, null!, default);
 
         //Assert
-        await result.ShouldThrowAsync<NotFoundException>();
+        await Should.ThrowAsync<NotFoundException>(result);
     }
 }

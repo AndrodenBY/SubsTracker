@@ -33,7 +33,7 @@ public static class ApplicationLayerServiceRegister
         services.Configure<Auth0Options>(auth0Section)
             .AddSingleton(new AuthenticationApiClient(new Uri(auth0Options!.Authority)))
             .AddScoped<UserUpdateOrchestrator>()
-            .AddScoped<Auth0Service>();
+            .AddScoped<IAuth0Service, Auth0Service>();
         
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

@@ -8,11 +8,11 @@ using SubsTracker.Domain.Options;
 
 namespace SubsTracker.API.Auth0;
 
-public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Options> options)
+public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Options> options) : IAuth0Service
 {
     private readonly Auth0Options _options = options.Value;
     
-    public async Task UpdateUserProfile(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public virtual async Task UpdateUserProfile(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
         var tokenRequest = new ClientCredentialsTokenRequest
         {
