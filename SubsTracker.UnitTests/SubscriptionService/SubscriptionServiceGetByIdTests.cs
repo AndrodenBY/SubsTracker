@@ -20,7 +20,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         )!.Returns(callInfo =>
         {
@@ -47,7 +47,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         );
     }
@@ -88,7 +88,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         ).Returns(cachedDto);
 
@@ -102,7 +102,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<SubscriptionDto>>>(),
+            Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         );
     }

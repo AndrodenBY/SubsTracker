@@ -18,7 +18,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         )!.Returns(callInfo =>
         {
@@ -40,7 +40,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         );
     }
@@ -81,7 +81,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         ).Returns(cachedDto);
 
@@ -95,7 +95,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         );
     }
