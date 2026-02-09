@@ -20,7 +20,6 @@ public static class DataLayerServiceRegister
             .AddScoped<ISubscriptionRepository, SubscriptionRepository>()
             .AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>()
             .AddScoped<IUserGroupRepository, UserGroupRepository>()
-            .AddScoped<IUserRepository, UserRepository>()
             .AddScoped<IGroupMemberRepository, GroupMemberRepository>();
         
         return services;

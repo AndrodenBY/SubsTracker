@@ -8,7 +8,7 @@ public class UserServiceTestsBase
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
     protected readonly UserModelService Service;
-    protected readonly IUserRepository UserRepository;
+    protected readonly IRepository<User> UserRepository;
 
     protected UserServiceTestsBase()
     {
@@ -19,7 +19,7 @@ public class UserServiceTestsBase
             .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-        UserRepository = Substitute.For<IUserRepository>();
+        UserRepository = Substitute.For<IRepository<User>>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
 
