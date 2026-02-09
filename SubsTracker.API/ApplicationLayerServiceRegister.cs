@@ -29,10 +29,13 @@ public static class ApplicationLayerServiceRegister
         
         var auth0Section = configuration.GetSection(Auth0Options.SectionName);
         var auth0Options = auth0Section.Get<Auth0Options>();
-        
-        services.Configure<Auth0Options>(auth0Section)
-            .AddSingleton(new AuthenticationApiClient(new Uri(auth0Options!.Authority)))
-            .AddScoped<UserUpdateOrchestrator>()
+
+        services.Configure<Auth0Options>(auth0Section);
+        if (auth0Options != null)
+        {
+            services.AddSingleton(new AuthenticationApiClient(new Uri(auth0Options.Authority)));
+        }
+        services.AddScoped<UserUpdateOrchestrator>()
             .AddScoped<IAuth0Service, Auth0Service>();
         
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
