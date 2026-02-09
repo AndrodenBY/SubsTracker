@@ -97,7 +97,8 @@ jobs:
             --configuration Release `
             --logger `
             trx --collect:"XPlat Code Coverage" `
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover `
+               DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Exclude="[SubsTracker.API]SubsTracker.API.ViewModels.*"
 
            if ($LASTEXITCODE -ne 0) {
               Write-Host "Tests failed with exit code $LASTEXITCODE"
