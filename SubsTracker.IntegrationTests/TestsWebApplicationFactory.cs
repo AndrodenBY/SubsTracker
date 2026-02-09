@@ -29,7 +29,19 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
             
+            var optionsMock = Substitute.For<IOptions<Auth0Options>>();
+            optionsMock.Value.Returns(new Auth0Options
+            {
+                Domain = "test.domain",
+                ClientId = "test-id",
+                ClientSecret = "test-secret",
+                Audience = "test-audience",
+                Authority = "https://test.authority",
+                ManagementApiUrl = "https://test.management"
+            });
+            
             var auth0Mock = Substitute.For<IAuth0Service>(); 
+            
             auth0Mock.UpdateUserProfile(Arg.Any<string>(), Arg.Any<UpdateUserDto>(), Arg.Any<CancellationToken>())
                 .Returns(Task.CompletedTask);
             
