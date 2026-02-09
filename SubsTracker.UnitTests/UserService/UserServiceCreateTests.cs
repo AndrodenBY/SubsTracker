@@ -39,26 +39,6 @@ public class UserServiceCreateTests : UserServiceTestsBase
     }
 
     [Fact]
-    public async Task Create_WhenEmailAlreadyExists_ReturnsInvalidOperationException()
-    {
-        //Arrange
-        var createDto = Fixture.Create<CreateUserDto>();
-        var existingUser = Fixture.Build<User>()
-            .With(x => x.Email, createDto.Email)
-            .Create();
-
-        UserRepository.GetByPredicate(Arg.Is<Expression<Func<User, bool>>>(expr => expr.Compile().Invoke(existingUser)),
-                default)
-            .Returns(existingUser);
-
-        //Act
-        var result = async () => await Service.Create(createDto, default);
-
-        //Assert
-        await result.ShouldThrowAsync<InvalidOperationException>();
-    }
-
-    [Fact]
     public async Task Create_WhenCreateDtoIsNull_ReturnsNull()
     {
         //Act

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SubsTracker.API.Extension;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -35,6 +36,24 @@ public class UsersController(
     }
 
     /// <summary>
+    ///     Retrieves the profile of the currently authenticated user.
+    /// </summary>
+    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <remarks>
+    ///     Sample request:
+    ///     GET /api/users/me
+    /// </remarks>
+    /// <returns>The view model of the current authenticated user.</returns>
+    /// <exception cref="Domain.Exceptions.NotFoundException">Thrown if the system cannot find the user with that ID</exception>
+    /// <returns>Returns a user view model.</returns>
+    [HttpGet("me")]
+    public async Task<UserViewModel> GetByAuth0Id(CancellationToken cancellationToken)
+    {
+        var user = await service.GetByAuth0Id(User.GetAuth0IdFromToken(), cancellationToken);
+        return mapper.Map<UserViewModel>(user);
+    }
+
+    /// <summary>
     ///     Retrieves all users with optional filtering.
     /// </summary>
     /// <param name="filterDto">Filter parameters for the users.</param>
@@ -45,8 +64,7 @@ public class UsersController(
     /// </remarks>
     /// <returns>A list of user view models.</returns>
     [HttpGet]
-    public async Task<List<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto,
-        CancellationToken cancellationToken)
+    public async Task<List<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var getAll = await service.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<UserViewModel>>(getAll);
@@ -115,3 +133,4 @@ public class UsersController(
         await service.Delete(id, cancellationToken);
     }
 }
+

@@ -7,7 +7,17 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
+        var existingUsers = dbContext.Users
+            .Where(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
+        
+        if (existingUsers.Any())
+        {
+            dbContext.Users.RemoveRange(existingUsers);
+            await dbContext.SaveChangesAsync(); 
+        }
+        
         var user = Fixture.Build<UserModel>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id) 
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -74,7 +84,6 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
     public UpdateUserDto AddUpdateUserDto(Guid userId)
     {
         var updateDto = Fixture.Build<UpdateUserDto>()
-            .With(u => u.Id, userId)
             .With(u => u.FirstName, "UpdatedName")
             .With(u => u.Email, "updated@example.com")
             .Create();
