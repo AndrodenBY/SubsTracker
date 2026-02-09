@@ -2,7 +2,7 @@ using AutoMapper;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
-using SubsTracker.DAL.Interfaces.Repositories;
+using SubsTracker.DAL.Interfaces;
 using SubsTracker.Domain.Filter;
 using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
@@ -13,10 +13,10 @@ using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperation
 namespace SubsTracker.BLL.Services.User;
 
 public class UserService(
-    IRepository<UserModel> repository,
+    IUserRepository userRepository,
     IMapper mapper,
     ICacheService cacheService
-) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper, cacheService),
+) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
     IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)

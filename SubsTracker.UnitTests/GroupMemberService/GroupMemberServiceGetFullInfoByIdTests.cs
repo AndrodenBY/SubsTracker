@@ -17,7 +17,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         )!.Returns(cachedDto);
 
@@ -32,7 +32,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         );
     }
@@ -57,7 +57,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         )!.Returns(callInfo =>
         {
@@ -78,7 +78,7 @@ public class GroupMemberServiceGetFullInfoByIdTests : GroupMemberServiceTestBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         );
     }
