@@ -40,6 +40,20 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Assert
         await _assertHelper.GetByAuth0IdValidAssert(response, seedData.User);
     }
+    
+    [Fact]
+    public async Task GetByAuth0Id_WhenNoTokenProvided_ReturnsUnauthorized()
+    {
+        //Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{EndpointConst.User}/me");
+        request.Headers.Add("X-Skip-Auth", "true"); 
+
+        //Act
+        var response = await _client.SendAsync(request);
+
+        //Assert
+        response.StatusCode.ShouldBe(System.Net.HttpStatusCode.Unauthorized);
+    }
 
     [Fact]
     public async Task GetAll_WhenFilteredByEmail_ReturnsMatchingUser()

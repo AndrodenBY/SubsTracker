@@ -11,6 +11,11 @@ public class TestsAuthHandler(
     
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (Context.Request.Headers.ContainsKey("X-Skip-Auth"))
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+        
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, DefaultAuth0Id),

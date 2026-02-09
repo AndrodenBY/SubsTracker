@@ -61,4 +61,22 @@ public class UserServiceGetByAuth0IdTests : UserServiceTestsBase
         //Assert
         await Should.ThrowAsync<NotFoundException>(act);
     }
+    
+    [Fact]
+    public async Task GetByAuth0Id_WhenCancellationTokenIsCancelled_ThrowsTaskCanceledException()
+    {
+        //Arrange
+        var auth0Id = "auth0|cancel-test";
+        var cancellationTokenSource = new CancellationTokenSource();
+        cancellationTokenSource.Cancel(); 
+        
+        UserRepository.GetByAuth0Id(auth0Id, cancellationTokenSource.Token)
+            .Returns(Task.FromCanceled<User?>(cancellationTokenSource.Token));
+
+        //Act
+        var act = () => Service.GetByAuth0Id(auth0Id, cancellationTokenSource.Token);
+
+        //Assert
+        await Should.ThrowAsync<OperationCanceledException>(act);
+    }
 }
