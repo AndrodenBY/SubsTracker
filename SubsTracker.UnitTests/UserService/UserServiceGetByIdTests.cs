@@ -46,29 +46,29 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
     }
 
     [Fact]
-    public async Task GetById_WhenEmptyGuid_ReturnsNull()
+    public async Task GetById_WhenEmptyGuid_ThrowsNotFoundException()
     {
         //Arrange
         var emptyId = Guid.Empty;
 
         //Act
-        var emptyIdResult = await Service.GetById(emptyId, default);
+        var emptyIdResult = async () => await Service.GetById(emptyId, default);
 
         //Assert
-        emptyIdResult.ShouldBeNull();
+        await Should.ThrowAsync<NotFoundException>(emptyIdResult());
     }
 
     [Fact]
-    public async Task GetById_WhenUserDoesNotExist_ReturnsNull()
+    public async Task GetById_WhenUserDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
         var fakeId = Guid.NewGuid();
 
         //Act
-        var fakeIdResult = await Service.GetById(fakeId, default);
+        var fakeIdResult = async () => await Service.GetById(fakeId, default);
 
         //Assert
-        fakeIdResult.ShouldBeNull();
+        await Should.ThrowAsync<NotFoundException>(fakeIdResult());
     }
 
     [Fact]
