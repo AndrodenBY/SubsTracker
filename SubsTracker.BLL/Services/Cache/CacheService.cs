@@ -9,42 +9,61 @@ namespace SubsTracker.BLL.Services.Cache;
 public class CacheService(IDistributedCache cache, ILogger<CacheService> logger, IDistributedLockFactory lockFactory)
     : CacheAccessService(cache, logger), ICacheService
 {
-    public async Task<TValue?> CacheDataWithLock<TValue>(string cacheKey, TimeSpan expirationTime,
-        Func<Task<TValue>> dataFactory, CancellationToken cancellationToken) where TValue : class
-    {
-        var cachedData = await GetData<TValue>(cacheKey, cancellationToken);
-        if (cachedData is not null) return cachedData;
-
-        while (true)
-        {
-            await using var redLock = await lockFactory.CreateLockAsync(
-                RedisKeySetter.SetLockKey(cacheKey),
-                RedisConstants.LockExpiry,
-                RedisConstants.LockWaitTime,
-                RedisConstants.LockRetryTime,
-                cancellationToken
-            );
-
-            if (redLock.IsAcquired) return await EnsureCached(cacheKey, expirationTime, dataFactory, cancellationToken);
-
-            var dataAfterWait =
-                await WaitForCachedData<TValue>(cacheKey, RedisConstants.LockWaitTime, cancellationToken);
-            if (dataAfterWait is not null) return dataAfterWait;
-        }
-    }
-
-    private async Task<TValue?> EnsureCached<TValue>(string cacheKey, TimeSpan expirationTime,
-        Func<Task<TValue>> dataFactory,
+    public async Task<TValue?> CacheDataWithLock<TValue>(
+        string cacheKey,
+        TimeSpan expirationTime,
+        Func<Task<TValue?>>? dataFactory,
         CancellationToken cancellationToken) where TValue : class
     {
-        var finalCachedData = await GetData<TValue>(cacheKey, cancellationToken);
-        if (finalCachedData is not null) return finalCachedData;
+        var data = await GetData<TValue>(cacheKey, cancellationToken);
+        if (data is not null || dataFactory is null)
+        {
+            return data;
+        }
 
+        return await LockAndPopulate(cacheKey, expirationTime, dataFactory, cancellationToken);
+    }
+
+    private async Task<TValue?> LockAndPopulate<TValue>(string cacheKey,
+        TimeSpan expirationTime,
+        Func<Task<TValue?>> dataFactory,
+        CancellationToken cancellationToken) where TValue : class
+    {
+        var lockKey = RedisKeySetter.SetLockKey(cacheKey);
+        
+        await using var redLock = await lockFactory.CreateLockAsync(
+            lockKey,
+            RedisConstants.LockExpiry,
+            RedisConstants.LockWaitTime,
+            RedisConstants.LockRetryTime,
+            cancellationToken
+        );
+
+        if (!redLock.IsAcquired)
+        {
+            return await WaitForCachedData<TValue>(cacheKey, RedisConstants.LockWaitTime, cancellationToken);
+        }
+
+        var cacheCheck = await GetData<TValue>(cacheKey, cancellationToken)
+            ?? await ExecuteFactory(cacheKey, expirationTime, dataFactory, cancellationToken);
+        
+        return cacheCheck;
+    }
+
+    private async Task<TValue?> ExecuteFactory<TValue>(string cacheKey,
+        TimeSpan expirationTime,
+        Func<Task<TValue?>> dataFactory,
+        CancellationToken cancellationToken) where TValue : class
+    {
         logger.LogInformation("Lock acquired. Executing expensive data factory for key: {CacheKey}", cacheKey);
+        
+        var data = await dataFactory();
+        if (data is not null)
+        {
+            await SetData(cacheKey, data, expirationTime, cancellationToken);
+        }
 
-        var newCachedData = await dataFactory();
-        if (newCachedData is not null) await SetData(cacheKey, newCachedData, expirationTime, cancellationToken);
-        return newCachedData;
+        return data;
     }
 
     private async Task<TValue?> WaitForCachedData<TValue>(string cacheKey, TimeSpan retryDelay,
