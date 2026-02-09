@@ -7,7 +7,17 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
+        var existingUsers = dbContext.Users
+            .Where(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
+        
+        if (existingUsers.Any())
+        {
+            dbContext.Users.RemoveRange(existingUsers);
+            await dbContext.SaveChangesAsync(); 
+        }
+        
         var user = Fixture.Build<UserModel>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id) 
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
