@@ -33,16 +33,19 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         return Mapper.Map<List<TDto>>(entities);
     }
 
-    public virtual async Task<TDto?> GetById(Guid id, CancellationToken cancellationToken)
+    public virtual async Task<TDto> GetById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<TEntity>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken);
-
-        async Task<TDto> GetEntity()
+        var result = await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken)
+                     ?? throw new NotFoundException($"Entity with {id} not found");
+        
+        async Task<TDto?> GetEntity()
         {
             var entity = await repository.GetById(id, cancellationToken);
             return Mapper.Map<TDto>(entity);
         }
+        
+        return result;
     }
 
     public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)
