@@ -102,7 +102,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
 
         //Act
-        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/{seedData.User.Id}", updateDto);
+        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}", updateDto);
 
         //Assert
         await _assertHelper.UpdateValidAssert(response, seedData.User.Id, updateDto.FirstName, updateDto.Email);
@@ -115,7 +115,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var seedData = await _dataSeedingHelper.AddSeedUser();
 
         //Act
-        var response = await _client.DeleteAsync($"{EndpointConst.User}/{seedData.User.Id}");
+        var response = await _client.DeleteAsync($"{EndpointConst.User}");
 
         //Assert
         await _assertHelper.DeleteValidAssert(response, seedData.User.Id);
