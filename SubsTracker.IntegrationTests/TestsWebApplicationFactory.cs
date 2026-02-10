@@ -1,5 +1,4 @@
 using Auth0.AuthenticationApi;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubsTracker.API.Auth0;
@@ -16,6 +15,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "IntegrationTest");
+        
         builder.UseEnvironment("IntegrationTest");
         
         builder.ConfigureAppConfiguration((context, config) =>
@@ -35,12 +35,14 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             config.AddInMemoryCollection(testAuth0Config);
         });
         
-        builder.ConfigureTestServices(services =>
+        builder.ConfigureServices(services =>
         {
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
                 d.ServiceType.Name.Contains("DatabaseProvider") ||
+                d.ServiceType.Name.Contains("DbContextOptions") ||
+                d.ServiceType.Name.Contains("IDbContextOptionsConfiguration") ||
                 d.ImplementationType?.Namespace?.Contains("Npgsql") == true
             ).ToList();
 
@@ -48,17 +50,17 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 
             services.AddDbContext<SubsDbContext>(options =>
             {
-                options.UseInMemoryDatabase("IntegrationTestDb", DbRoot);
+                options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
-            
+
             services.RemoveAll<AuthenticationApiClient>();
             services.AddSingleton(new AuthenticationApiClient(new Uri("https://fake-ci.auth0.com/")));
 
             services.RemoveAll<IAuth0Service>();
             services.AddSingleton<IAuth0Service, FakeAuth0Service>();
 
-            // 3. Оркестратор - Мокаем, так как он делает внешние вызовы
             services.RemoveAll<UserUpdateOrchestrator>();
+            
             var orchestratorMock = Substitute.For<UserUpdateOrchestrator>(
                 Substitute.For<IAuth0Service>(), 
                 Substitute.For<IUserService>()
@@ -78,7 +80,10 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 .AddScheme<AuthenticationSchemeOptions, TestsAuthHandler>(
                     "TestAuthScheme", _ => { });
             
+            services.RemoveAll<JwtBearerOptions>();
+            
             services.AddMassTransitTestHarness();
+
         });
     }
 }
