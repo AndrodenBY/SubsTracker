@@ -76,6 +76,8 @@ jobs:
             --configuration Release `
             --logger "trx;LogFileName=TestResults.trx" `
             --logger "console;verbosity=detailed"
+          env:  
+            ASPNETCORE_ENVIRONMENT: IntegrationTest
 
   analyze:
     name: SonarCloud Analyze
