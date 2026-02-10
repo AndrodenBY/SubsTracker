@@ -37,11 +37,11 @@ jobs:
             --username andodenby \
             --password $NUGET_AUTH_TOKEN \
             --store-password-in-clear-text
-          dotnet restore SubsTracker.sln --verbosity detailed
+          dotnet restore SubsTracker.sln
           dotnet nuget remove source github
 
       - name: Build
-        run: dotnet build SubsTracker.sln --no-restore --configuration Release --logger "console;verbosity=detailed"
+        run: dotnet build SubsTracker.sln --no-restore --configuration Release --verbosity detailed
 
   test:
     name: Test
@@ -71,9 +71,9 @@ jobs:
         env:
           REDIS: localhost:5140
         run: |
-          dotnet test SubsTracker.sln --no-build --configuration Release `
-            --logger "console;verbosity=detailed" `
-            --logger trx
+          dotnet test SubsTracker.sln --no-build --configuration Release \
+            --logger "trx;LogFileName=TestResults.trx" \
+            --logger "console;verbosity=detailed"
 
   analyze:
     name: SonarCloud Analyze
@@ -134,8 +134,8 @@ jobs:
             --username andodenby \
             --password $NUGET_AUTH_TOKEN \
             --store-password-in-clear-text
-          dotnet restore SubsTracker.sln --verbosity detailed
-          dotnet build SubsTracker.sln --no-restore --configuration Release --logger "console;verbosity=detailed"
+          dotnet restore SubsTracker.sln
+          dotnet build SubsTracker.sln --no-restore --configuration Release
           dotnet nuget remove source github
 
       - name: Test with Coverage
@@ -143,7 +143,6 @@ jobs:
           REDIS: localhost:5140
         run: |
           dotnet test SubsTracker.sln --no-build --configuration Release `
-            --logger "console;verbosity=detailed" `
             --logger trx `
             --collect:"XPlat Code Coverage" `
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
