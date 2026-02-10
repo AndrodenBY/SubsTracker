@@ -131,10 +131,16 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
             null);
 
         // Assert
-        await _assertHelper.RenewSubscriptionValidAssert(response, subscription, subscription.DueDate.AddMonths(monthsToRenew));
+        await _assertHelper.RenewSubscriptionValidAssert(
+            response, 
+            subscription, 
+            subscription.DueDate.AddMonths(monthsToRenew)
+        );
 
-        Assert.True(_harness.Published.Select<SubscriptionRenewedEvent>().Any(), "Expected a SubscriptionRenewedEvent to be published");
+        Assert.True(_harness.Published.Select<SubscriptionRenewedEvent>().Any(), 
+            "Expected a SubscriptionRenewedEvent to be published");
     }
+
 
     [Fact]
     public async Task GetUpcomingBills_WhenAnySubscriptionsAreDue_ShouldReturnOnlyUpcomingSubscriptions()
