@@ -1,5 +1,8 @@
 using System.Net.Http.Headers;
 using MassTransit.Testing;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.Messaging.Contracts;
 using Xunit;
 
@@ -9,6 +12,7 @@ public class SubscriptionsControllerTests :
     IClassFixture<TestsWebApplicationFactory>,
     IAsyncLifetime
 {
+    private readonly TestsWebApplicationFactory _factory;
     private readonly SubscriptionTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly SubscriptionTestsDataSeedingHelper _dataSeedingHelper;
@@ -17,7 +21,7 @@ public class SubscriptionsControllerTests :
     public SubscriptionsControllerTests(TestsWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
-        
+        _factory = factory;
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("TestAuthScheme");
 
@@ -33,11 +37,31 @@ public class SubscriptionsControllerTests :
     [Fact]
     public async Task GetById_ShouldReturnCorrectSubscription()
     {
+        var cacheMock = Substitute.For<ICacheService>();
+        cacheMock.CacheDataWithLock(
+                Arg.Any<string>(),
+                Arg.Any<TimeSpan>(),
+                Arg.Any<Func<Task<SubscriptionDto?>>>(), 
+                Arg.Any<CancellationToken>())
+            .Returns(async x => 
+            {
+                var factory = x.Arg<Func<Task<SubscriptionDto?>>>();
+                return await factory(); 
+            });
+        
+        var client = _factory.WithWebHostBuilder(builder =>
+        {
+            builder.ConfigureTestServices(services =>
+            {
+                services.RemoveAll<ICacheService>();
+                services.AddSingleton(cacheMock);
+            });
+        }).CreateClient();
+        
         var dataSeedObject = await _dataSeedingHelper.AddSeedData();
         var subscription = dataSeedObject.Subscriptions.First();
-
-        var response = await _client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
-
+        var response = await client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
+        
         await _assertHelper.GetByIdValidAssert(response, subscription);
     }
 
