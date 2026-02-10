@@ -9,10 +9,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 {
     private static readonly InMemoryDatabaseRoot DbRoot = new();
     
-    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        Console.WriteLine("=== FACTORY LOADED ===");
         builder.UseEnvironment("IntegrationTest");
         
         builder.ConfigureAppConfiguration((context, config) =>
@@ -47,6 +45,9 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
+
+            services.RemoveAll<AuthenticationApiClient>();
+            services.AddSingleton(new AuthenticationApiClient(new Uri("https://fake-ci.auth0.com/")));
 
             services.RemoveAll<IAuth0Service>();
             services.AddSingleton<IAuth0Service, FakeAuth0Service>();
