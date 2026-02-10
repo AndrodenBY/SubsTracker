@@ -110,3 +110,4 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         await _assertHelper.DeleteValidAssert(response, seedData.User.Id);
     }
 }
+
