@@ -13,11 +13,17 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("IntegrationTest");
         
+        builder.ConfigureAppConfiguration((context, config) => { 
+            var testConfig = new Dictionary<string, string?> { 
+                ["Auth0:Authority"] = "https://fake-ci.auth0.com", 
+                ["Auth0:ClientId"] = "fake-client-id", 
+                ["Auth0:ClientSecret"] = "fake-secret", 
+                };
+            
+        });
+        
         builder.ConfigureServices(services =>
         {
-            services.RemoveAll<AuthenticationApiClient>(); 
-            services.AddSingleton<IAuth0Service, FakeAuth0Service>();
-            
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
@@ -34,11 +40,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
 
-            services.PostConfigure<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme, options =>
-            {
-                options.Authority = "https://test.authority";
-                options.Audience = "test.audience";
-            });
+            services.RemoveAll<IAuth0Service>();
+            services.AddSingleton<IAuth0Service, FakeAuth0Service>();
 
             services.AddAuthentication(options =>
                 {
@@ -46,9 +49,12 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                     options.DefaultChallengeScheme = "TestAuthScheme";
                 })
                 .AddScheme<AuthenticationSchemeOptions, TestsAuthHandler>(
-                    "TestAuthScheme", options => { });
-
+                    "TestAuthScheme", _ => { });
+            
+            services.RemoveAll<JwtBearerOptions>();
+            
             services.AddMassTransitTestHarness();
+
         });
     }
 }
