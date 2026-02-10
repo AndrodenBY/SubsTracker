@@ -5,6 +5,8 @@ using SubsTracker.API.Auth0;
 using SubsTracker.API.Helpers;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.Messaging.Contracts;
+using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.IntegrationTests;
 
@@ -81,6 +83,18 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                     "TestAuthScheme", _ => { });
             
             services.RemoveAll<JwtBearerOptions>();
+            
+            services.RemoveAll<IMessageService>();
+            
+            var messageServiceMock = Substitute.For<IMessageService>();
+            
+            messageServiceMock.NotifySubscriptionCanceled(Arg.Any<SubscriptionCanceledEvent>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+        
+            messageServiceMock.NotifySubscriptionRenewed(Arg.Any<SubscriptionRenewedEvent>(), Arg.Any<CancellationToken>())
+                .Returns(Task.CompletedTask);
+
+            services.AddSingleton(messageServiceMock);
             
             services.AddMassTransitTestHarness();
 
