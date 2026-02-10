@@ -71,8 +71,10 @@ jobs:
         env:
           REDIS: localhost:5140
         run: |
-          dotnet test SubsTracker.sln --no-build --configuration Release \
-            --logger "trx;LogFileName=TestResults.trx" \
+          dotnet test SubsTracker.sln `
+            --no-build `
+            --configuration Release `
+            --logger "trx;LogFileName=TestResults.trx" `
             --logger "console;verbosity=detailed"
 
   analyze:
