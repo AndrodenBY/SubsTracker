@@ -115,7 +115,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var seedData = await _dataSeedingHelper.AddSeedUser();
 
         //Act
-        var response = await _client.DeleteAsync($"{EndpointConst.User}/{seedData.User.Id}");
+        var response = await _client.DeleteAsync($"{EndpointConst.User}");
 
         //Assert
         await _assertHelper.DeleteValidAssert(response, seedData.User.Id);
