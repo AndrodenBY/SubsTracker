@@ -11,6 +11,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "IntegrationTest");
+        
         builder.UseEnvironment("IntegrationTest");
         
         builder.ConfigureAppConfiguration((context, config) =>
