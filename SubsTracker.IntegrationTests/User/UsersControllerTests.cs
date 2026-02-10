@@ -1,5 +1,4 @@
 using SubsTracker.IntegrationTests.Helpers.User;
-using Xunit.Abstractions;
 
 namespace SubsTracker.IntegrationTests.User;
 
@@ -8,13 +7,9 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     private readonly UserTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly UserTestsDataSeedingHelper _dataSeedingHelper;
-    private readonly ITestOutputHelper _output;
-    private readonly TestsWebApplicationFactory _factory;
 
-    public UsersControllerTests(TestsWebApplicationFactory factory, ITestOutputHelper output)
+    public UsersControllerTests(TestsWebApplicationFactory factory)
     {
-        _factory = factory;
-        _output = output;
         _client = factory.CreateClient();
         _dataSeedingHelper = new UserTestsDataSeedingHelper(factory);
         _assertHelper = new UserTestsAssertionHelper(factory);
@@ -23,23 +18,13 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     [Fact]
     public async Task GetById_ShouldReturnCorrectUser()
     {
-        // Arrange
+        //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
 
-        // Достаем конфигурацию из DI контейнера запущенного приложения
-        var config = _factory.Services.GetRequiredService<IConfiguration>();
-        
-        // Используем _output.WriteLine вместо Console.WriteLine
-        _output.WriteLine("--- DEBUG INFO ---");
-        _output.WriteLine("Auth0 Section Exists: " + config.GetSection("Auth0").Exists()); 
-        _output.WriteLine("Auth0:Audience = " + config["Auth0:Audience"]);
-        _output.WriteLine("Environment: " + Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"));
-        _output.WriteLine("------------------");
-
-        // Act
+        //Act
         var response = await _client.GetAsync($"{EndpointConst.User}/{seedData.User.Id}");
 
-        // Assert
+        //Assert
         await _assertHelper.GetByIdValidAssert(response, seedData.User);
     }
     
