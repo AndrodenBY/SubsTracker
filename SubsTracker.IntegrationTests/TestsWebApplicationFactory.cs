@@ -9,8 +9,10 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 {
     private static readonly InMemoryDatabaseRoot DbRoot = new();
     
+    
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
+        Console.WriteLine("=== FACTORY LOADED ===");
         builder.UseEnvironment("IntegrationTest");
         
         builder.ConfigureAppConfiguration((context, config) =>
