@@ -8,9 +8,45 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build-and-analyze:
-    name: Build and analyze
+  build:
+    name: Build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
+      - name: Restore
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json \
+            --name github \
+            --username andodenby \
+            --password $NUGET_AUTH_TOKEN \
+            --store-password-in-clear-text
+          dotnet restore SubsTracker.sln --verbosity detailed
+          dotnet nuget remove source github
+
+      - name: Build
+        run: dotnet build SubsTracker.sln --no-restore --configuration Release --logger "console;verbosity=detailed"
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: build
     timeout-minutes: 10
 
     services:
@@ -25,56 +61,58 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: 17
-          distribution: 'zulu'
+      - uses: actions/checkout@v4
 
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup .NET 9.0
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
 
-      - name: Cache NuGet packages
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/SubsTracker.sln') }}
-          restore-keys: |
-            ${{ runner.os }}-nuget-
-          source-url : https://nuget.pkg.github.com/androdenby/index.json
+      - name: Test
+        env:
+          REDIS: localhost:5140
+        run: |
+          dotnet test SubsTracker.sln --no-build --configuration Release `
+            --logger "console;verbosity=detailed" `
+            --logger trx
 
-      - name: Install SonarScanner for .NET
+  analyze:
+    name: SonarCloud Analyze
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: zulu
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
 
-      - name: Run Analysis (Begin, Build, Test, End)
+      - name: Sonar Begin
         shell: pwsh
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           PR_KEY: ${{ github.event.pull_request.number }}
           PR_BRANCH: ${{ github.head_ref }}
           PR_BASE: ${{ github.base_ref }}
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REDIS: localhost:5140
-          
         run: |
           [string[]]$PR_ARGS = @()
-          
-          if ([string]::IsNullOrWhiteSpace($env:PR_KEY) -ne $true) {
-              Write-Host ">>> Running Pull Request analysis for PR #$env:PR_KEY"
-              $PR_ARGS += "/d:sonar.pullrequest.key=$env:PR_KEY"
-              $PR_ARGS += "/d:sonar.pullrequest.branch=$env:PR_BRANCH"
-              $PR_ARGS += "/d:sonar.pullrequest.base=$env:PR_BASE"
-          } 
-          else {
-              Write-Host ">>> Running Main Branch analysis."
-              $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
+          if ($env:PR_KEY) {
+            $PR_ARGS += "/d:sonar.pullrequest.key=$env:PR_KEY"
+            $PR_ARGS += "/d:sonar.pullrequest.branch=$env:PR_BRANCH"
+            $PR_ARGS += "/d:sonar.pullrequest.base=$env:PR_BASE"
+          } else {
+            $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
           }
 
           dotnet sonarscanner begin `
@@ -85,24 +123,30 @@ jobs:
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
             /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
             /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
-            /d:sonar.scm.revision="${{ github.sha }}" `
             @PR_ARGS
-          
-          dotnet restore SubsTracker.sln
-          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json -u andodenby
-          dotnet build SubsTracker.sln --no-restore --configuration Release
-          
-          dotnet test SubsTracker.sln `
-            --no-build `
-            --configuration Release `
-            --logger `
-            trx --collect:"XPlat Code Coverage" `
+
+      - name: Restore & Build
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json \
+            --name github \
+            --username andodenby \
+            --password $NUGET_AUTH_TOKEN \
+            --store-password-in-clear-text
+          dotnet restore SubsTracker.sln --verbosity detailed
+          dotnet build SubsTracker.sln --no-restore --configuration Release --logger "console;verbosity=detailed"
+          dotnet nuget remove source github
+
+      - name: Test with Coverage
+        env:
+          REDIS: localhost:5140
+        run: |
+          dotnet test SubsTracker.sln --no-build --configuration Release `
+            --logger "console;verbosity=detailed" `
+            --logger trx `
+            --collect:"XPlat Code Coverage" `
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
-           if ($LASTEXITCODE -ne 0) {
-              Write-Host "Tests failed with exit code $LASTEXITCODE"
-              exit $LASTEXITCODE
-            } 
-            
-          dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
-          
+      - name: Sonar End
+        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
