@@ -67,17 +67,20 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Test
+      - name: Run Tests
         env:
           REDIS: localhost:5140
+          ASPNETCORE_ENVIRONMENT: IntegrationTest
         run: |
-          dotnet test SubsTracker.sln `
-            --no-build `
-            --configuration Release `
-            --logger "trx;LogFileName=TestResults.trx" `
+          echo "DEBUG: Current environment is: $ASPNETCORE_ENVIRONMENT"
+          echo "DEBUG: Listing files in build directory to check for appsettings:"
+          # Ищем файлы в папке вывода, чтобы убедиться, что конфиги скопировались
+          find . -name "appsettings.IntegrationTest.json"
+          
+          dotnet test SubsTracker.sln \
+            --configuration Release \
+            --logger "trx;LogFileName=TestResults.trx" \
             --logger "console;verbosity=detailed"
-          env:  
-            ASPNETCORE_ENVIRONMENT: IntegrationTest
 
   analyze:
     name: SonarCloud Analyze
@@ -145,6 +148,7 @@ jobs:
       - name: Test with Coverage
         env:
           REDIS: localhost:5140
+          ASPNETCORE_ENVIRONMENT: IntegrationTest
         run: |
           dotnet test SubsTracker.sln --no-build --configuration Release `
             --logger trx `
