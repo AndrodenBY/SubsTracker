@@ -2,6 +2,9 @@ using Auth0.AuthenticationApi;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubsTracker.API.Auth0;
+using SubsTracker.API.Helpers;
+using SubsTracker.BLL.DTOs.User;
+using SubsTracker.BLL.Interfaces.User;
 
 namespace SubsTracker.IntegrationTests;
 
@@ -56,6 +59,19 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IAuth0Service>();
             services.AddSingleton<IAuth0Service, FakeAuth0Service>();
 
+            services.RemoveAll<UserUpdateOrchestrator>();
+            
+            var orchestratorMock = Substitute.For<UserUpdateOrchestrator>(
+                Substitute.For<IAuth0Service>(), 
+                Substitute.For<IUserService>()
+            );
+            
+            orchestratorMock
+                .FullUserUpdate(Arg.Any<string>(), Arg.Any<UpdateUserDto>(), Arg.Any<CancellationToken>())
+                .Returns(new UserDto { Id = Guid.NewGuid(), FirstName = "Stubbed", Email = "stub@test.com" });
+
+            services.AddScoped(_ => orchestratorMock);
+            
             services.AddAuthentication(options =>
                 {
                     options.DefaultAuthenticateScheme = "TestAuthScheme";
