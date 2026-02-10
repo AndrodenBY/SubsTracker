@@ -5,7 +5,7 @@ using SubsTracker.BLL.Interfaces.User;
 
 namespace SubsTracker.API.Helpers;
 
-public class UserUpdateOrchestrator(Auth0Service auth0Service, IUserService userService)
+public class UserUpdateOrchestrator(IAuth0Service auth0Service, IUserService userService)
 {
     public async Task<UserDto> FullUserUpdate(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {

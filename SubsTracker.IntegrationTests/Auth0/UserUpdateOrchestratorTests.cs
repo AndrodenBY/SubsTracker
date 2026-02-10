@@ -1,3 +1,4 @@
+using SubsTracker.API.Auth0;
 using SubsTracker.API.Helpers;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.Interfaces.User;
@@ -10,10 +11,10 @@ public class UserUpdateOrchestratorTests
     public async Task FullUserUpdate_ShouldCall_Auth0Service_And_UserService()
     {
         //Arrange
-        var auth0 = Substitute.For<IAuth0Service>();
+        var auth0Service = Substitute.For<IAuth0Service>();
         var userService = Substitute.For<IUserService>();
 
-        var orchestrator = new UserUpdateOrchestrator(auth0, userService);
+        var orchestrator = new UserUpdateOrchestrator(auth0Service, userService);
 
         var auth0Id = "auth0|123";
         var dto = new UpdateUserDto();
@@ -29,7 +30,7 @@ public class UserUpdateOrchestratorTests
         await orchestrator.FullUserUpdate(auth0Id, dto, default);
 
         //Assert
-        await auth0.Received(1)
+        await auth0Service.Received(1)
             .UpdateUserProfile(auth0Id, dto, Arg.Any<CancellationToken>());
 
         await userService.Received(1)
