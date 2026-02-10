@@ -10,6 +10,18 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("IntegrationTest");
 
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Auth0:Domain"] = "test.auth0.com",
+                ["Auth0:ClientId"] = "test-client",
+                ["Auth0:ClientSecret"] = "test-secret",
+                ["Auth0:Audience"] = "test-audience",
+                ["Auth0:ManagementApiUrl"] = "https://test.auth0.com/api/v2/"
+            });
+        });
+        
         builder.ConfigureServices(services =>
         {
             var descriptorsToRemove = services.Where(d =>
