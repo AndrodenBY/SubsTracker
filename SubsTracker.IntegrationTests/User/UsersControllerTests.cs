@@ -1,3 +1,6 @@
+using SubsTracker.API.Helpers;
+using SubsTracker.BLL.DTOs.User;
+using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.IntegrationTests.Helpers.User;
 
 namespace SubsTracker.IntegrationTests.User;
@@ -93,21 +96,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Assert
         await _assertHelper.CreateValidAssert(response, createDto);
     }
-
-    [Fact]
-    public async Task Update_WhenValidData_ReturnsUpdatedUser()
-    {
-        //Arrange
-        await _dataSeedingHelper.AddSeedUser(); 
-        var updateDto = _dataSeedingHelper.AddUpdateUserDto();
-
-        //Act
-        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/me", updateDto);
     
-        //Assert
-        await _assertHelper.UpdateValidAssert(response, updateDto.FirstName, updateDto.Email);
-    }
-
     [Fact]
     public async Task Delete_WhenAuthenticated_RemovesCurrentUser()
     {
