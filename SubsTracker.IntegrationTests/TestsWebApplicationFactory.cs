@@ -1,29 +1,31 @@
 using Auth0.AuthenticationApi;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using MassTransit;
 using SubsTracker.API.Auth0;
 using SubsTracker.API.Helpers;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.Interfaces.User;
-using SubsTracker.Messaging.Contracts;
 using SubsTracker.Messaging.Interfaces;
+using SubsTracker.Messaging.Services;
 
 namespace SubsTracker.IntegrationTests;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 {
     private static readonly InMemoryDatabaseRoot DbRoot = new();
-    
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "IntegrationTest");
-        
+
         builder.UseEnvironment("IntegrationTest");
-        
+
         builder.ConfigureAppConfiguration((context, config) =>
         {
             config.Sources.Clear();
-            
+
             var testAuth0Config = new Dictionary<string, string?>
             {
                 ["Auth0:Domain"] = "fake-ci.auth0.com",
@@ -36,9 +38,10 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 
             config.AddInMemoryCollection(testAuth0Config);
         });
-        
+
         builder.ConfigureServices(services =>
         {
+            // Remove real database context
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
@@ -48,56 +51,59 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 d.ImplementationType?.Namespace?.Contains("Npgsql") == true
             ).ToList();
 
-            foreach (var descriptor in descriptorsToRemove) services.Remove(descriptor);
+            foreach (var descriptor in descriptorsToRemove)
+                services.Remove(descriptor);
 
             services.AddDbContext<SubsDbContext>(options =>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
 
+            // Auth0 fakes
             services.RemoveAll<AuthenticationApiClient>();
             services.AddSingleton(new AuthenticationApiClient(new Uri("https://fake-ci.auth0.com/")));
 
             services.RemoveAll<IAuth0Service>();
             services.AddSingleton<IAuth0Service, FakeAuth0Service>();
 
+            // UserUpdateOrchestrator fake
             services.RemoveAll<UserUpdateOrchestrator>();
-            
             var orchestratorMock = Substitute.For<UserUpdateOrchestrator>(
-                Substitute.For<IAuth0Service>(), 
+                Substitute.For<IAuth0Service>(),
                 Substitute.For<IUserService>()
             );
-            
+
             orchestratorMock
                 .FullUserUpdate(Arg.Any<string>(), Arg.Any<UpdateUserDto>(), Arg.Any<CancellationToken>())
                 .Returns(new UserDto { Id = Guid.NewGuid(), FirstName = "Stubbed", Email = "stub@test.com" });
 
             services.AddScoped(_ => orchestratorMock);
-            
+
+            // Authentication
             services.AddAuthentication(options =>
-                {
-                    options.DefaultAuthenticateScheme = "TestAuthScheme";
-                    options.DefaultChallengeScheme = "TestAuthScheme";
-                })
-                .AddScheme<AuthenticationSchemeOptions, TestsAuthHandler>(
-                    "TestAuthScheme", _ => { });
-            
+            {
+                options.DefaultAuthenticateScheme = "TestAuthScheme";
+                options.DefaultChallengeScheme = "TestAuthScheme";
+            }).AddScheme<AuthenticationSchemeOptions, TestsAuthHandler>("TestAuthScheme", _ => { });
+
             services.RemoveAll<JwtBearerOptions>();
-            
+
+            // Remove IMessageService mock
             services.RemoveAll<IMessageService>();
-            
-            var messageServiceMock = Substitute.For<IMessageService>();
-            
-            messageServiceMock.NotifySubscriptionCanceled(Arg.Any<SubscriptionCanceledEvent>(), Arg.Any<CancellationToken>())
-                .Returns(Task.CompletedTask);
-        
-            messageServiceMock.NotifySubscriptionRenewed(Arg.Any<SubscriptionRenewedEvent>(), Arg.Any<CancellationToken>())
-                .Returns(Task.CompletedTask);
 
-            services.AddSingleton(messageServiceMock);
-            
-            services.AddMassTransitTestHarness();
+            // Add MassTransit harness
+            services.AddMassTransitTestHarness(cfg =>
+            {
+                cfg.AddPublishMessageScheduler();
+            });
 
+            // Replace IMessageService with real implementation that uses IPublishEndpoint
+            services.AddSingleton<IMessageService>(sp =>
+            {
+                var publishEndpoint = sp.GetRequiredService<IPublishEndpoint>();
+                var logger = sp.GetRequiredService<ILogger<MessageService>>();
+                return new MessageService(publishEndpoint, logger);
+            });
         });
     }
 }

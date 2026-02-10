@@ -1,3 +1,6 @@
+using MassTransit.Testing;
+using SubsTracker.Messaging.Contracts;
+
 namespace SubsTracker.IntegrationTests.Subscription;
 
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
@@ -5,12 +8,24 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     private readonly SubscriptionTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly SubscriptionTestsDataSeedingHelper _dataSeedingHelper;
+    private readonly ITestHarness _harness;
 
     public SubscriptionsControllerTests(TestsWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
         _dataSeedingHelper = new SubscriptionTestsDataSeedingHelper(factory);
         _assertHelper = new SubscriptionTestsAssertionHelper(factory);
+        _harness = factory.Services.GetRequiredService<ITestHarness>();
+    }
+    
+    public async Task InitializeAsync()
+    {
+        await _harness.Start();
+    }
+
+    public async Task DisposeAsync()
+    {
+        await _harness.Stop();
     }
 
     [Fact]
@@ -102,22 +117,23 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     }
 
     [Fact]
-    public async Task RenewSubscription_WhenValidData_UpdatesDueDateAndActivates()
+    public async Task RenewSubscription_ShouldPublishSubscriptionRenewedEvent()
     {
-        //Arrange
+        // Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
-        var subscription = seed.Subscriptions.FirstOrDefault();
+        var subscription = seed.Subscriptions.First();
 
         var monthsToRenew = 3;
-        var expectedDueDate = subscription.DueDate.AddMonths(monthsToRenew);
 
-        //Act
-        var response =
-            await _client.PatchAsync(
-                $"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}", null);
+        // Act
+        var response = await _client.PatchAsync(
+            $"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}", 
+            null);
 
-        //Assert
-        await _assertHelper.RenewSubscriptionValidAssert(response, subscription, expectedDueDate);
+        // Assert
+        await _assertHelper.RenewSubscriptionValidAssert(response, subscription, subscription.DueDate.AddMonths(monthsToRenew));
+
+        Assert.True(_harness.Published.Select<SubscriptionRenewedEvent>().Any(), "Expected a SubscriptionRenewedEvent to be published");
     }
 
     [Fact]
