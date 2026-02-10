@@ -1,3 +1,6 @@
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
 public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)

@@ -1,3 +1,4 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 using SubsTracker.IntegrationTests.Helpers.User;
 
 namespace SubsTracker.IntegrationTests.User;

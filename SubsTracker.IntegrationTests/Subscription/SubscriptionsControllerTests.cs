@@ -3,7 +3,10 @@ using MassTransit.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubsTracker.BLL.Interfaces.Cache;
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 using SubsTracker.Messaging.Contracts;
+using SubsTracker.Messaging.Interfaces;
+using SubsTracker.Messaging.Services;
 using Xunit;
 
 namespace SubsTracker.IntegrationTests.Subscription;
@@ -37,7 +40,11 @@ public class SubscriptionsControllerTests :
     [Fact]
     public async Task GetById_ShouldReturnCorrectSubscription()
     {
+        var dataSeedObject = await _dataSeedingHelper.AddSeedData();
+        var subscription = dataSeedObject.Subscriptions.First();
+
         var cacheMock = Substitute.For<ICacheService>();
+        
         cacheMock.CacheDataWithLock(
                 Arg.Any<string>(),
                 Arg.Any<TimeSpan>(),
@@ -55,11 +62,14 @@ public class SubscriptionsControllerTests :
             {
                 services.RemoveAll<ICacheService>();
                 services.AddSingleton(cacheMock);
+                
+                services.RemoveAll<ICacheAccessService>();
+                services.AddSingleton(Substitute.For<ICacheAccessService>());
             });
         }).CreateClient();
+    
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestAuthScheme");
         
-        var dataSeedObject = await _dataSeedingHelper.AddSeedData();
-        var subscription = dataSeedObject.Subscriptions.First();
         var response = await client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
         
         await _assertHelper.GetByIdValidAssert(response, subscription);
@@ -110,26 +120,28 @@ public class SubscriptionsControllerTests :
 
         await _assertHelper.UpdateValidAssert(response, subscription.Id, updateDto.Name);
     }
-
+    
     [Fact]
     public async Task CancelSubscription_ShouldPublishSubscriptionCanceledEvent()
     {
         var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
         var subscription = seedData.Subscriptions.First();
+
+        var cacheAccessMock = Substitute.For<ICacheAccessService>();
+        _factory.Override(cacheAccessMock);
+
+        var client = _factory.CreateAuthenticatedClient();
         
-        var response = await _client.PatchAsync(
+        var response = await client.PatchAsync(
             $"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}",
             null);
         
         await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
-        
-        Assert.True(
-            _harness.Published.Select<SubscriptionCanceledEvent>().Any(),
-            "Expected a SubscriptionCanceledEvent to be published"
-        );
+
+        (await _harness.Published.Any<SubscriptionCanceledEvent>(x =>
+            x.Context.Message.Id == subscription.Id)).ShouldBeTrue();
     }
-
-
+    
     [Fact]
     public async Task RenewSubscription_ShouldPublishSubscriptionRenewedEvent()
     {
@@ -157,11 +169,22 @@ public class SubscriptionsControllerTests :
     [Fact]
     public async Task GetUpcomingBills_WhenAnySubscriptionsAreDue_ShouldReturnOnlyUpcomingSubscriptions()
     {
+        // Arrange
+        var client = _factory.CreateAuthenticatedClient();
+
         var seedData = await _dataSeedingHelper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
-        var upcoming = seedData.Subscriptions.First(s => s.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
 
-        var response = await _client.GetAsync($"{EndpointConst.Subscription}/bills/users/{seedData.User.Id}");
+        var upcoming = seedData.Subscriptions
+            .Where(s => s.DueDate >= DateOnly.FromDateTime(DateTime.Now)
+                        && s.DueDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)))
+            .OrderBy(s => s.DueDate)
+            .First();
 
+        // Act
+        var response = await client.GetAsync(
+            $"{EndpointConst.Subscription}/bills/users/{seedData.User.Id}");
+
+        // Assert
         await _assertHelper.GetUpcomingBillsValidAssert(response, upcoming);
     }
 }

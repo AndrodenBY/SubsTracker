@@ -1,3 +1,5 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
 public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)

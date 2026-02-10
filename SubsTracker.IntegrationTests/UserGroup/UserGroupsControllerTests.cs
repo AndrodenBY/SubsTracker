@@ -1,5 +1,6 @@
 using System.Net.Http.Headers;
 using MassTransit.Testing;
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.UserGroup;
