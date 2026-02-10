@@ -41,7 +41,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureServices(services =>
         {
-            // Remove real database context
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
@@ -58,15 +57,13 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             {
                 options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
             });
-
-            // Auth0 fakes
+            
             services.RemoveAll<AuthenticationApiClient>();
             services.AddSingleton(new AuthenticationApiClient(new Uri("https://fake-ci.auth0.com/")));
 
             services.RemoveAll<IAuth0Service>();
             services.AddSingleton<IAuth0Service, FakeAuth0Service>();
-
-            // UserUpdateOrchestrator fake
+            
             services.RemoveAll<UserUpdateOrchestrator>();
             var orchestratorMock = Substitute.For<UserUpdateOrchestrator>(
                 Substitute.For<IAuth0Service>(),
@@ -78,8 +75,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 .Returns(new UserDto { Id = Guid.NewGuid(), FirstName = "Stubbed", Email = "stub@test.com" });
 
             services.AddScoped(_ => orchestratorMock);
-
-            // Authentication
+            
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = "TestAuthScheme";
@@ -87,17 +83,11 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
             }).AddScheme<AuthenticationSchemeOptions, TestsAuthHandler>("TestAuthScheme", _ => { });
 
             services.RemoveAll<JwtBearerOptions>();
-
-            // Remove IMessageService mock
+            
             services.RemoveAll<IMessageService>();
-
-            // Add MassTransit harness
-            services.AddMassTransitTestHarness(cfg =>
-            {
-                cfg.AddPublishMessageScheduler();
-            });
-
-            // Replace IMessageService with real implementation that uses IPublishEndpoint
+            
+            services.AddMassTransitTestHarness();
+            
             services.AddSingleton<IMessageService>(sp =>
             {
                 var publishEndpoint = sp.GetRequiredService<IPublishEndpoint>();

@@ -88,17 +88,23 @@ public class SubscriptionsControllerTests :
     }
 
     [Fact]
-    public async Task CancelSubscription_WhenValidData_ReturnsCancelledSubscription()
+    public async Task CancelSubscription_ShouldPublishSubscriptionCanceledEvent()
     {
         var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
         var subscription = seedData.Subscriptions.First();
-
+        
         var response = await _client.PatchAsync(
             $"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}",
             null);
-
+        
         await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
+        
+        Assert.True(
+            _harness.Published.Select<SubscriptionCanceledEvent>().Any(),
+            "Expected a SubscriptionCanceledEvent to be published"
+        );
     }
+
 
     [Fact]
     public async Task RenewSubscription_ShouldPublishSubscriptionRenewedEvent()
