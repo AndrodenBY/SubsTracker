@@ -1,7 +1,6 @@
 using SubsTracker.API.Auth0;
-using SubsTracker.BLL.DTOs.User.Update;
 
-namespace SubsTracker.IntegrationTests;
+namespace SubsTracker.IntegrationTests.Configuration;
 
 public class FakeAuth0Service : IAuth0Service
 {
