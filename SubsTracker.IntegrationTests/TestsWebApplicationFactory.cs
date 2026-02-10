@@ -1,4 +1,7 @@
+using Auth0.AuthenticationApi;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using SubsTracker.API.Auth0;
 
 namespace SubsTracker.IntegrationTests;
 
@@ -9,9 +12,12 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("IntegrationTest");
-
+        
         builder.ConfigureServices(services =>
         {
+            services.RemoveAll<AuthenticationApiClient>(); 
+            services.AddSingleton<IAuth0Service, FakeAuth0Service>();
+            
             var descriptorsToRemove = services.Where(d =>
                 d.ServiceType == typeof(DbContextOptions<SubsDbContext>) ||
                 d.ServiceType == typeof(SubsDbContext) ||
