@@ -15,6 +15,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
         
         builder.ConfigureAppConfiguration((context, config) =>
         {
+            config.Sources.Clear();
+            
             var testAuth0Config = new Dictionary<string, string?>
             {
                 ["Auth0:Domain"] = "fake-ci.auth0.com",
