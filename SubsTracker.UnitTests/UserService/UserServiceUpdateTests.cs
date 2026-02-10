@@ -29,12 +29,12 @@ public class UserServiceUpdateTests : UserServiceTestsBase
     }
 
     [Fact]
-    public async Task Update_WhenNull_ThrowsInvalidOperationException()
+    public async Task Update_WhenNull_NotFoundException()
     {
         //Act
         var result = async () => await Service.Update(Guid.Empty, null!, default);
 
         //Assert
-        await result.ShouldThrowAsync<InvalidOperationException>();
+        await result.ShouldThrowAsync<NotFoundException>();
     }
 }
