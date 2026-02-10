@@ -2,6 +2,7 @@ using Auth0.AuthenticationApi;
 using Auth0.AuthenticationApi.Models;
 using Auth0.ManagementApi;
 using Auth0.ManagementApi.Models;
+using Auth0.ManagementApi.Models.Sessions;
 using Microsoft.Extensions.Options;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.Domain.Options;
@@ -11,27 +12,32 @@ namespace SubsTracker.API.Auth0;
 public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Options> options)
 {
     private readonly Auth0Options _options = options.Value;
-    
-    public async Task UpdateUserProfile(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
+
+    public async Task<string> GetClientCredentialsToken(CancellationToken cancellationToken)
     {
-        var tokenRequest = new ClientCredentialsTokenRequest
+        var token = await authClient.GetTokenAsync(
+            new ClientCredentialsTokenRequest
+            {
+                ClientId = _options.ClientId,
+                ClientSecret = _options.ClientSecret,
+                Audience = _options.Audience
+            },
+            cancellationToken
+        );
+
+        return token.AccessToken;
+    }
+    
+    public async Task UpdateUserProfile(string userId, UpdateUserDto dto, CancellationToken cancellationToken)
+    {
+        var token = await GetClientCredentialsToken(cancellationToken);
+
+        var mgmt = new ManagementApiClient(token, _options.ManagementApiUrl);
+        await mgmt.Users.UpdateAsync(userId, new UserUpdateRequest
         {
-            ClientId = _options.ClientId,
-            ClientSecret = _options.ClientSecret,
-            Audience = _options.ManagementApiUrl
-        };
-        
-        var tokenResponse = await authClient.GetTokenAsync(tokenRequest, cancellationToken);
-        using var managementClient = new ManagementApiClient(tokenResponse.AccessToken, new Uri(_options.ManagementApiUrl));
-        
-        var updateRequest = new UserUpdateRequest
-        {
-            FirstName = updateDto.FirstName,
-            LastName = updateDto.LastName,
-            Email = updateDto.Email,
-            FullName = $"{updateDto.LastName} {updateDto.FirstName}"
-        };
-        
-        await managementClient.Users.UpdateAsync(auth0Id, updateRequest, cancellationToken);
+            FirstName = dto.FirstName,
+            LastName = dto.LastName,
+            Email = dto.Email
+        }, cancellationToken);
     }
 }
