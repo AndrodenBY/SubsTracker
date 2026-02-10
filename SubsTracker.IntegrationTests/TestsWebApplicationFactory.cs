@@ -13,13 +13,19 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
     {
         builder.UseEnvironment("IntegrationTest");
         
-        builder.ConfigureAppConfiguration((context, config) => { 
-            var testConfig = new Dictionary<string, string?> { 
-                ["Auth0:Authority"] = "https://fake-ci.auth0.com", 
-                ["Auth0:ClientId"] = "fake-client-id", 
-                ["Auth0:ClientSecret"] = "fake-secret", 
-                };
-            
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            var testAuth0Config = new Dictionary<string, string?>
+            {
+                ["Auth0:Domain"] = "fake-ci.auth0.com",
+                ["Auth0:ClientId"] = "fake-client-id",
+                ["Auth0:ClientSecret"] = "fake-client-secret",
+                ["Auth0:Audience"] = "fake-audience",
+                ["Auth0:Authority"] = "https://fake-ci.auth0.com/",
+                ["Auth0:ManagementApiUrl"] = "https://fake-ci.auth0.com/api/v2/"
+            };
+
+            config.AddInMemoryCollection(testAuth0Config);
         });
         
         builder.ConfigureServices(services =>
