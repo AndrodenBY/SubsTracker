@@ -41,14 +41,8 @@ public class Auth0ServiceTests
         var dto = new UpdateUserDto { FirstName = "Ivan", Email = "ivan@test.com" };
 
         //Act
-        try 
-        {
-            await service.UpdateUserProfile("auth0|123", dto, CancellationToken.None);
-        }
-        catch
-        {
-        }
-
+        await service.UpdateUserProfile("auth0|123", dto, CancellationToken.None);
+            
         //Assert
         await connectionMock.Received().SendAsync<AccessTokenResponse>(
             Arg.Any<HttpMethod>(),

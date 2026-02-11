@@ -20,9 +20,7 @@ public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Opti
                 ClientId = _options.ClientId,
                 ClientSecret = _options.ClientSecret,
                 Audience = _options.Audience
-            },
-            cancellationToken
-            );
+            }, cancellationToken);
 
         return token.AccessToken;
     }
@@ -33,12 +31,10 @@ public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Opti
 
         var managementApi = new ManagementApiClient(token, _options.ManagementApiUrl);
         await managementApi.Users.UpdateAsync(auth0Id, new UserUpdateRequest
-        {
-            FirstName = updateDto.FirstName ?? string.Empty,
-            LastName = updateDto.LastName ?? string.Empty,
-            Email = updateDto.Email ?? string.Empty
-        }, 
-            cancellationToken
-            );
+            {
+                FirstName = updateDto.FirstName ?? string.Empty,
+                LastName = updateDto.LastName ?? string.Empty,
+                Email = updateDto.Email ?? string.Empty
+            }, cancellationToken);
     }
 }
