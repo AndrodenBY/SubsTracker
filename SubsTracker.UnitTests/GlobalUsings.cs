@@ -36,7 +36,6 @@ global using SubsTracker.BLL.Interfaces.Cache;
 global using SubsTracker.BLL.RedisSettings;
 global using SubsTracker.BLL.Json;
 global using CachingService = SubsTracker.BLL.Services.Cache.CacheService;
-global using SubsTracker.BLL.Interfaces.Cache;
 
 //Domain
 global using SubsTracker.Domain.Filter;
@@ -48,6 +47,3 @@ global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOp
 global using SubsTracker.Messaging.Interfaces;
 global using SubsTracker.Messaging.Contracts;
 
-global using SubsTracker.Messaging.Contracts;
-global using SubsTracker.Messaging.Contracts;
-global using Microsoft.Extensions.DependencyInjection.Extensions;
