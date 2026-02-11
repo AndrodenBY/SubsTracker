@@ -5,9 +5,7 @@ using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.UserGroup;
 
-public class UserGroupsControllerTests :
-    IClassFixture<TestsWebApplicationFactory>,
-    IAsyncLifetime
+public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly UserGroupTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
@@ -24,9 +22,6 @@ public class UserGroupsControllerTests :
         _assertHelper = new UserGroupTestsAssertionHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
     }
-
-    public async Task InitializeAsync() => await _harness.Start();
-    public async Task DisposeAsync() => await _harness.Stop();
 
     [Fact]
     public async Task GetById_WhenValid_ReturnsCorrectGroup()
@@ -134,6 +129,21 @@ public class UserGroupsControllerTests :
 
         //Assert
         await _assertHelper.JoinGroupValidAssert(response, createDto);
+    }
+    
+    [Fact]
+    public async Task LeaveGroup_WhenValid_RemovesMember()
+    {
+        //Arrange
+        var seedData = await _dataSeedingHelper.AddUserGroupWithMembers();
+        var member = seedData.Members.FirstOrDefault();
+
+        //Act
+        var response =
+            await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
+
+        //Assert
+        await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
     }
     
     [Fact]
