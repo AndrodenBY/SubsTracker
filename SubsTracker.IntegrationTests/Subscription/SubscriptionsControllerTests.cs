@@ -40,38 +40,13 @@ public class SubscriptionsControllerTests :
     [Fact]
     public async Task GetById_ShouldReturnCorrectSubscription()
     {
-        var dataSeedObject = await _dataSeedingHelper.AddSeedData();
-        var subscription = dataSeedObject.Subscriptions.First();
+        var seed = await _dataSeedingHelper.AddSeedData();
+        var subscription = seed.Subscriptions.First();
 
-        var cacheMock = Substitute.For<ICacheService>();
-        
-        cacheMock.CacheDataWithLock(
-                Arg.Any<string>(),
-                Arg.Any<TimeSpan>(),
-                Arg.Any<Func<Task<SubscriptionDto?>>>(), 
-                Arg.Any<CancellationToken>())
-            .Returns(async x => 
-            {
-                var factory = x.Arg<Func<Task<SubscriptionDto?>>>();
-                return await factory(); 
-            });
-        
-        var client = _factory.WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureTestServices(services =>
-            {
-                services.RemoveAll<ICacheService>();
-                services.AddSingleton(cacheMock);
-                
-                services.RemoveAll<ICacheAccessService>();
-                services.AddSingleton(Substitute.For<ICacheAccessService>());
-            });
-        }).CreateClient();
-    
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestAuthScheme");
-        
+        var client = _factory.CreateAuthenticatedClient();
+
         var response = await client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
-        
+
         await _assertHelper.GetByIdValidAssert(response, subscription);
     }
 
@@ -127,9 +102,6 @@ public class SubscriptionsControllerTests :
         var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
         var subscription = seedData.Subscriptions.First();
 
-        var cacheAccessMock = Substitute.For<ICacheAccessService>();
-        _factory.Override(cacheAccessMock);
-
         var client = _factory.CreateAuthenticatedClient();
         
         var response = await client.PatchAsync(
@@ -137,10 +109,12 @@ public class SubscriptionsControllerTests :
             null);
         
         await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
-
+        
         (await _harness.Published.Any<SubscriptionCanceledEvent>(x =>
-            x.Context.Message.Id == subscription.Id)).ShouldBeTrue();
+                x.Context.Message.Id == subscription.Id))
+            .ShouldBeTrue();
     }
+
     
     [Fact]
     public async Task RenewSubscription_ShouldPublishSubscriptionRenewedEvent()
@@ -169,7 +143,6 @@ public class SubscriptionsControllerTests :
     [Fact]
     public async Task GetUpcomingBills_WhenAnySubscriptionsAreDue_ShouldReturnOnlyUpcomingSubscriptions()
     {
-        // Arrange
         var client = _factory.CreateAuthenticatedClient();
 
         var seedData = await _dataSeedingHelper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
@@ -179,12 +152,10 @@ public class SubscriptionsControllerTests :
                         && s.DueDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)))
             .OrderBy(s => s.DueDate)
             .First();
-
-        // Act
+        
         var response = await client.GetAsync(
             $"{EndpointConst.Subscription}/bills/users/{seedData.User.Id}");
-
-        // Assert
+        
         await _assertHelper.GetUpcomingBillsValidAssert(response, upcoming);
     }
 }

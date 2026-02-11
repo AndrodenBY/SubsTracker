@@ -22,19 +22,8 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 .ReplaceAuth0Services()
                 .AddTestAuthentication()
                 .ReplaceMassTransit()
-                .ReplaceUserUpdateOrchestrator();
-        });
-    }
-    
-    public void Override<TService>(TService instance) where TService : class
-    {
-        WithWebHostBuilder(builder =>
-        {
-            builder.ConfigureTestServices(services =>
-            {
-                services.RemoveAll<TService>();
-                services.AddSingleton(instance);
-            });
+                .ReplaceUserUpdateOrchestrator()
+                .ReplaceCache();
         });
     }
 
