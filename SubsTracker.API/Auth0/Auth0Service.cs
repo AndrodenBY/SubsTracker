@@ -22,21 +22,23 @@ public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Opti
                 Audience = _options.Audience
             },
             cancellationToken
-        );
+            );
 
         return token.AccessToken;
     }
     
-    public async Task UpdateUserProfile(string userId, UpdateUserDto dto, CancellationToken cancellationToken)
+    public async Task UpdateUserProfile(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
         var token = await GetClientCredentialsToken(cancellationToken);
 
-        var mgmt = new ManagementApiClient(token, _options.ManagementApiUrl);
-        await mgmt.Users.UpdateAsync(userId, new UserUpdateRequest
+        var managementApi = new ManagementApiClient(token, _options.ManagementApiUrl);
+        await managementApi.Users.UpdateAsync(auth0Id, new UserUpdateRequest
         {
-            FirstName = dto.FirstName,
-            LastName = dto.LastName,
-            Email = dto.Email
-        }, cancellationToken);
+            FirstName = updateDto.FirstName ?? string.Empty,
+            LastName = updateDto.LastName ?? string.Empty,
+            Email = updateDto.Email ?? string.Empty
+        }, 
+            cancellationToken
+            );
     }
 }

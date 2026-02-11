@@ -139,33 +139,33 @@ public class UserGroupsControllerTests :
     [Fact]
     public async Task ChangeRole_WhenValid_ShouldPublishMemberChangedRoleEvent()
     {
+        //Arrange
         var member = await _dataSeedingHelper.AddMemberOnly();
         
-        var response = await _client.PatchAsync(
-            $"{EndpointConst.Group}/members/{member.Id}/role", null);
+        //Act
+        var response = await _client.PatchAsync($"{EndpointConst.Group}/members/{member.Id}/role", null);
         
+        //Assert
         await _assertHelper.ChangeRoleValidAssert(response, MemberRole.Moderator);
         
-        Assert.True(
-            _harness.Published.Select<MemberChangedRoleEvent>().Any(),
-            "Expected MemberChangedRoleEvent to be published"
+        Assert.True(_harness.Published.Select<MemberChangedRoleEvent>().Any(), "Expected MemberChangedRoleEvent to be published"
         );
     }
 
     [Fact]
     public async Task LeaveGroup_WhenValid_ShouldPublishMemberLeftGroupEvent()
     {
+        //Arrange
         var seedData = await _dataSeedingHelper.AddUserGroupWithMembers();
         var member = seedData.Members.First();
         
-        var response = await _client.DeleteAsync(
-            $"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
+        //Act
+        var response = await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
         
+        //Assert
         await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
         
-        Assert.True(
-            _harness.Published.Select<MemberLeftGroupEvent>().Any(),
-            "Expected MemberLeftGroupEvent to be published"
+        Assert.True(_harness.Published.Select<MemberLeftGroupEvent>().Any(), "Expected MemberLeftGroupEvent to be published"
         );
     }
 }

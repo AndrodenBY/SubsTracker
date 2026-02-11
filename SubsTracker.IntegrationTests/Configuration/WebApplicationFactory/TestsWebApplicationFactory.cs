@@ -1,6 +1,4 @@
 using System.Net.Http.Headers;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 

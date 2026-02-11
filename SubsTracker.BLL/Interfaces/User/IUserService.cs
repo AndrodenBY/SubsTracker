@@ -11,6 +11,6 @@ public interface IUserService : IService<UserModel, UserDto, CreateUserDto, Upda
     Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken);
     Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken);
     Task<UserDto> Create(string auth0Id, CreateUserDto createDto, CancellationToken cancellationToken);
-    Task<UserDto> Update(string auth0, UpdateUserDto updateDto, CancellationToken cancellationToken);
-    Task<bool> Delete(string auth0, CancellationToken cancellationToken);
+    Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken);
+    Task<bool> Delete(string auth0Id, CancellationToken cancellationToken);
 }

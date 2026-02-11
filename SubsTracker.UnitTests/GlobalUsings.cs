@@ -1,5 +1,4 @@
 //System
-
 global using System;
 global using System.Threading;
 global using System.Threading.Tasks;
@@ -16,6 +15,7 @@ global using Microsoft.Extensions.Caching.Distributed;
 global using Microsoft.Extensions.Logging;
 global using Newtonsoft.Json;
 global using RedLockNet;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
 
 //DAL
 global using SubsTracker.DAL.Models.Subscription;
@@ -36,6 +36,7 @@ global using SubsTracker.BLL.Interfaces.Cache;
 global using SubsTracker.BLL.RedisSettings;
 global using SubsTracker.BLL.Json;
 global using CachingService = SubsTracker.BLL.Services.Cache.CacheService;
+global using SubsTracker.BLL.Interfaces.Cache;
 
 //Domain
 global using SubsTracker.Domain.Filter;
@@ -46,3 +47,7 @@ global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOp
 //Messaging
 global using SubsTracker.Messaging.Interfaces;
 global using SubsTracker.Messaging.Contracts;
+
+global using SubsTracker.Messaging.Contracts;
+global using SubsTracker.Messaging.Contracts;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
