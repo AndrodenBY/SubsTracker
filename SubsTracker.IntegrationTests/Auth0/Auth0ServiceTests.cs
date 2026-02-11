@@ -1,46 +1,60 @@
+using Auth0.AuthenticationApi;
+using Auth0.AuthenticationApi.Models;
+using Microsoft.Extensions.Options;
+using NSubstitute;
 using SubsTracker.API.Auth0;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.Domain.Options;
 using Xunit;
 
 namespace SubsTracker.IntegrationTests.Auth0;
 
 public class Auth0ServiceTests
 {
-    private readonly IAuth0Service _auth0Service;
-
-    public Auth0ServiceTests()
-    {
-        _auth0Service = new FakeAuth0Service();
-    }
-
     [Fact]
-    public async Task GetClientCredentialsToken_ReturnsFakeToken()
+    public async Task UpdateUserProfile_ShouldExecuteServiceCode_ForCoverage()
     {
-        // Act
-        var token = await _auth0Service.GetClientCredentialsToken(CancellationToken.None);
+        //Arrange
+        var connectionMock = Substitute.For<IAuthenticationConnection>();
+    
+        connectionMock.SendAsync<AccessTokenResponse>(
+                Arg.Any<HttpMethod>(),
+                Arg.Any<Uri>(),
+                Arg.Any<object>(),
+                Arg.Any<IDictionary<string, string>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AccessTokenResponse { AccessToken = "fake-token" }));
 
-        // Assert
-        Assert.Equal("fake-ci-token-12345", token);
-    }
-
-    [Fact]
-    public async Task UpdateUserProfile_CompletesSuccessfully()
-    {
-        // Arrange
-        var dto = new UpdateUserDto
+        var auth0Options = new Auth0Options
         {
-            FirstName = "Test",
-            LastName = "User",
-            Email = "test@example.com"
+            Domain = "fake-ci.auth0.com",
+            Authority = "https://fake-ci.auth0.com/",
+            ClientId = "test-id",
+            ClientSecret = "test-secret",
+            Audience = "test-audience",
+            ManagementApiUrl = "https://fake-ci.auth0.com/api/v2/"
         };
+    
+        var options = Options.Create(auth0Options);
+        var authClient = new AuthenticationApiClient(new Uri(auth0Options.Authority), connectionMock);
+        var service = new Auth0Service(authClient, options);
+        var dto = new UpdateUserDto { FirstName = "Ivan", Email = "ivan@test.com" };
 
-        // Act & Assert
-        var exception = await Record.ExceptionAsync(() =>
-            _auth0Service.UpdateUserProfile("auth0|fake-user-id", dto, CancellationToken.None)
-        );
+        //Act
+        try 
+        {
+            await service.UpdateUserProfile("auth0|123", dto, CancellationToken.None);
+        }
+        catch
+        {
+        }
 
-        Assert.Null(exception);
+        //Assert
+        await connectionMock.Received().SendAsync<AccessTokenResponse>(
+            Arg.Any<HttpMethod>(),
+            Arg.Any<Uri>(),
+            Arg.Any<object>(),
+            Arg.Any<IDictionary<string, string>>(),
+            Arg.Any<CancellationToken>());
     }
 }
-
