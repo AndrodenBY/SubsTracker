@@ -3,39 +3,44 @@ namespace SubsTracker.UnitTests.UserService;
 public class UserServiceDeleteTests : UserServiceTestsBase
 {
     [Fact]
-    public async Task Delete_WhenCorrectModel_DeletesUser()
+    public async Task Delete_WhenUserExists_DeletesUser()
     {
         //Arrange
-        var existingUser = Fixture.Create<User>();
+        var auth0Id = "auth0|test-id";
+        var existingUser = Fixture.Build<User>()
+            .With(x => x.Auth0Id, auth0Id)
+            .Create();
 
-        UserRepository.GetById(existingUser.Id, default)
+        UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
             .Returns(existingUser);
 
-        UserRepository.Delete(existingUser, default)
+        UserRepository.Delete(existingUser, Arg.Any<CancellationToken>())
             .Returns(true);
 
         //Act
-        var result = await Service.Delete(existingUser.Id, default);
+        var result = await Service.Delete(auth0Id, default);
 
         //Assert
         result.ShouldBeTrue();
-        await UserRepository.Received(1).GetById(existingUser.Id, default);
-        await UserRepository.Received(1).Delete(existingUser, default);
+        await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
+        await UserRepository.Received(1).Delete(existingUser, Arg.Any<CancellationToken>());
     }
 
-
     [Fact]
-    public async Task Delete_WhenEmptyGuid_ThrowsNotFoundException()
+    public async Task Delete_WhenUserDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
-        var emptyGuid = Guid.Empty;
+        var auth0Id = "auth0|non-existent";
 
-        UserRepository.GetById(emptyGuid, default).Returns((User?)null);
+        UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<User?>(null));
 
         //Act
-        var result = async () => await Service.Delete(emptyGuid, default);
+        var act = async () => await Service.Delete(auth0Id, default);
 
         //Assert
-        await result.ShouldThrowAsync<NotFoundException>();
+        var exception = await act.ShouldThrowAsync<NotFoundException>();
+        exception.Message.ShouldContain(auth0Id);
+        await UserRepository.DidNotReceive().Delete(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }
 }
