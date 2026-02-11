@@ -28,7 +28,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Restore
+      - name: Restore & Build
         env:
           NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -38,10 +38,8 @@ jobs:
             --password $NUGET_AUTH_TOKEN \
             --store-password-in-clear-text
           dotnet restore SubsTracker.sln
+          dotnet build SubsTracker.sln --no-restore --configuration Release --verbosity detailed
           dotnet nuget remove source github
-
-      - name: Build
-        run: dotnet build SubsTracker.sln --no-restore --configuration Release --verbosity detailed
 
   test:
     name: Test
@@ -54,7 +52,7 @@ jobs:
         image: redis:7.2
         ports:
           - "5140:6379"
-        options:
+        options: >-
           --health-cmd="redis-cli ping"
           --health-interval=10s
           --health-timeout=5s
@@ -71,9 +69,8 @@ jobs:
         env:
           REDIS: localhost:5140
           ASPNETCORE_ENVIRONMENT: IntegrationTest
-        run: |  
-          dotnet test SubsTracker.sln \
-            --configuration Release \
+        run: |
+          dotnet test SubsTracker.sln --no-build --configuration Release \
             --logger "trx;LogFileName=TestResults.trx" \
             --logger "console;verbosity=detailed"
 
@@ -127,19 +124,6 @@ jobs:
             /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
             @PR_ARGS
 
-      - name: Restore & Build
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json \
-            --name github \
-            --username andodenby \
-            --password $NUGET_AUTH_TOKEN \
-            --store-password-in-clear-text
-          dotnet restore SubsTracker.sln
-          dotnet build SubsTracker.sln --no-restore --configuration Release
-          dotnet nuget remove source github
-
       - name: Test with Coverage
         env:
           REDIS: localhost:5140
@@ -151,4 +135,4 @@ jobs:
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
       - name: Sonar End
-        run: dotnet sonarscanner end /d:sonar.login="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
