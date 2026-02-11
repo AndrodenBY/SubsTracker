@@ -71,12 +71,7 @@ jobs:
         env:
           REDIS: localhost:5140
           ASPNETCORE_ENVIRONMENT: IntegrationTest
-        run: |
-          echo "DEBUG: Current environment is: $ASPNETCORE_ENVIRONMENT"
-          echo "DEBUG: Listing files in build directory to check for appsettings:"
-          # Ищем файлы в папке вывода, чтобы убедиться, что конфиги скопировались
-          find . -name "appsettings.IntegrationTest.json"
-          
+        run: |  
           dotnet test SubsTracker.sln \
             --configuration Release \
             --logger "trx;LogFileName=TestResults.trx" \
@@ -150,9 +145,9 @@ jobs:
           REDIS: localhost:5140
           ASPNETCORE_ENVIRONMENT: IntegrationTest
         run: |
-          dotnet test SubsTracker.sln --no-build --configuration Release `
-            --logger trx `
-            --collect:"XPlat Code Coverage" `
+          dotnet test SubsTracker.sln --no-build --configuration Release \
+            --logger trx \
+            --collect:"XPlat Code Coverage" \
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
       - name: Sonar End
