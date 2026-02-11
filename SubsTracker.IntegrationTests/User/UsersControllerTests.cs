@@ -8,6 +8,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     private readonly UserTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly UserTestsDataSeedingHelper _dataSeedingHelper;
+    private readonly TestsWebApplicationFactory _factory;
 
     public UsersControllerTests(TestsWebApplicationFactory factory)
     {
@@ -99,15 +100,16 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     public async Task Update_WhenValidData_ReturnsUpdatedUser()
     {
         //Arrange
-        var seedData = await _dataSeedingHelper.AddSeedUser();
+        var seedData = await _dataSeedingHelper.AddSeedUser(); 
         var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
 
         //Act
-        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/{seedData.User.Id}", updateDto);
+        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/me", updateDto);
 
         //Assert
-        await _assertHelper.UpdateValidAssert(response, seedData.User.Id, updateDto.FirstName, updateDto.Email);
+        await _assertHelper.UpdateValidAssert(response, updateDto.FirstName, updateDto.Email);
     }
+
 
     [Fact]
     public async Task Delete_WhenValidId_RemovesUser()

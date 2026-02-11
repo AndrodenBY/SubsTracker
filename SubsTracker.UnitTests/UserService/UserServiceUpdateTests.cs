@@ -7,20 +7,15 @@ public class UserServiceUpdateTests : UserServiceTestsBase
     {
         //Arrange
         var userEntity = Fixture.Create<User>();
-        var updateDto = Fixture.Build<UpdateUserDto>()
-            .With(userGroup => userGroup.Id, userEntity.Id)
-            .Create();
-        var userDto = Fixture.Build<UserDto>()
-            .With(userGroup => userGroup.Id, updateDto.Id)
-            .Create();
-
-        UserRepository.GetById(updateDto.Id, default).Returns(userEntity);
+        var updateDto = Fixture.Create<UpdateUserDto>();
+        var userDto = Fixture.Create<UserDto>();
+        
         UserRepository.Update(Arg.Any<User>(), default).Returns(userEntity);
         Mapper.Map(updateDto, userEntity).Returns(userEntity);
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
         //Act
-        var result = await Service.Update(updateDto.Id, updateDto, default);
+        var result = await Service.Update(userDto.Auth0Id, updateDto, default);
 
         //Assert
         result.ShouldNotBeNull();

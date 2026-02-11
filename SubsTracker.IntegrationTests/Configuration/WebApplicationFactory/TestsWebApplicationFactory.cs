@@ -22,7 +22,6 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
                 .ReplaceAuth0Services()
                 .AddTestAuthentication()
                 .ReplaceMassTransit()
-                .ReplaceUserUpdateOrchestrator()
                 .ReplaceCache();
         });
     }

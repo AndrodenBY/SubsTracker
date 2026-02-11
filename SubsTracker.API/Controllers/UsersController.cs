@@ -110,7 +110,7 @@ public class UsersController(
     /// </remarks>
     /// <returns>The updated user view model.</returns>
     /// <exception cref="InvalidOperationException">Thrown if cannot find the user with that ID</exception>
-    [HttpPut]
+    [HttpPut("me")]
     public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
         var auth0Id =  User.GetAuth0IdFromToken();
