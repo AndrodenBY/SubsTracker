@@ -29,7 +29,8 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
         var subscription = seed.Subscriptions.First();
-        var client = _factory.CreateAuthenticatedClient();
+        
+        var client = _factory.CreateAuthenticatedClient(seed.User.Auth0Id);
 
         //Act
         var response = await client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
