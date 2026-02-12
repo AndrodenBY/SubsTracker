@@ -29,7 +29,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
 
     public async Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken)
     {
-        await _dbSet.AddAsync(entityToCreate, cancellationToken);
+        _dbSet.Add(entityToCreate);
         await Context.SaveChangesAsync(cancellationToken);
         return entityToCreate;
     }
@@ -38,6 +38,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
     {
         var existingEntity = Context.Update(entityToUpdate);
         await Context.SaveChangesAsync(cancellationToken);
+        
         return existingEntity.Entity;
     }
 

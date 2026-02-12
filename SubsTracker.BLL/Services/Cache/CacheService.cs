@@ -6,9 +6,14 @@ using SubsTracker.BLL.RedisSettings;
 
 namespace SubsTracker.BLL.Services.Cache;
 
+/// <summary>
+/// Implementation of <see cref="ICacheService"/> using <see cref="IDistributedCache"/> 
+/// for storage and <see cref="IDistributedLockFactory"/>(RedLock) for synchronization
+/// </summary>
 public class CacheService(IDistributedCache cache, ILogger<CacheService> logger, IDistributedLockFactory lockFactory)
     : CacheAccessService(cache, logger), ICacheService
 {
+    /// <inheritdoc />
     public async Task<TValue?> CacheDataWithLock<TValue>(
         string cacheKey,
         TimeSpan expirationTime,
@@ -24,6 +29,13 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
         return await LockAndPopulate(cacheKey, expirationTime, dataFactory, cancellationToken);
     }
 
+    /// <summary>
+    /// Orchestrates the distributed lock lifecycle and handles cache population
+    /// </summary>
+    /// <remarks>
+    /// If the lock is acquired - checks the cache again before executing the factory
+    /// If the lock is not acquired - waits for the result from the thread that currently holds the lock
+    /// </remarks>
     private async Task<TValue?> LockAndPopulate<TValue>(string cacheKey,
         TimeSpan expirationTime,
         Func<Task<TValue?>> dataFactory,
@@ -50,6 +62,9 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
         return cacheCheck;
     }
 
+    /// <summary>
+    /// Executes the expensive data retrieval and stores the result in the distributed cache.
+    /// </summary>
     private async Task<TValue?> ExecuteFactory<TValue>(string cacheKey,
         TimeSpan expirationTime,
         Func<Task<TValue?>> dataFactory,
@@ -66,6 +81,13 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
         return data;
     }
 
+    /// <summary>
+    /// Invoked when thread fails to acquire the lock 
+    /// Waits while the lock holder is expected to populate the cache
+    /// </summary>
+    /// <param name="cacheKey">Key to check after the delay</param>
+    /// <param name="retryDelay">Time to wait before checking the cache again</param>
+    /// /// <param name="cancellationToken">Token used to cancel the operation if requested</param>
     private async Task<TValue?> WaitForCachedData<TValue>(string cacheKey, TimeSpan retryDelay,
         CancellationToken cancellationToken) where TValue : class
     {

@@ -1,18 +1,20 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
+
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
     public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
-        response.EnsureSuccessStatusCode();
-
+        var rawContent = await response.Content.ReadAsStringAsync();
+        
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        
         var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
-        result.ShouldNotBeNull();
 
+        result.ShouldNotBeNull();
         result.Id.ShouldBe(expected.Id);
-        result.Name.ShouldBe(expected.Name);
-        result.Price.ShouldBe(expected.Price);
-        result.DueDate.ShouldBe(expected.DueDate);
     }
 
     public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)

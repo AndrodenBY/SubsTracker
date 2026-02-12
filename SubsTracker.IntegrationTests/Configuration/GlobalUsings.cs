@@ -29,3 +29,8 @@ global using Microsoft.Extensions.Options;
 global using System.Security.Claims;
 global using System.Text.Encodings.Web;
 global using Microsoft.AspNetCore.Authentication.JwtBearer;
+global using AutoMapper;
+global using Microsoft.Extensions.Configuration;
+global using SubsTracker.Domain.Options;
+global using System.Diagnostics;
+global using NSubstitute;

@@ -1,3 +1,5 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
