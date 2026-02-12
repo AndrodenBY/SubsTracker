@@ -41,7 +41,7 @@ global using CachingService = SubsTracker.BLL.Services.Cache.CacheService;
 global using SubsTracker.Domain.Filter;
 global using SubsTracker.Domain.Enums;
 global using SubsTracker.Domain.Exceptions;
-global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
+global using InvalidOperationException = SubsTracker.Domain.Exceptions.PolicyViolationException;
 
 //Messaging
 global using SubsTracker.Messaging.Interfaces;

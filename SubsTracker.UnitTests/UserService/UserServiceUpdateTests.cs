@@ -33,6 +33,6 @@ public class UserServiceUpdateTests : UserServiceTestsBase
         var result = async () => await Service.Update(Guid.Empty, null!, default);
 
         //Assert
-        await result.ShouldThrowAsync<NotFoundException>();
+        await result.ShouldThrowAsync<UnknowIdentifierException>();
     }
 }

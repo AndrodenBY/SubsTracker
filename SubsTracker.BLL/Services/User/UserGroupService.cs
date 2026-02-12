@@ -12,7 +12,6 @@ using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using UserModel = SubsTracker.DAL.Models.User.User;
-using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
@@ -50,7 +49,7 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetById(userId, cancellationToken)
-                           ?? throw new ValidationException($"User with id {userId} does not exist");
+                           ?? throw new InvalidRequestDataException($"User with id {userId} does not exist");
         createDto.UserId = userId;
 
         var createdGroup = await base.Create(createDto, cancellationToken);
@@ -70,7 +69,7 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(updateId, cancellationToken)
-                                ?? throw new NotFoundException($"UserGroup with id {updateId} not found");
+                                ?? throw new UnknowIdentifierException($"UserGroup with id {updateId} not found");
 
         Mapper.Map(updateDto, existingUserGroup);
         var updatedEntity = await groupRepository.Update(existingUserGroup, cancellationToken);
@@ -82,14 +81,14 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
-                    ?? throw new NotFoundException($"Group with id {groupId} not found.");
+                    ?? throw new UnknowIdentifierException($"Group with id {groupId} not found.");
 
         if (group.SharedSubscriptions is not null && group.SharedSubscriptions.Any(s => s.Id == subscriptionId))
-            throw new InvalidOperationException(
+            throw new PolicyViolationException(
                 $"Subscription with id {subscriptionId} is already shared with group {groupId}");
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
-                           ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found.");
+                           ?? throw new UnknowIdentifierException($"Subscription with id {subscriptionId} not found.");
 
         group.SharedSubscriptions?.Add(subscription);
 
@@ -101,7 +100,7 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
-                    ?? throw new NotFoundException($"Group with id {groupId} not found.");
+                    ?? throw new UnknowIdentifierException($"Group with id {groupId} not found.");
 
         var subscriptionToRemove = group.SharedSubscriptions?.FirstOrDefault(s => s.Id == subscriptionId);
 
@@ -117,7 +116,7 @@ public class UserGroupService(
     public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(id, cancellationToken)
-                                ?? throw new NotFoundException($"UserGroup with id {id} not found");
+                                ?? throw new UnknowIdentifierException($"UserGroup with id {id} not found");
 
         return await groupRepository.Delete(existingUserGroup, cancellationToken);
     }
