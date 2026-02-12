@@ -39,7 +39,7 @@ public class UserServiceDeleteTests : UserServiceTestsBase
         var act = async () => await Service.Delete(auth0Id, default);
 
         //Assert
-        var exception = await act.ShouldThrowAsync<NotFoundException>();
+        var exception = await act.ShouldThrowAsync<UnknownIdentifierException>();
         exception.Message.ShouldContain(auth0Id);
         await UserRepository.DidNotReceive().Delete(Arg.Any<User>(), Arg.Any<CancellationToken>());
     }

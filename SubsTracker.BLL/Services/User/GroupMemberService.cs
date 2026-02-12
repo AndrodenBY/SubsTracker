@@ -49,10 +49,10 @@ public class GroupMemberService(
     public async Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
         var user = memberRepository.GetFullInfoById(createDto.UserId, cancellationToken);
-        if (user is null) throw new NotFoundException($"User with id {createDto.UserId} not found");
+        if (user is null) throw new UnknownIdentifierException($"User with id {createDto.UserId} not found");
 
         var group = memberRepository.GetFullInfoById(createDto.GroupId, cancellationToken);
-        if (group is null) throw new NotFoundException($"Group with id {createDto.GroupId} not found");
+        if (group is null) throw new UnknownIdentifierException($"Group with id {createDto.GroupId} not found");
 
         var existingMember =
             await memberRepository.GetByPredicate(
@@ -66,7 +66,7 @@ public class GroupMemberService(
     {
         var memberToDelete = await memberRepository.GetByPredicateFullInfo(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
-                             ?? throw new NotFoundException($"User {userId} is not a member of group {groupId}");
+                             ?? throw new UnknownIdentifierException($"User {userId} is not a member of group {groupId}");
 
         var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
 
@@ -79,7 +79,7 @@ public class GroupMemberService(
     public async Task<GroupMemberDto> ChangeRole(Guid memberId, CancellationToken cancellationToken)
     {
         var memberToUpdate = await memberRepository.GetFullInfoById(memberId, cancellationToken)
-                             ?? throw new NotFoundException($"Member with id {memberId} not found.");
+                             ?? throw new UnknownIdentifierException($"Member with id {memberId} not found.");
 
         var newRole = memberToUpdate.Role switch
         {

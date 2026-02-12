@@ -70,7 +70,7 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(updateId, cancellationToken)
-                                ?? throw new NotFoundException($"UserGroup with id {updateId} not found");
+                                ?? throw new UnknownIdentifierException($"UserGroup with id {updateId} not found");
 
         Mapper.Map(updateDto, existingUserGroup);
         var updatedEntity = await groupRepository.Update(existingUserGroup, cancellationToken);
@@ -82,14 +82,14 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
-                    ?? throw new NotFoundException($"Group with id {groupId} not found.");
+                    ?? throw new UnknownIdentifierException($"Group with id {groupId} not found.");
 
         if (group.SharedSubscriptions is not null && group.SharedSubscriptions.Any(s => s.Id == subscriptionId))
             throw new InvalidOperationException(
                 $"Subscription with id {subscriptionId} is already shared with group {groupId}");
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
-                           ?? throw new NotFoundException($"Subscription with id {subscriptionId} not found.");
+                           ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found.");
 
         group.SharedSubscriptions?.Add(subscription);
 
@@ -101,7 +101,7 @@ public class UserGroupService(
         CancellationToken cancellationToken)
     {
         var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
-                    ?? throw new NotFoundException($"Group with id {groupId} not found.");
+                    ?? throw new UnknownIdentifierException($"Group with id {groupId} not found.");
 
         var subscriptionToRemove = group.SharedSubscriptions?.FirstOrDefault(s => s.Id == subscriptionId);
 
@@ -117,7 +117,7 @@ public class UserGroupService(
     public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(id, cancellationToken)
-                                ?? throw new NotFoundException($"UserGroup with id {id} not found");
+                                ?? throw new UnknownIdentifierException($"UserGroup with id {id} not found");
 
         return await groupRepository.Delete(existingUserGroup, cancellationToken);
     }

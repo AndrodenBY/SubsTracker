@@ -31,6 +31,6 @@ public class UserGroupServiceDeleteTests : UserGroupServiceTestsBase
         var result = async () => await Service.Delete(emptyId, default);
 
         //Assert
-        await result.ShouldThrowAsync<NotFoundException>();
+        await result.ShouldThrowAsync<UnknownIdentifierException>();
     }
 }

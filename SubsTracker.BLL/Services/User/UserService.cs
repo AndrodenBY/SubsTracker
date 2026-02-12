@@ -28,7 +28,7 @@ public class UserService(
     public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-            ?? throw new NotFoundException($"User with {auth0Id} not found");
+            ?? throw new UnknownIdentifierException($"User with {auth0Id} not found");
         
         return Mapper.Map<UserDto>(user);
     }
@@ -57,7 +57,7 @@ public class UserService(
     public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
+                   ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
         
         Mapper.Map(updateDto, user);
         var updatedEntity = await userRepository.Update(user, cancellationToken);
@@ -68,7 +68,7 @@ public class UserService(
     public async Task<bool> Delete(string auth0Id, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
+                   ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
         
         return await userRepository.Delete(user, cancellationToken);
     }
