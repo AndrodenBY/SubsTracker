@@ -3,6 +3,8 @@ using Auth0.AuthenticationApi;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SubsTracker.API.Auth0;
 using SubsTracker.API.Helpers;
 using SubsTracker.API.Mapper;
@@ -30,21 +32,30 @@ public static class ApplicationLayerServiceRegister
                     .AllowAnyMethod()
             ));
         
-        var auth0Section = configuration.GetSection(Auth0Options.SectionName);
-        var auth0Options = auth0Section.Get<Auth0Options>();
+        services.AddOptions<Auth0Options>()
+            .BindConfiguration(Auth0Options.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart(); 
         
-        services.Configure<Auth0Options>(auth0Section)
-            .AddSingleton(new AuthenticationApiClient(new Uri(auth0Options!.Authority)))
-            .AddScoped<UserUpdateOrchestrator>()
+        services.AddSingleton<IAuthenticationApiClient>(serviceProvider => 
+        {
+            var options = serviceProvider.GetRequiredService<IOptions<Auth0Options>>().Value;
+            return new AuthenticationApiClient(new Uri(options.Authority));
+        });
+    
+        services.AddScoped<UserUpdateOrchestrator>()
             .AddScoped<IAuth0Service, Auth0Service>();
         
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(options =>
+            .AddJwtBearer();
+
+        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+            .Configure<IOptions<Auth0Options>>((options, auth0) =>
             {
-                options.Authority = auth0Options.Authority;
-                options.Audience = auth0Options.Audience;
-                
-                options.TokenValidationParameters = new()
+                options.Authority = auth0.Value.Authority;
+                options.Audience = auth0.Value.Audience;
+        
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
                     NameClaimType = ClaimTypes.NameIdentifier,
                     ValidateIssuerSigningKey = true,
