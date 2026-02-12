@@ -1,3 +1,6 @@
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
 public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
@@ -85,7 +88,6 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
     {
         var updateDto = Fixture.Build<UpdateUserDto>()
             .With(u => u.FirstName, "UpdatedName")
-            .With(u => u.Email, "updated@example.com")
             .Create();
 
         return updateDto;

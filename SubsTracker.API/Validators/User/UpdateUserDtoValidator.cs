@@ -11,16 +11,11 @@ public class UpdateUserDtoValidator : AbstractValidator<UpdateUserDto>
         RuleFor(model => model.FirstName)
             .MaximumLength(ValidatorConstants.MaximumNameLength)
             .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.FirstName)))
-            .When(model => !string.IsNullOrEmpty(nameof(UpdateUserDto.FirstName)));
+            .When(_ => !string.IsNullOrEmpty(nameof(UpdateUserDto.FirstName)));
 
         RuleFor(model => model.LastName)
             .MaximumLength(ValidatorConstants.MaximumNameLength)
             .WithMessage(ValidatorMessages.Length(nameof(UpdateUserDto.LastName)))
             .When(model => !string.IsNullOrEmpty(model.LastName));
-
-        RuleFor(model => model.Email)
-            .EmailAddress()
-            .WithMessage(ValidatorMessages.MustBeValid(nameof(UpdateUserDto.Email)))
-            .When(model => !string.IsNullOrEmpty(model.Email));
     }
 }

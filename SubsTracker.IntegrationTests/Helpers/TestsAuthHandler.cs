@@ -1,4 +1,4 @@
-namespace SubsTracker.IntegrationTests;
+namespace SubsTracker.IntegrationTests.Helpers;
 
 public class TestsAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,

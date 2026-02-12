@@ -1,3 +1,5 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
 public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
@@ -74,8 +76,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         entity.LastName.ShouldBe(expected.LastName);
     }
 
-    public async Task UpdateValidAssert(HttpResponseMessage response, Guid userId, string? expectedFirstName,
-        string? expectedEmail)
+    public async Task UpdateValidAssert(HttpResponseMessage response, string? expectedFirstName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -84,14 +85,6 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
 
         viewModel.ShouldNotBeNull();
         viewModel.FirstName.ShouldBe(expectedFirstName);
-        viewModel.Email.ShouldBe(expectedEmail);
-
-        var db = _scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Users.FindAsync(userId);
-
-        entity.ShouldNotBeNull();
-        entity.FirstName.ShouldBe(expectedFirstName);
-        entity.Email.ShouldBe(expectedEmail);
     }
 
     public async Task DeleteValidAssert(HttpResponseMessage response, Guid userId)

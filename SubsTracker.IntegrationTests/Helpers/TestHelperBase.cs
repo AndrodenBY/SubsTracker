@@ -1,3 +1,5 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+
 namespace SubsTracker.IntegrationTests.Helpers;
 
 public abstract class TestHelperBase

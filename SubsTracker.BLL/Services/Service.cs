@@ -29,7 +29,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     public virtual async Task<List<TDto>> GetAll(
         Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var entities = await repository.GetAll(predicate, cancellationToken);
+        var entities = await Repository.GetAll(predicate, cancellationToken);
         return Mapper.Map<List<TDto>>(entities);
     }
 

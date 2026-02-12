@@ -5,5 +5,5 @@ namespace SubsTracker.DAL.Interfaces;
 
 public interface IUserRepository : IRepository<User>
 {
-    Task<User?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken);
+    Task<User?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true);
 }

@@ -8,13 +8,15 @@ public class UserRepository(SubsDbContext context) : Repository<User>(context), 
 {
     private readonly DbSet<User> _dbSet = context.Set<User>();
     
-    public async Task<User?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)
+    public async Task<User?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true)
     {
-        return await _dbSet.
-            AsSplitQuery().
-            AsNoTracking().
-            Include(s => s.Subscriptions).
-            Include(g => g.Groups).
-            FirstOrDefaultAsync(g => g.Auth0Id == auth0Id, cancellationToken);
+        var query = isTracking 
+            ? _dbSet.AsSplitQuery() 
+            : _dbSet.AsSplitQuery().AsNoTracking();
+        
+        return await query 
+            .Include(u => u.Subscriptions) 
+            .Include(u => u.Groups) 
+            .FirstOrDefaultAsync(u => u.Auth0Id == auth0Id, cancellationToken);
     }
 }

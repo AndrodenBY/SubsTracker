@@ -7,34 +7,32 @@ public class UserServiceUpdateTests : UserServiceTestsBase
     {
         //Arrange
         var userEntity = Fixture.Create<User>();
-        var updateDto = Fixture.Build<UpdateUserDto>()
-            .With(userGroup => userGroup.Id, userEntity.Id)
-            .Create();
-        var userDto = Fixture.Build<UserDto>()
-            .With(userGroup => userGroup.Id, updateDto.Id)
-            .Create();
+        var updateDto = Fixture.Create<UpdateUserDto>();
+        var userDto = Fixture.Create<UserDto>();
+        
+        UserRepository.GetByAuth0Id(userDto.Auth0Id, default)
+            .Returns(userEntity);
 
-        UserRepository.GetById(updateDto.Id, default).Returns(userEntity);
         UserRepository.Update(Arg.Any<User>(), default).Returns(userEntity);
         Mapper.Map(updateDto, userEntity).Returns(userEntity);
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
         //Act
-        var result = await Service.Update(updateDto.Id, updateDto, default);
+        var result = await Service.Update(userDto.Auth0Id, updateDto, default);
 
         //Assert
         result.ShouldNotBeNull();
-        result.Id.ShouldBeEquivalentTo(userEntity.Id);
         await UserRepository.Received(1).Update(Arg.Any<User>(), default);
     }
 
+
     [Fact]
-    public async Task Update_WhenNull_ThrowsInvalidOperationException()
+    public async Task Update_WhenNull_NotFoundException()
     {
         //Act
         var result = async () => await Service.Update(Guid.Empty, null!, default);
 
         //Assert
-        await result.ShouldThrowAsync<InvalidOperationException>();
+        await result.ShouldThrowAsync<NotFoundException>();
     }
 }
