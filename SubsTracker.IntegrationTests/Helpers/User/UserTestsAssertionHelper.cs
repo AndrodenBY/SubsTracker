@@ -76,8 +76,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         entity.LastName.ShouldBe(expected.LastName);
     }
 
-    public async Task UpdateValidAssert(HttpResponseMessage response, string? expectedFirstName,
-        string? expectedEmail)
+    public async Task UpdateValidAssert(HttpResponseMessage response, string? expectedFirstName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -86,7 +85,6 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
 
         viewModel.ShouldNotBeNull();
         viewModel.FirstName.ShouldBe(expectedFirstName);
-        viewModel.Email.ShouldBe(expectedEmail);
     }
 
     public async Task DeleteValidAssert(HttpResponseMessage response, Guid userId)

@@ -33,7 +33,7 @@ public class Auth0ServiceTests
         var options = Options.Create(auth0Options);
         var authClient = new AuthenticationApiClient(new Uri(auth0Options.Authority), connectionMock);
         var service = new Auth0Service(authClient, options);
-        var dto = new UpdateUserDto { FirstName = "Ivan", Email = "ivan@test.com" };
+        var dto = new UpdateUserDto { FirstName = "Ivan"};
 
         //Act&Assert
         await Assert.ThrowsAsync<HttpRequestException>(async () => 

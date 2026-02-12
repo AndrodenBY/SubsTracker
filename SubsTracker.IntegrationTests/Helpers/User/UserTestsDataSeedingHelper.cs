@@ -88,7 +88,6 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
     {
         var updateDto = Fixture.Build<UpdateUserDto>()
             .With(u => u.FirstName, "UpdatedName")
-            .With(u => u.Email, "updated@example.com")
             .Create();
 
         return updateDto;

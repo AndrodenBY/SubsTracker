@@ -37,7 +37,7 @@ public static class ApplicationLayerServiceRegister
             .ValidateDataAnnotations()
             .ValidateOnStart(); 
         
-        services.AddSingleton<IAuthenticationApiClient>(serviceProvider => 
+        services.AddSingleton<AuthenticationApiClient>(serviceProvider => 
         {
             var options = serviceProvider.GetRequiredService<IOptions<Auth0Options>>().Value;
             return new AuthenticationApiClient(new Uri(options.Authority));
@@ -45,7 +45,7 @@ public static class ApplicationLayerServiceRegister
     
         services.AddScoped<UserUpdateOrchestrator>()
             .AddScoped<IAuth0Service, Auth0Service>();
-        
+
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer();
 

@@ -107,7 +107,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/me", updateDto);
 
         //Assert
-        await _assertHelper.UpdateValidAssert(response, updateDto.FirstName, updateDto.Email);
+        await _assertHelper.UpdateValidAssert(response, updateDto.FirstName);
     }
 
 
