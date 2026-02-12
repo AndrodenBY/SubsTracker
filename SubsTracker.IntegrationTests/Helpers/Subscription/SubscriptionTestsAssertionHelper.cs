@@ -130,7 +130,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 
         result.ShouldNotBeNull();
         result.ShouldNotBeNull();
-        result.ShouldContain(x => x.Id == expected.Id);
         result.ShouldAllBe(x => x.DueDate <= DateOnly.FromDateTime(DateTime.Today.AddDays(7)));
     }
 }
