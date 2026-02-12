@@ -46,6 +46,6 @@ public class UserGroupUnshareSubscriptionTests : UserGroupServiceTestsBase
         var result = async () => await Service.UnshareSubscription(Guid.NewGuid(), Guid.NewGuid(), default);
 
         //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
+        await result.ShouldThrowAsync<UnknowIdentifierException>();
     }
 }

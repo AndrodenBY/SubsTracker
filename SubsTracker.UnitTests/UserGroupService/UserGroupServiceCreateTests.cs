@@ -37,7 +37,7 @@ public class UserGroupServiceCreateTests : UserGroupServiceTestsBase
         var createDto = new CreateUserGroupDto { Name = string.Empty, UserId = Guid.Empty };
 
         //Act & Assert
-        await Should.ThrowAsync<ValidationException>(async () =>
+        await Should.ThrowAsync<InvalidRequestDataException>(async () =>
         {
             await Service.Create(Guid.NewGuid(), createDto, default);
         });

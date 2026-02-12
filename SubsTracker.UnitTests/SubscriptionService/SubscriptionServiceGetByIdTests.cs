@@ -62,7 +62,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         var emptyIdResult = async() => await Service.GetById(emptyId, default);
 
         //Assert
-        await Should.ThrowAsync<UnknownIdentifierException>(emptyIdResult);
+        await Should.ThrowAsync<UnknowIdentifierException>(emptyIdResult);
     }
 
     [Fact]
@@ -75,7 +75,7 @@ public class SubscriptionServiceGetByIdTests : SubscriptionServiceTestsBase
         var fakeIdResult = async () => await Service.GetById(fakeId, default);
 
         //Assert
-        await Should.ThrowAsync<UnknownIdentifierException>(fakeIdResult);
+        await Should.ThrowAsync<UnknowIdentifierException>(fakeIdResult);
     }
 
     [Fact]

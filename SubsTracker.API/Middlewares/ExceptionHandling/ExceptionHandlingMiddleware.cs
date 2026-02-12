@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Mime;
 using SubsTracker.Domain.Exceptions;
-using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.API.Middlewares.ExceptionHandling;
 
@@ -30,7 +29,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
 
         var errorModel = exception switch
         {
-            UnknownIdentifierException ex => new ErrorModel((int)HttpStatusCode.NotFound, ex.Message),
+            UnknowIdentifierException ex => new ErrorModel((int)HttpStatusCode.NotFound, ex.Message),
             InvalidRequestDataException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
             PolicyViolationException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
             ForbiddenException ex => new ErrorModel((int)HttpStatusCode.Forbidden, ex.Message),

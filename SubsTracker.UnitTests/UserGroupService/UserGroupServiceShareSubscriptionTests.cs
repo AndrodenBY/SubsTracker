@@ -50,6 +50,6 @@ public class UserGroupServiceShareSubscriptionTests : UserGroupServiceTestsBase
         var result = async () => await Service.ShareSubscription(nonExistentGroupId, Guid.NewGuid(), default);
 
         //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
+        await result.ShouldThrowAsync<UnknowIdentifierException>();
     }
 }

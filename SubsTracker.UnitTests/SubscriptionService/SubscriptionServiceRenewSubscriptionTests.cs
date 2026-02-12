@@ -48,7 +48,7 @@ public class SubscriptionServiceRenewSubscriptionTests : SubscriptionServiceTest
             .Returns(subscription);
 
         //Act & Assert
-        await Should.ThrowAsync<ValidationException>(async () =>
+        await Should.ThrowAsync<InvalidRequestDataException>(async () =>
             await Service.RenewSubscription(subscription.Id, monthsToRenew, default));
     }
 }

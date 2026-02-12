@@ -65,6 +65,6 @@ public class GroupMemberServiceJoinGroupTests : GroupMemberServiceTestBase
         var act = async () => await Service.JoinGroup(createDto, default);
 
         //Assert
-        await act.ShouldThrowAsync<ValidationException>();
+        await act.ShouldThrowAsync<InvalidRequestDataException>();
     }
 }
