@@ -6,46 +6,50 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
     public async Task Update_WhenValidModel_ReturnsUpdatedEntity()
     {
         //Arrange
-        var existingUser = Fixture.Build<User>()
-            .With(user => user.Id, Guid.NewGuid())
+        var auth0Id = Fixture.Create<string>();
+        var userId = Guid.NewGuid();
+        var subscriptionId = Guid.NewGuid();
+
+        var userEntity = Fixture.Build<User>()
+            .With(u => u.Id, userId)
             .Create();
 
-        var userId = Guid.NewGuid();
         var subscriptionEntity = Fixture.Build<Subscription>()
+            .With(s => s.Id, subscriptionId)
             .With(s => s.UserId, userId)
             .Create();
+
         var updateDto = Fixture.Build<UpdateSubscriptionDto>()
-            .With(subscription => subscription.Id, subscriptionEntity.Id)
+            .With(dto => dto.Id, subscriptionId)
             .Create();
+
         var subscriptionDto = Fixture.Build<SubscriptionDto>()
-            .With(subscription => subscription.Id, updateDto.Id)
-            .With(s => s.Name, updateDto.Name)
-            .With(s => s.Price, updateDto.Price)
-            .With(s => s.DueDate, updateDto.DueDate)
-            .With(s => s.Content, updateDto.Content)
-            .With(s => s.Type, updateDto.Type)
+            .With(dto => dto.Id, subscriptionId)
+            .With(dto => dto.Name, updateDto.Name)
             .Create();
+        
+        UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
+            .Returns(userEntity);
+        
+        SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>())
+            .Returns(subscriptionEntity);
 
-        var user = Fixture.Build<User>()
-            .With(user => user.Id, userId)
-            .Create();
+        SubscriptionRepository.Update(Arg.Any<Subscription>(), Arg.Any<CancellationToken>())
+            .Returns(subscriptionEntity);
 
-        UserRepository.GetById(Arg.Any<Guid>(), default)
-            .Returns(user);
-        SubscriptionRepository.GetById(updateDto.Id, default).Returns(subscriptionEntity);
-        SubscriptionRepository.Update(subscriptionEntity, default).Returns(subscriptionEntity);
-        Mapper.Map<Subscription>(updateDto).Returns(subscriptionEntity);
-        Mapper.Map<SubscriptionDto>(subscriptionEntity).Returns(subscriptionDto);
+        Mapper.Map<SubscriptionDto>(subscriptionEntity)
+            .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Update(existingUser.Id, updateDto, default);
+        var result = await Service.Update(auth0Id, updateDto, default);
 
         //Assert
         result.ShouldNotBeNull();
+        result.Id.ShouldBe(subscriptionId);
         result.Name.ShouldBe(updateDto.Name);
-        result.Name.ShouldNotBe(subscriptionEntity.Name);
-        result.Id.ShouldBeEquivalentTo(subscriptionEntity.Id);
-        await SubscriptionRepository.Received(1).Update(Arg.Any<Subscription>(), default);
+
+        await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
+        await SubscriptionRepository.Received(1).Update(Arg.Is<Subscription>(s => s.Id == subscriptionId), Arg.Any<CancellationToken>());
     }
 
     [Fact]

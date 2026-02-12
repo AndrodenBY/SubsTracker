@@ -10,6 +10,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserModel>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
 
@@ -39,6 +40,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserModel>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
 
@@ -58,6 +60,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserModel>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
 
@@ -106,6 +109,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserModel>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
 
