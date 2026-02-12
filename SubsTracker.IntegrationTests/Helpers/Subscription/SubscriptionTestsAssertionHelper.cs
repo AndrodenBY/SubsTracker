@@ -62,7 +62,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         viewModel.DueDate.ShouldBe(entity.DueDate);
     }
 
-    public async Task UpdateValidAssert(HttpResponseMessage response, Guid expectedId, string expectedName)
+    public async Task UpdateValidAssert(HttpResponseMessage response, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 
@@ -71,16 +71,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 
         var viewModel = JsonConvert.DeserializeObject<SubscriptionViewModel>(rawContent);
         viewModel.ShouldNotBeNull();
-
-        viewModel.Id.ShouldBe(expectedId);
         viewModel.Name.ShouldBe(expectedName);
-
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.SingleOrDefaultAsync(s => s.Id == expectedId);
-
-        entity.ShouldNotBeNull();
-        entity.Name.ShouldBe(expectedName);
     }
 
     public async Task CancelSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original)

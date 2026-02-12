@@ -8,6 +8,7 @@ public class TestsAuthHandler(
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
 {
     public const string DefaultAuth0Id = "auth0|test-user-12345";
+    public const string Auth0Header = "X-Test-Auth0Id";
     
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
