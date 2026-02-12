@@ -48,7 +48,7 @@ public class SubscriptionService(
     public async Task<SubscriptionDto> Create(string auth0Id, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                           ?? throw new UnknowIdentifierException($"User with id {auth0Id} does not exist");
+                           ?? throw new UnknownIdentifierException($"User with id {auth0Id} does not exist");
         await PreventSubscriptionDuplication(existingUser.Id, createDto.Name, cancellationToken);
         
         var subscriptionToCreate = Mapper.Map<SubscriptionModel>(createDto);
@@ -88,7 +88,7 @@ public class SubscriptionService(
         if (monthsToRenew <= 0) throw new InvalidRequestDataException("Cannot renew subscription for less than one month");
 
         var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
-                                  ?? throw new UnknowIdentifierException($"Subscription with id {subscriptionId} not found");
+                                  ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found");
 
         subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
         subscriptionToRenew.Active = true;
@@ -103,13 +103,13 @@ public class SubscriptionService(
     public async Task<List<SubscriptionDto>> GetUpcomingBills(string auth0Id, CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-            ?? throw new UnknowIdentifierException($"User with  {auth0Id} not found");
+            ?? throw new UnknownIdentifierException($"User with  {auth0Id} not found");
         var cacheKey = RedisKeySetter.SetCacheKey(existingUser.Id, "upcoming_bills");
         var cachedList = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
         if (cachedList is not null) return cachedList;
 
         var billsToPay = await subscriptionRepository.GetUpcomingBills(existingUser.Id, cancellationToken)
-                         ?? throw new UnknowIdentifierException($"Subscriptions with UserId {existingUser.Id} not found");
+                         ?? throw new UnknownIdentifierException($"Subscriptions with UserId {existingUser.Id} not found");
 
         var mappedList = Mapper.Map<List<SubscriptionDto>>(billsToPay);
         await cacheAccessService.SetData(cacheKey, mappedList, RedisConstants.ExpirationTime, cancellationToken);
@@ -133,10 +133,10 @@ public class SubscriptionService(
     private async Task<(SubscriptionModel Subscription, UserModel User)> GetValidatedSubscription(string auth0Id, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new UnknowIdentifierException($"User {auth0Id} not found");
+                   ?? throw new UnknownIdentifierException($"User {auth0Id} not found");
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
-                           ?? throw new UnknowIdentifierException($"Subscription {subscriptionId} not found");
+                           ?? throw new UnknownIdentifierException($"Subscription {subscriptionId} not found");
         
         if (!subscription.UserId.HasValue || subscription.UserId.Value != user.Id)
         {

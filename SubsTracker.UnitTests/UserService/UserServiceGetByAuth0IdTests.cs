@@ -41,7 +41,7 @@ public class UserServiceGetByAuth0IdTests : UserServiceTestsBase
         var act = () => Service.GetByAuth0Id(nonExistentAuth0Id, default);
 
         //Assert
-        var exception = await Should.ThrowAsync<UnknowIdentifierException>(act);
+        var exception = await Should.ThrowAsync<UnknownIdentifierException>(act);
         exception.Message.ShouldContain(nonExistentAuth0Id);
         Mapper.DidNotReceive().Map<UserDto>(Arg.Any<User>());
     }
@@ -59,7 +59,7 @@ public class UserServiceGetByAuth0IdTests : UserServiceTestsBase
         var act = () => Service.GetByAuth0Id(emptyAuth0Id, default);
 
         //Assert
-        await Should.ThrowAsync<UnknowIdentifierException>(act);
+        await Should.ThrowAsync<UnknownIdentifierException>(act);
     }
     
     [Fact]

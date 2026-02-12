@@ -58,6 +58,6 @@ public class SubscriptionServiceUpdateTests : SubscriptionServiceTestsBase
         var result = async () => await Service.Update(Guid.Empty, emptyDto, default);
 
         //Assert
-        await result.ShouldThrowAsync<UnknowIdentifierException>();
+        await result.ShouldThrowAsync<UnknownIdentifierException>();
     }
 }
