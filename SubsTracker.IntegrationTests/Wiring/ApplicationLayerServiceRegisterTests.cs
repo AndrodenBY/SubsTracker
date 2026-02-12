@@ -1,3 +1,5 @@
+using Auth0.AuthenticationApi;
+
 namespace SubsTracker.IntegrationTests.Wiring;
 
 public class ApplicationLayerServiceRegisterTests
@@ -10,6 +12,10 @@ public class ApplicationLayerServiceRegisterTests
         services.AddLogging();
         services.AddOptions();
         services.AddDistributedMemoryCache();
+        
+        services.AddSingleton(Substitute.For<AuthenticationApiClient>(
+            new Uri("https://test.auth0.com"), 
+            Substitute.For<IAuthenticationConnection>()));
         
         var env = Substitute.For<IWebHostEnvironment>();
         env.EnvironmentName.Returns("Development");
