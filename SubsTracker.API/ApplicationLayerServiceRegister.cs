@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Auth0.AuthenticationApi;
+using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using SubsTracker.API.Auth0;
@@ -16,9 +17,11 @@ public static class ApplicationLayerServiceRegister
     public static void RegisterApplicationLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services.RegisterBusinessLayerDependencies(configuration)
-            .AddAutoMapper(cfg => { }, typeof(ViewModelMappingProfile).Assembly)
-            .AddControllers()
-            .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<CreateUserDtoValidator>());
+            .AddAutoMapper(_ => { }, typeof(ViewModelMappingProfile).Assembly)
+            .AddControllers();
+        services.AddFluentValidationAutoValidation()
+            .AddFluentValidationClientsideAdapters()
+            .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
 
         services.AddCors(options =>
             options.AddDefaultPolicy(policy =>

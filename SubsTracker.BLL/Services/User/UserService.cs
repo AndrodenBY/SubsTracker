@@ -9,7 +9,6 @@ using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
 using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
 using UserModel = SubsTracker.DAL.Models.User.User;
-using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
@@ -40,10 +39,10 @@ public class UserService(
 
         if (existingUser is null)
         {
-            var newUser = mapper.Map<UserModel>(createDto);
+            var newUser = Mapper.Map<UserModel>(createDto);
             newUser.Auth0Id = auth0Id; 
             var createdUser = await userRepository.Create(newUser, cancellationToken);
-            return mapper.Map<UserDto>(createdUser);
+            return Mapper.Map<UserDto>(createdUser);
         }
         
         if (string.IsNullOrEmpty(existingUser.Auth0Id))
@@ -52,7 +51,7 @@ public class UserService(
             await userRepository.Update(existingUser, cancellationToken);
         }
     
-        return mapper.Map<UserDto>(existingUser);
+        return Mapper.Map<UserDto>(existingUser);
     }
 
     public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)

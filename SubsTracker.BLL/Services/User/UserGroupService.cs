@@ -33,7 +33,7 @@ public class UserGroupService(
         return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup,
             cancellationToken);
 
-        async Task<UserGroupDto> GetUserGroup()
+        async Task<UserGroupDto?> GetUserGroup()
         {
             var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
             return Mapper.Map<UserGroupDto>(groupWithEntities);
