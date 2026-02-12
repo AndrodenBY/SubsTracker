@@ -33,7 +33,7 @@ public class SubscriptionService(
         return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription,
             cancellationToken);
 
-        async Task<SubscriptionDto> GetSubscription()
+        async Task<SubscriptionDto?> GetSubscription()
         {
             var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
             return Mapper.Map<SubscriptionDto>(subscriptionWithEntities);

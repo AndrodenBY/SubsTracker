@@ -1,3 +1,5 @@
+using SubsTracker.DAL.Interfaces;
+
 namespace SubsTracker.UnitTests.UserService;
 
 public class UserServiceTestsBase
@@ -6,7 +8,7 @@ public class UserServiceTestsBase
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
     protected readonly UserModelService Service;
-    protected readonly IRepository<User> UserRepository;
+    protected readonly IUserRepository UserRepository;
 
     protected UserServiceTestsBase()
     {
@@ -17,7 +19,7 @@ public class UserServiceTestsBase
             .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
-        UserRepository = Substitute.For<IRepository<User>>();
+        UserRepository = Substitute.For<IUserRepository>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
 

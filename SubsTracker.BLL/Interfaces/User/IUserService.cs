@@ -9,4 +9,8 @@ namespace SubsTracker.BLL.Interfaces.User;
 public interface IUserService : IService<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>
 {
     Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken);
+    Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken);
+    Task<UserDto> Create(string auth0Id, CreateUserDto createDto, CancellationToken cancellationToken);
+    Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken);
+    Task<bool> Delete(string auth0Id, CancellationToken cancellationToken);
 }

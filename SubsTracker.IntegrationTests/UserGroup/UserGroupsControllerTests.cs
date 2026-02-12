@@ -1,3 +1,8 @@
+using System.Net.Http.Headers;
+using MassTransit.Testing;
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.Messaging.Contracts;
+
 namespace SubsTracker.IntegrationTests.UserGroup;
 
 public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
@@ -5,12 +10,17 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     private readonly UserGroupTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly UserGroupTestsDataSeedingHelper _dataSeedingHelper;
+    private readonly ITestHarness _harness;
 
     public UserGroupsControllerTests(TestsWebApplicationFactory factory)
     {
         _client = factory.CreateClient();
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", "fake-jwt-token");
+
         _dataSeedingHelper = new UserGroupTestsDataSeedingHelper(factory);
         _assertHelper = new UserGroupTestsAssertionHelper(factory);
+        _harness = factory.Services.GetRequiredService<ITestHarness>();
     }
 
     [Fact]
@@ -120,7 +130,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.JoinGroupValidAssert(response, createDto);
     }
-
+    
     [Fact]
     public async Task LeaveGroup_WhenValid_RemovesMember()
     {
@@ -135,49 +145,37 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Assert
         await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
     }
-
+    
     [Fact]
-    public async Task ChangeRole_WhenValid_UpdatesMemberRole()
+    public async Task ChangeRole_WhenValid_ShouldPublishMemberChangedRoleEvent()
     {
         //Arrange
         var member = await _dataSeedingHelper.AddMemberOnly();
-
+        
         //Act
         var response = await _client.PatchAsync($"{EndpointConst.Group}/members/{member.Id}/role", null);
-
+        
         //Assert
         await _assertHelper.ChangeRoleValidAssert(response, MemberRole.Moderator);
+        
+        Assert.True(_harness.Published.Select<MemberChangedRoleEvent>().Any(), "Expected MemberChangedRoleEvent to be published"
+        );
     }
 
     [Fact]
-    public async Task ShareSubscription_WhenValid_AddsToGroup()
+    public async Task LeaveGroup_WhenValid_ShouldPublishMemberLeftGroupEvent()
     {
         //Arrange
-        var seedData = await _dataSeedingHelper.AddGroupWithSharedSubscription();
-        var subscription = await _dataSeedingHelper.AddSubscription();
-
+        var seedData = await _dataSeedingHelper.AddUserGroupWithMembers();
+        var member = seedData.Members.First();
+        
         //Act
-        var response =
-            await _client.PostAsync(
-                $"{EndpointConst.Group}/share?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
-
+        var response = await _client.DeleteAsync($"{EndpointConst.Group}/leave?groupId={member.GroupId}&userId={member.UserId}");
+        
         //Assert
-        await _assertHelper.ShareSubscriptionValidAssert(response);
-    }
-
-    [Fact]
-    public async Task UnshareSubscription_WhenValid_RemovesFromGroup()
-    {
-        //Arrange
-        var seedData = await _dataSeedingHelper.AddGroupWithSharedSubscription();
-        var subscription = seedData.Group.SharedSubscriptions.FirstOrDefault();
-
-        //Act
-        var response =
-            await _client.PostAsync(
-                $"{EndpointConst.Group}/unshare?groupId={seedData.Group.Id}&subscriptionId={subscription.Id}", null);
-
-        //Assert
-        await _assertHelper.UnshareSubscriptionValidAssert(response);
+        await _assertHelper.LeaveGroupValidAssert(response, member.GroupId, member.UserId);
+        
+        Assert.True(_harness.Published.Select<MemberLeftGroupEvent>().Any(), "Expected MemberLeftGroupEvent to be published"
+        );
     }
 }

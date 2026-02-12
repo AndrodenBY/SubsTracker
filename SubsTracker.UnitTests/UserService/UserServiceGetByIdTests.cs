@@ -18,7 +18,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         )!.Returns(callInfo =>
         {
@@ -40,35 +40,35 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         );
     }
 
     [Fact]
-    public async Task GetById_WhenEmptyGuid_ReturnsNull()
+    public async Task GetById_WhenEmptyGuid_ThrowsNotFoundException()
     {
         //Arrange
         var emptyId = Guid.Empty;
 
         //Act
-        var emptyIdResult = await Service.GetById(emptyId, default);
+        var emptyIdResult = async () => await Service.GetById(emptyId, default);
 
         //Assert
-        emptyIdResult.ShouldBeNull();
+        await Should.ThrowAsync<NotFoundException>(emptyIdResult());
     }
 
     [Fact]
-    public async Task GetById_WhenUserDoesNotExist_ReturnsNull()
+    public async Task GetById_WhenUserDoesNotExist_ThrowsNotFoundException()
     {
         //Arrange
         var fakeId = Guid.NewGuid();
 
         //Act
-        var fakeIdResult = await Service.GetById(fakeId, default);
+        var fakeIdResult = async () => await Service.GetById(fakeId, default);
 
         //Assert
-        fakeIdResult.ShouldBeNull();
+        await Should.ThrowAsync<NotFoundException>(fakeIdResult());
     }
 
     [Fact]
@@ -81,7 +81,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         ).Returns(cachedDto);
 
@@ -95,7 +95,7 @@ public class UserServiceGetByIdTests : UserServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<UserDto>>>(),
+            Arg.Any<Func<Task<UserDto?>>>(),
             default
         );
     }

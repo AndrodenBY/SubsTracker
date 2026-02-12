@@ -1,4 +1,4 @@
-namespace SubsTracker.IntegrationTests;
+namespace SubsTracker.IntegrationTests.Helpers;
 
 public class TestsAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -7,11 +7,18 @@ public class TestsAuthHandler(
     ISystemClock clock)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
 {
+    public const string DefaultAuth0Id = "auth0|test-user-12345";
+    
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
+        if (Context.Request.Headers.ContainsKey("X-Skip-Auth"))
+        {
+            return Task.FromResult(AuthenticateResult.NoResult());
+        }
+        
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
+            new Claim(ClaimTypes.NameIdentifier, DefaultAuth0Id),
             new Claim(ClaimTypes.Name, "testuser@example.com"),
             new Claim(ClaimTypes.Role, "Admin")
         };

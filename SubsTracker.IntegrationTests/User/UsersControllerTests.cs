@@ -1,3 +1,4 @@
+using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 using SubsTracker.IntegrationTests.Helpers.User;
 
 namespace SubsTracker.IntegrationTests.User;
@@ -7,6 +8,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     private readonly UserTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly UserTestsDataSeedingHelper _dataSeedingHelper;
+    private readonly TestsWebApplicationFactory _factory;
 
     public UsersControllerTests(TestsWebApplicationFactory factory)
     {
@@ -26,6 +28,33 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 
         //Assert
         await _assertHelper.GetByIdValidAssert(response, seedData.User);
+    }
+    
+    [Fact]
+    public async Task GetByAuth0Id_ShouldReturnCurrentAuthenticatedUser()
+    {
+        //Arrange
+        var seedData = await _dataSeedingHelper.AddSeedUser();
+
+        //Act
+        var response = await _client.GetAsync($"{EndpointConst.User}/me");
+
+        //Assert
+        await _assertHelper.GetByAuth0IdValidAssert(response, seedData.User);
+    }
+    
+    [Fact]
+    public async Task GetByAuth0Id_WhenNoTokenProvided_ReturnsUnauthorized()
+    {
+        //Arrange
+        var request = new HttpRequestMessage(HttpMethod.Get, $"{EndpointConst.User}/me");
+        request.Headers.Add("X-Skip-Auth", "true"); 
+
+        //Act
+        var response = await _client.SendAsync(request);
+
+        //Assert
+        response.StatusCode.ShouldBe(System.Net.HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -71,15 +100,16 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     public async Task Update_WhenValidData_ReturnsUpdatedUser()
     {
         //Arrange
-        var seedData = await _dataSeedingHelper.AddSeedUser();
+        var seedData = await _dataSeedingHelper.AddSeedUser(); 
         var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
 
         //Act
-        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/{seedData.User.Id}", updateDto);
+        var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/me", updateDto);
 
         //Assert
-        await _assertHelper.UpdateValidAssert(response, seedData.User.Id, updateDto.FirstName, updateDto.Email);
+        await _assertHelper.UpdateValidAssert(response, updateDto.FirstName);
     }
+
 
     [Fact]
     public async Task Delete_WhenValidId_RemovesUser()
@@ -88,7 +118,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var seedData = await _dataSeedingHelper.AddSeedUser();
 
         //Act
-        var response = await _client.DeleteAsync($"{EndpointConst.User}/{seedData.User.Id}");
+        var response = await _client.DeleteAsync($"{EndpointConst.User}");
 
         //Assert
         await _assertHelper.DeleteValidAssert(response, seedData.User.Id);

@@ -2,21 +2,21 @@ using AutoMapper;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
-using SubsTracker.DAL.Interfaces.Repositories;
+using SubsTracker.DAL.Interfaces;
+using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
 using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
 using UserModel = SubsTracker.DAL.Models.User.User;
-using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
 
 namespace SubsTracker.BLL.Services.User;
 
 public class UserService(
-    IRepository<UserModel> repository,
+    IUserRepository userRepository,
     IMapper mapper,
     ICacheService cacheService
-) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(repository, mapper, cacheService),
+) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
     IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
@@ -25,21 +25,51 @@ public class UserService(
         return await base.GetAll(predicate, cancellationToken);
     }
 
-    public override async Task<UserDto> Create(CreateUserDto createDto, CancellationToken cancellationToken)
+    public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)
     {
-        var userExists = await Repository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
-        if (userExists is not null)
-            throw new InvalidOperationException($"User with email {userExists.Email} already exists");
+        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+            ?? throw new NotFoundException($"User with {auth0Id} not found");
+        
+        return Mapper.Map<UserDto>(user);
+    }
+    
+    public async Task<UserDto> Create(string auth0Id, CreateUserDto createDto, CancellationToken cancellationToken)
+    {
+        var existingUser = await userRepository.GetByPredicate(user => user.Email == createDto.Email, cancellationToken);
 
-        return await base.Create(createDto, cancellationToken);
+        if (existingUser is null)
+        {
+            var newUser = Mapper.Map<UserModel>(createDto);
+            newUser.Auth0Id = auth0Id; 
+            var createdUser = await userRepository.Create(newUser, cancellationToken);
+            return Mapper.Map<UserDto>(createdUser);
+        }
+        
+        if (string.IsNullOrEmpty(existingUser.Auth0Id))
+        {
+            existingUser.Auth0Id = auth0Id;
+            await userRepository.Update(existingUser, cancellationToken);
+        }
+    
+        return Mapper.Map<UserDto>(existingUser);
     }
 
-    public override async Task<UserDto> Update(Guid updateId, UpdateUserDto updateDto,
-        CancellationToken cancellationToken)
+    public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var userExists = await Repository.GetById(updateId, cancellationToken)
-                         ?? throw new InvalidOperationException($"Cannot update user with id {updateId}");
+        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
+        
+        Mapper.Map(updateDto, user);
+        var updatedEntity = await userRepository.Update(user, cancellationToken);
+    
+        return Mapper.Map<UserDto>(updatedEntity);
+    }
 
-        return await base.Update(userExists.Id, updateDto, cancellationToken);
+    public async Task<bool> Delete(string auth0Id, CancellationToken cancellationToken)
+    {
+        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+                   ?? throw new NotFoundException($"User with id {auth0Id} not found");
+        
+        return await userRepository.Delete(user, cancellationToken);
     }
 }

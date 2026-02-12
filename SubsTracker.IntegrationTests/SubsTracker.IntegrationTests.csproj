@@ -6,7 +6,13 @@
         <Nullable>enable</Nullable>
         <IsPackable>false</IsPackable>
     </PropertyGroup>
-
+    
+    <ItemGroup>
+        <None Update="appsettings.IntegrationTest.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+    
     <ItemGroup>
         <PackageReference Include="coverlet.collector" Version="6.0.2"/>
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.9"/>
