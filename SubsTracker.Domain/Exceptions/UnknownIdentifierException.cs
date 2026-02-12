@@ -1,3 +1,3 @@
 namespace SubsTracker.Domain.Exceptions;
 
-public class UnknowIdentifierException(string message) : Exception(message);
+public class UnknownIdentifierException(string message) : Exception(message);

@@ -57,7 +57,7 @@ public class SubscriptionServiceCreateTests : SubscriptionServiceTestsBase
         var createDto = Fixture.Create<CreateSubscriptionDto>();
 
         //Act & Assert
-        await Should.ThrowAsync<UnknowIdentifierException>(async () =>
+        await Should.ThrowAsync<UnknownIdentifierException>(async () =>
             await Service.Create(Guid.NewGuid(), createDto, default));
     }
 }

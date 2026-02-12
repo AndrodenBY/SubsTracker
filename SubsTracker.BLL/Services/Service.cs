@@ -37,7 +37,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     {
         var cacheKey = RedisKeySetter.SetCacheKey<TEntity>(id);
         var result = await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken)
-                     ?? throw new UnknowIdentifierException($"Entity with {id} not found");
+                     ?? throw new UnknownIdentifierException($"Entity with {id} not found");
         
         async Task<TDto?> GetEntity()
         {
@@ -58,7 +58,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     public virtual async Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById(updateId, cancellationToken)
-                             ?? throw new UnknowIdentifierException($"Entity with id {updateId} not found");
+                             ?? throw new UnknownIdentifierException($"Entity with id {updateId} not found");
 
         Mapper.Map(updateDto, existingEntity);
         var updatedEntity = await repository.Update(existingEntity, cancellationToken);
@@ -69,7 +69,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     public virtual async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingEntity = await repository.GetById(id, cancellationToken)
-                             ?? throw new UnknowIdentifierException($"Entity with id {id} not found");
+                             ?? throw new UnknownIdentifierException($"Entity with id {id} not found");
 
         return await repository.Delete(existingEntity, cancellationToken);
     }

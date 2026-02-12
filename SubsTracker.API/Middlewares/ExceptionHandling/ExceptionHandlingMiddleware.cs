@@ -29,7 +29,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
 
         var errorModel = exception switch
         {
-            UnknowIdentifierException ex => new ErrorModel((int)HttpStatusCode.NotFound, ex.Message),
+            UnknownIdentifierException ex => new ErrorModel((int)HttpStatusCode.NotFound, ex.Message),
             InvalidRequestDataException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
             PolicyViolationException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
             ForbiddenException ex => new ErrorModel((int)HttpStatusCode.Forbidden, ex.Message),

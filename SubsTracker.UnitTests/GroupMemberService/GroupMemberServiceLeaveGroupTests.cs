@@ -47,7 +47,7 @@ public class GroupMemberServiceLeaveGroupTests : GroupMemberServiceTestBase
         var act = async () => await Service.LeaveGroup(groupId, userId, default);
 
         //Assert
-        await act.ShouldThrowAsync<UnknowIdentifierException>();
+        await act.ShouldThrowAsync<UnknownIdentifierException>();
         await MemberRepository.Received(1)
             .GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
         await MemberRepository.DidNotReceive().Delete(Arg.Any<GroupMember>(), default);
