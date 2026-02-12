@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Interfaces.Subscription;
-using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;

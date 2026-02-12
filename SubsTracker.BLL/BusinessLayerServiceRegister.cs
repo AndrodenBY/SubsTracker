@@ -38,7 +38,7 @@ public static class BusinessLayerServiceRegister
                 redisOptions.Configuration = configuration["Redis"] ?? "localhost:6379,abortConnect=false";
                 redisOptions.InstanceName = "Redis_";
             })
-            .AddSingleton<IConnectionMultiplexer>(serviceProvider =>
+            .AddSingleton<IConnectionMultiplexer>(_ =>
             {
                 var redisConnection = configuration["Redis"] ?? "localhost:6379,abortConnect=false";
                 var options = ConfigurationOptions.Parse(redisConnection);
