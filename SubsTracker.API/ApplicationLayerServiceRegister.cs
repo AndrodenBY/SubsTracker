@@ -48,7 +48,5 @@ public static class ApplicationLayerServiceRegister
                     ValidateLifetime = true,
                 };
             });
-        Console.WriteLine("Auth0 Section Exists: " + configuration.GetSection("Auth0").Exists()); Console.WriteLine("Auth0:Audience = " + configuration["Auth0:Audience"]);
-        Console.WriteLine($"DEBUG: Current Environment: {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
     }
 }
