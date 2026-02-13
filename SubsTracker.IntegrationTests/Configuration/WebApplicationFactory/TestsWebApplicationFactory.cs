@@ -30,7 +30,9 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestAuthScheme");
         
-        client.DefaultRequestHeaders.Add(TestsAuthHandler.Auth0Header, auth0Id);
+        client.DefaultRequestHeaders.Remove(TestsAuthHandler.Auth0Header);
+        client.DefaultRequestHeaders.TryAddWithoutValidation(TestsAuthHandler.Auth0Header, auth0Id);
+        
         return client;
     }
 }
