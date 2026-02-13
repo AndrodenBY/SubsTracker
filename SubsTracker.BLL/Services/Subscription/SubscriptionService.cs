@@ -12,7 +12,6 @@ using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using SubsTracker.Messaging.Interfaces;
-using UserModel = SubsTracker.DAL.Models.User.User;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
 namespace SubsTracker.BLL.Services.Subscription;
