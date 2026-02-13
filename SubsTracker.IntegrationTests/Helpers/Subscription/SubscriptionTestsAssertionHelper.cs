@@ -1,5 +1,4 @@
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
-using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
 
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
@@ -7,9 +6,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 {
     public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
-        var rawContent = await response.Content.ReadAsStringAsync();
-        
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        await response.Content.ReadAsStringAsync();
         
         var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
 

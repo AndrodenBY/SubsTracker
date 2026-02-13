@@ -30,7 +30,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
     }
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureAppConfiguration((context, config) =>
+        builder.ConfigureAppConfiguration((_, config) =>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
