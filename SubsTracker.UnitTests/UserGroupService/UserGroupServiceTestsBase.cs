@@ -9,7 +9,7 @@ public class UserGroupServiceTestsBase
     protected readonly IMapper Mapper;
     protected readonly GroupModelService Service;
     protected readonly ISubscriptionRepository SubscriptionRepository;
-    protected readonly IRepository<User> UserRepository;
+    protected readonly IUserRepository UserRepository;
 
     protected UserGroupServiceTestsBase()
     {
@@ -21,7 +21,7 @@ public class UserGroupServiceTestsBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         GroupRepository = Substitute.For<IUserGroupRepository>();
-        UserRepository = Substitute.For<IRepository<User>>();
+        UserRepository = Substitute.For<IUserRepository>();
         SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
         Mapper = Substitute.For<IMapper>();
         _memberService = Substitute.For<IGroupMemberService>();

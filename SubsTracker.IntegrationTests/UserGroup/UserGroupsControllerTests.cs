@@ -74,10 +74,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     {
         //Arrange
         var createDto = _dataSeedingHelper.AddCreateUserGroupDto();
-        var seedUser = await _dataSeedingHelper.AddSeedUserOnly();
+        await _dataSeedingHelper.AddSeedUserOnly();
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.PostAsJsonAsync($"{EndpointConst.Group}/{seedUser.User.Id}/create", createDto);
+        var response = await client.PostAsJsonAsync($"{EndpointConst.Group}", createDto);
 
         //Assert
         await _assertHelper.CreateValidAssert(response, createDto);
