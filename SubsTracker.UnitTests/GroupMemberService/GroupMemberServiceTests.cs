@@ -180,9 +180,9 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
-        )!.Returns(cachedDto);
+        ).Returns(cachedDto);
 
         //Act
         var result = await Service.GetFullInfoById(memberId, default);
@@ -195,7 +195,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         );
     }
@@ -220,7 +220,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         )!.Returns(callInfo =>
         {
@@ -241,7 +241,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<TimeSpan>(),
-            Arg.Any<Func<Task<GroupMemberDto>>>(),
+            Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         );
     }
