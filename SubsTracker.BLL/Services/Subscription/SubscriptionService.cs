@@ -1,5 +1,6 @@
 using AutoMapper;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Helpers;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
@@ -49,7 +50,8 @@ public class SubscriptionService(
     {
         var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
                            ?? throw new UnknownIdentifierException($"User with id {auth0Id} does not exist");
-        await PreventSubscriptionDuplication(existingUser.Id, createDto.Name, cancellationToken);
+        
+        await SubscriptionPolicyChecker.PreventSubscriptionDuplication(subscriptionRepository, existingUser.Id, createDto.Name, cancellationToken);
         
         var subscriptionToCreate = Mapper.Map<SubscriptionModel>(createDto);
         subscriptionToCreate.UserId = existingUser.Id;
@@ -62,7 +64,8 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> Update(string auth0Id, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var (originalSubscription, _) = await GetValidatedSubscription(auth0Id, updateDto.Id, cancellationToken);
+        var (originalSubscription, _) = 
+            await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, auth0Id, updateDto.Id, cancellationToken);
 
         Mapper.Map(updateDto, originalSubscription);
         var updatedSubscription = await subscriptionRepository.Update(originalSubscription, cancellationToken);
@@ -73,7 +76,8 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> CancelSubscription(string auth0Id, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var (subscription, user) = await GetValidatedSubscription(auth0Id, subscriptionId, cancellationToken);
+        var (subscription, user) = 
+            await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, auth0Id, subscriptionId, cancellationToken);
         
         subscription.Active = false;
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
@@ -128,33 +132,5 @@ public class SubscriptionService(
         };
 
         await cacheAccessService.RemoveData(keysToRemove, cancellationToken);
-    }
-    
-    private async Task<(SubscriptionModel Subscription, UserModel User)> GetValidatedSubscription(string auth0Id, Guid subscriptionId, CancellationToken cancellationToken)
-    {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new UnknownIdentifierException($"User {auth0Id} not found");
-
-        var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
-                           ?? throw new UnknownIdentifierException($"Subscription {subscriptionId} not found");
-        
-        if (!subscription.UserId.HasValue || subscription.UserId.Value != user.Id)
-        {
-            throw new ForbiddenException($"User {user.Id} does not own subscription {subscriptionId}");
-        }
-        
-        return (subscription, user);
-    }
-    
-    private async Task PreventSubscriptionDuplication(Guid userId, string subscriptionName, CancellationToken cancellationToken)
-    {
-        var existingSub = await subscriptionRepository.GetByPredicate(
-            subscription => subscription.UserId == userId && subscription.Name == subscriptionName && subscription.Active, 
-            cancellationToken);
-        
-        if (existingSub is not null)
-        {
-            throw new PolicyViolationException($"A subscription named '{subscriptionName}' already exists for this user.");
-        }
     }
 }
