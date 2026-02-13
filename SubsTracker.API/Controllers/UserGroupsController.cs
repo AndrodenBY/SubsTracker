@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SubsTracker.API.Extension;
 using SubsTracker.API.ViewModel.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -32,8 +33,7 @@ public class UserGroupsController(
     ///     Retrieves all user groups with optional filtering
     /// </summary>
     [HttpGet]
-    public async Task<List<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto,
-        CancellationToken cancellationToken)
+    public async Task<List<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var getAll = await service.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<UserGroupViewModel>>(getAll);
@@ -43,8 +43,7 @@ public class UserGroupsController(
     ///     Retrieves all members of a group with optional filtering
     /// </summary>
     [HttpGet("members")]
-    public async Task<List<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto,
-        CancellationToken cancellationToken)
+    public async Task<List<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
     {
         var entities = await memberService.GetAll(filterDto, cancellationToken);
         return mapper.Map<List<GroupMemberViewModel>>(entities);
@@ -53,11 +52,10 @@ public class UserGroupsController(
     /// <summary>
     ///     Creates a new user group
     /// </summary>
-    [HttpPost("{userId:guid}/create")]
-    public async Task<UserGroupViewModel> Create(Guid userId, CreateUserGroupDto createDto,
-        CancellationToken cancellationToken)
+    [HttpPost]
+    public async Task<UserGroupViewModel> Create(CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(userId, createDto, cancellationToken);
+        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
         return mapper.Map<UserGroupViewModel>(create);
     }
 

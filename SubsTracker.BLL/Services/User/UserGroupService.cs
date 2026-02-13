@@ -6,6 +6,7 @@ using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.RedisSettings;
+using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
@@ -17,7 +18,7 @@ namespace SubsTracker.BLL.Services.User;
 
 public class UserGroupService(
     IUserGroupRepository groupRepository,
-    IRepository<UserModel> userRepository,
+    IUserRepository userRepository,
     ISubscriptionRepository subscriptionRepository,
     IGroupMemberService memberService,
     IMapper mapper,
@@ -45,12 +46,11 @@ public class UserGroupService(
         return await base.GetAll(predicate, cancellationToken);
     }
 
-    public async Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto,
-        CancellationToken cancellationToken)
+    public async Task<UserGroupDto> Create(string auth0Id, CreateUserGroupDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetById(userId, cancellationToken)
-                           ?? throw new InvalidRequestDataException($"User with id {userId} does not exist");
-        createDto.UserId = userId;
+        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+                           ?? throw new InvalidRequestDataException($"User with id {auth0Id} does not exist");
+        createDto.UserId = existingUser.Id;
 
         var createdGroup = await base.Create(createDto, cancellationToken);
 
@@ -65,8 +65,7 @@ public class UserGroupService(
         return createdGroup;
     }
 
-    public new async Task<UserGroupDto> Update(Guid updateId, UpdateUserGroupDto updateDto,
-        CancellationToken cancellationToken)
+    public new async Task<UserGroupDto> Update(Guid updateId, UpdateUserGroupDto updateDto, CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(updateId, cancellationToken)
                                 ?? throw new UnknownIdentifierException($"UserGroup with id {updateId} not found");
@@ -77,8 +76,7 @@ public class UserGroupService(
         return Mapper.Map<UserGroupDto>(updatedEntity);
     }
 
-    public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId,
-        CancellationToken cancellationToken)
+    public async Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
                     ?? throw new UnknownIdentifierException($"Group with id {groupId} not found.");
@@ -96,8 +94,7 @@ public class UserGroupService(
         return Mapper.Map<UserGroupDto>(updatedGroup);
     }
 
-    public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId,
-        CancellationToken cancellationToken)
+    public async Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var group = await groupRepository.GetFullInfoById(groupId, cancellationToken)
                     ?? throw new UnknownIdentifierException($"Group with id {groupId} not found.");
