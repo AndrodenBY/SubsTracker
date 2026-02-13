@@ -41,8 +41,7 @@ public class SubscriptionsController(
     ///     Creates a new subscription for a specific user
     /// </summary>
     [HttpPost]
-    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto,
-        CancellationToken cancellationToken)
+    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
         var create = await subscriptionService.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
