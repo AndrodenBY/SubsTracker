@@ -11,9 +11,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     private readonly HttpClient _client;
     private readonly UserGroupTestsDataSeedingHelper _dataSeedingHelper;
     private readonly ITestHarness _harness;
+    private readonly TestsWebApplicationFactory _factory;
 
     public UserGroupsControllerTests(TestsWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", "fake-jwt-token");
@@ -21,6 +23,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         _dataSeedingHelper = new UserGroupTestsDataSeedingHelper(factory);
         _assertHelper = new UserGroupTestsAssertionHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
+        
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
     }
 
     [Fact]

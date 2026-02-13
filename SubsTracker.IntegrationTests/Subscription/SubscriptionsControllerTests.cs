@@ -5,6 +5,7 @@ using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Subscription;
 
+[Collection("SequentialIntegrationTests")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -21,6 +22,11 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         _dataSeedingHelper = new SubscriptionTestsDataSeedingHelper(factory);
         _assertHelper = new SubscriptionTestsAssertionHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
+        
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
     }
 
     [Fact]
