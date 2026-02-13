@@ -40,11 +40,10 @@ public class SubscriptionsController(
     /// <summary>
     ///     Creates a new subscription for a specific user
     /// </summary>
-    [HttpPost("{userId:guid}")]
-    public async Task<SubscriptionViewModel> Create(Guid userId, [FromBody] CreateSubscriptionDto createDto,
-        CancellationToken cancellationToken)
+    [HttpPost]
+    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(userId, createDto, cancellationToken);
+        var create = await service.Create(createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
     }
 
