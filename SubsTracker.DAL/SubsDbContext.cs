@@ -9,10 +9,10 @@ public class SubsDbContext : DbContext
 {
     public SubsDbContext(DbContextOptions<SubsDbContext> options) : base(options)
     {
-        if (Database.IsRelational())
-            Database.Migrate();
-        else
-            Database.EnsureCreated();
+        // if (Database.IsRelational())
+        //     Database.Migrate();
+        // else
+        //     Database.EnsureCreated();
     }
 
     public DbSet<User> Users { get; set; }
