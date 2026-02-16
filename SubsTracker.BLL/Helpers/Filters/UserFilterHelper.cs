@@ -11,21 +11,26 @@ public static class UserFilterHelper
     {
         var predicate = PredicateBuilder.New<User>(true);
 
+        if (filter is null)
+        {
+            return predicate;
+        }
+
         predicate = FilterHelper.AddFilterCondition<User>(
             predicate,
-            filter?.FirstName,
+            filter.FirstName,
             user => user.FirstName.ToLower().Contains(filter.FirstName!.ToLower())
         );
 
         predicate = FilterHelper.AddFilterCondition<User>(
             predicate,
-            filter?.LastName,
+            filter.LastName,
             user => user.LastName != null && user.LastName.ToLower().Contains(filter.LastName!.ToLower())
         );
 
         predicate = FilterHelper.AddFilterCondition<User>(
             predicate,
-            filter?.Email,
+            filter.Email,
             user => user.Email.ToLower().Equals(filter.Email!.ToLower())
         );
 
