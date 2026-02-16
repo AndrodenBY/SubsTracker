@@ -62,15 +62,16 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Assert
         response.StatusCode.ShouldBe(System.Net.HttpStatusCode.Unauthorized);
     }
-
+    
     [Fact]
     public async Task GetAll_WhenFilteredByEmail_ReturnsMatchingUser()
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser();
+        var url = $"{EndpointConst.User}?Email={seedData.User.Email}&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.User}?email={seedData.User.Email}");
+        var response = await _client.GetAsync(url);
 
         //Assert
         await _assertHelper.GetAllValidAssert(response, seedData.User.Email);
@@ -81,9 +82,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         await _dataSeedingHelper.AddSeedUser();
+        var url = $"{EndpointConst.User}?Email=nonexistent@example.com&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.User}?email=nonexistent@example.com");
+        var response = await _client.GetAsync(url);
 
         //Assert
         await _assertHelper.GetAllInvalidAssert(response);

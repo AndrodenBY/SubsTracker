@@ -6,6 +6,7 @@ using SubsTracker.API.ViewModel.Subscription;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Interfaces.Subscription;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.API.Controllers;
 
@@ -31,10 +32,10 @@ public class SubscriptionsController(
     ///     Retrieves all subscriptions with optional filtering
     /// </summary>
     [HttpGet]
-    public async Task<List<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, CancellationToken cancellationToken)
+    public async Task<PaginatedList<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
-        var entities = await subscriptionService.GetAll(filterDto, cancellationToken);
-        return mapper.Map<List<SubscriptionViewModel>>(entities);
+        var pagedResult = await subscriptionService.GetAll(filterDto, paginationParameters, cancellationToken);
+        return pagedResult.MapToPage(mapper.Map<SubscriptionViewModel>);
     }
 
     /// <summary>
