@@ -12,6 +12,11 @@ public static class GroupMemberFilterHelper
     {
         var predicate = PredicateBuilder.New<GroupMember>(true);
 
+        if (filter is null)
+        {
+            return predicate;
+        }
+
         predicate = FilterHelper.AddFilterCondition<GroupMember, Guid>(
             predicate,
             filter.Id,

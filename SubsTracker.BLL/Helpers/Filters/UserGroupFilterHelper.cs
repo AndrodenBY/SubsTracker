@@ -11,9 +11,14 @@ public static class UserGroupFilterHelper
     {
         var predicate = PredicateBuilder.New<UserGroup>(true);
 
+        if (filter is null)
+        {
+            return predicate;
+        }
+
         predicate = FilterHelper.AddFilterCondition<UserGroup>(
             predicate,
-            filter?.Name,
+            filter.Name,
             group => group.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 

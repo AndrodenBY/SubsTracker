@@ -12,9 +12,14 @@ public static class SubscriptionFilterHelper
     {
         var predicate = PredicateBuilder.New<Subscription>(true);
 
+        if (filter is null)
+        {
+            return predicate;
+        }
+
         predicate = FilterHelper.AddFilterCondition<Subscription>(
             predicate,
-            filter?.Name,
+            filter.Name,
             subscription => subscription.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 
