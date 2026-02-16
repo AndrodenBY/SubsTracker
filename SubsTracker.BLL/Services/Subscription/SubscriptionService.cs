@@ -11,6 +11,7 @@ using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.Messaging.Interfaces;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
@@ -36,13 +37,13 @@ public class SubscriptionService(
             return Mapper.Map<SubscriptionDto>(subscriptionWithEntities);
         }
         
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, GetSubscription, cancellationToken);
     }
 
-    public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var predicate = SubscriptionFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, cancellationToken);
+        return await base.GetAll(predicate, paginationParameters, cancellationToken);
     }
 
     public async Task<SubscriptionDto> Create(string auth0Id, CreateSubscriptionDto createDto, CancellationToken cancellationToken)

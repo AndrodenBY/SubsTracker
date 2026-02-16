@@ -1,3 +1,5 @@
+using SubsTracker.Domain.Pagination;
+
 namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceTests : GroupMemberServiceTestBase
@@ -179,7 +181,6 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
 
         CacheService.CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         ).Returns(cachedDto);
@@ -194,7 +195,6 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         await MemberRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), default);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         );
@@ -219,7 +219,6 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
 
         CacheService.CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         )!.Returns(callInfo =>
@@ -240,80 +239,112 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
 
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupMemberDto?>>>(),
             default
         );
     }
     
     [Fact]
-    public async Task GetAll_WhenFilterIsEmpty_ReturnsAllMembers()
+    public async Task GetAll_WhenFilterIsEmpty_ReturnsPaginatedMembers()
     {
         //Arrange
         var members = Fixture.CreateMany<GroupMember>(3).ToList();
         var memberDtos = Fixture.CreateMany<GroupMemberDto>(3).ToList();
-
+        
+        var paginatedMembers = new PaginatedList<GroupMember>(members, 1, 10, 1, 3);
+    
         var filter = new GroupMemberFilterDto();
-
-        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-            .Returns(members);
-        Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>())
-            .Returns(memberDtos);
+        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
+        
+        MemberRepository.GetAll(
+                Arg.Any<Expression<Func<GroupMember, bool>>>(), 
+                Arg.Any<PaginationParameters>(), 
+                Arg.Any<CancellationToken>())
+            .Returns(paginatedMembers);
+        
+        Mapper.Map<GroupMemberDto>(Arg.Any<GroupMember>())
+            .Returns(memberDtos[0], memberDtos[1], memberDtos[2]);
 
         //Act
-        var result = await Service.GetAll(filter, default);
+        var result = await Service.GetAll(filter, paginationParams, default);
 
         //Assert
         result.ShouldNotBeNull();
-        result.ShouldNotBeEmpty();
-        result.Count.ShouldBe(3);
+        result.Items.ShouldNotBeEmpty();
+        result.Items.Count.ShouldBe(3);
+        result.TotalCount.ShouldBe(3);
+        result.PageNumber.ShouldBe(1);
     }
 
     [Fact]
-    public async Task GetAll_WhenNoMembers_ReturnsEmptyList()
+    public async Task GetAll_WhenNoMembers_ReturnsEmptyPaginatedList()
     {
         //Arrange
         var filter = new GroupMemberFilterDto();
+        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
+        
+        var emptyPaginatedMembers = new PaginatedList<GroupMember>([], 1, 10, 0, 0);
 
-        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-            .Returns([]);
-        Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto>());
+        MemberRepository.GetAll(
+                Arg.Any<Expression<Func<GroupMember, bool>>>(), 
+                Arg.Any<PaginationParameters>(), 
+                Arg.Any<CancellationToken>())
+            .Returns(emptyPaginatedMembers);
 
         //Act
-        var result = await Service.GetAll(filter, default);
+        var result = await Service.GetAll(filter, paginationParams, default);
 
         //Assert
-        result.ShouldBeEmpty();
+        result.ShouldNotBeNull();
+        result.Items.ShouldBeEmpty();
+        result.TotalCount.ShouldBe(0);
+        result.PageCount.ShouldBe(0);
     }
 
     [Fact]
-    public async Task GetAll_WhenFilteredByName_ReturnsCorrectGroupMember()
+    public async Task GetAll_WhenFilteredByRole_ReturnsCorrectGroupMember()
     {
         //Arrange
         var memberToFind = Fixture.Create<GroupMember>();
         var memberDto = Fixture.Build<GroupMemberDto>()
             .With(d => d.Id, memberToFind.Id)
-            .With(filter => filter.Role, memberToFind.Role)
+            .With(d => d.Role, memberToFind.Role)
             .Create();
 
         var filter = new GroupMemberFilterDto { Role = memberToFind.Role };
-
-        MemberRepository.GetAll(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
-            .Returns(new List<GroupMember> { memberToFind });
-        Mapper.Map<List<GroupMemberDto>>(Arg.Any<List<GroupMember>>()).Returns(new List<GroupMemberDto> { memberDto });
+        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
+        
+        var paginatedResult = new PaginatedList<GroupMember>(
+            new List<GroupMember> { memberToFind }, 
+            PageNumber: 1, 
+            PageSize: 10, 
+            PageCount: 1, 
+            TotalCount: 1
+        );
+        
+        MemberRepository.GetAll(
+                Arg.Any<Expression<Func<GroupMember, bool>>>(),
+                Arg.Any<PaginationParameters>(),
+                Arg.Any<CancellationToken>()
+            )
+            .Returns(paginatedResult);
+        
+        Mapper.Map<GroupMemberDto>(memberToFind).Returns(memberDto);
 
         //Act
-        var result = await Service.GetAll(filter, default);
+        var result = await Service.GetAll(filter, paginationParams, default);
 
         //Assert
         await MemberRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<GroupMember, bool>>>(),
-            default
+            Arg.Is<PaginationParameters>(p => p.PageNumber == 1 && p.PageSize == 10),
+            Arg.Any<CancellationToken>()
         );
 
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem();
-        result.Single().Role.ShouldBe(memberToFind.Role);
+        result.Items.ShouldHaveSingleItem();
+        result.Items.Single().Role.ShouldBe(memberToFind.Role);
+        result.TotalCount.ShouldBe(1);
     }
     
     [Fact]

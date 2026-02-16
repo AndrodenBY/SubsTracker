@@ -6,6 +6,11 @@ public static class RedisKeySetter
     {
         return $"{id}:{typeof(T).Name}";
     }
+    
+    public static string SetCacheKey<T>(string stringIdentifier)
+    {
+        return $"{stringIdentifier}:{typeof(T).Name}";
+    }
 
     public static string SetCacheKey(Guid id, string suffix)
     {

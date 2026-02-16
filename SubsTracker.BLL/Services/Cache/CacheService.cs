@@ -16,17 +16,18 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
     /// <inheritdoc />
     public async Task<TValue?> CacheDataWithLock<TValue>(
         string cacheKey,
-        TimeSpan expirationTime,
         Func<Task<TValue?>>? dataFactory,
-        CancellationToken cancellationToken) where TValue : class
+        CancellationToken cancellationToken,
+        TimeSpan? expirationTime = null) where TValue : class
     {
+        var appliedExpirationTime = expirationTime ?? RedisConstants.ExpirationTime;
         var data = await GetData<TValue>(cacheKey, cancellationToken);
         if (data is not null || dataFactory is null)
         {
             return data;
         }
 
-        return await LockAndPopulate(cacheKey, expirationTime, dataFactory, cancellationToken);
+        return await LockAndPopulate(cacheKey, appliedExpirationTime, dataFactory, cancellationToken);
     }
 
     /// <summary>

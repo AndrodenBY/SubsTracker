@@ -48,9 +48,10 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddOnlyUserGroup();
+        var url = $"{EndpointConst.Group}?Name={seedData.Group.Name}&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Group}?name={seedData.Group.Name}");
+        var response = await _client.GetAsync(url);
 
         //Assert
         await _assertHelper.GetAllValidAssert(response, seedData.Group.Name);
@@ -61,9 +62,10 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     {
         //Arrange
         await _dataSeedingHelper.AddOnlyUserGroup();
+        var url = $"{EndpointConst.Group}?Name=NonExistent&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Group}?name=NonExistent");
+        var response = await _client.GetAsync(url);
 
         //Assert
         await _assertHelper.GetAllInvalidAssert(response);
@@ -117,9 +119,10 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         //Arrange
         var seedData = await _dataSeedingHelper.AddUserGroupWithMembers();
         var targetRole = MemberRole.Admin;
+        var url = $"{EndpointConst.Group}/members?Role={targetRole}&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Group}/members?role={targetRole}");
+        var response = await _client.GetAsync(url);
 
         //Assert
         await _assertHelper.GetAllMembersValidAssert(response, seedData, targetRole);

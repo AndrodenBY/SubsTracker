@@ -1,3 +1,4 @@
+using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
@@ -23,10 +24,13 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<List<UserGroupViewModel>>(content);
+        
+        var result = JsonConvert.DeserializeObject<PaginatedList<UserGroupViewModel>>(content);
 
         result.ShouldNotBeNull();
-        result.ShouldContain(g => g.Name == expectedName);
+        result.Items.ShouldNotBeNull();
+        
+        result.Items.ShouldContain(g => g.Name == expectedName);
     }
 
     public async Task GetAllInvalidAssert(HttpResponseMessage response)
@@ -34,10 +38,11 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<List<UserGroupViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<PaginatedList<UserGroupViewModel>>(content);
 
         result.ShouldNotBeNull();
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
+        result.TotalCount.ShouldBe(0);
     }
 
     public async Task CreateValidAssert(HttpResponseMessage response, CreateUserGroupDto expected)
@@ -89,19 +94,19 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         entity.ShouldBeNull();
     }
 
-    public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity,
-        MemberRole targetRole)
+    public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity, MemberRole targetRole)
     {
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var members = JsonConvert.DeserializeObject<List<GroupMemberViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<PaginatedList<GroupMemberViewModel>>(content);
 
-        members.ShouldNotBeNull();
-        members.ShouldAllBe(m => m.Role == targetRole);
+        result.ShouldNotBeNull();
+        result.Items.ShouldNotBeNull();
+        result.Items.ShouldAllBe(m => m.Role == targetRole);
 
         var expected = seedEntity.Members.First(m => m.Role == targetRole);
-        var actual = members.FirstOrDefault(m => m.Id == expected.Id);
+        var actual = result.Items.FirstOrDefault(m => m.Id == expected.Id);
 
         actual.ShouldNotBeNull();
         actual.Role.ShouldBe(targetRole);
