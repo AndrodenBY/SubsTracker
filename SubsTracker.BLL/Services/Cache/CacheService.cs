@@ -95,4 +95,23 @@ public class CacheService(IDistributedCache cache, ILogger<CacheService> logger,
         await Task.Delay(retryDelay, cancellationToken);
         return await GetData<TValue>(cacheKey, cancellationToken);
     }
+    
+    /// <summary>
+    /// Clears the primary entity key and any related dependent keys
+    /// </summary>
+    /// <typeparam name="TEntity">The type used to generate the base cache key</typeparam>
+    public async Task InvalidateCache<TEntity>(Guid id, CancellationToken cancellationToken, params string[] additionalKeys)
+    {
+        var primaryKey = RedisKeySetter.SetCacheKey<TEntity>(id);
+        var keysToRemove = new List<string> { primaryKey };
+        
+        if (additionalKeys is { Length: > 0 })
+        {
+            keysToRemove.AddRange(additionalKeys);
+        }
+
+        logger.LogInformation("Invalidating cache for {Type} with ID {Id}. Total keys: {Count}", typeof(TEntity).Name, id, keysToRemove.Count);
+        
+        await RemoveData(keysToRemove, cancellationToken);
+    }
 }

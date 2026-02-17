@@ -66,7 +66,8 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 
         Mapper.Map(updateDto, existingEntity);
         var updatedEntity = await repository.Update(existingEntity, cancellationToken);
-
+        
+        await CacheService.InvalidateCache<TEntity>(updateId, cancellationToken);
         return Mapper.Map<TDto>(updatedEntity);
     }
 
@@ -75,11 +76,17 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         var existingEntity = await repository.GetById(id, cancellationToken)
                              ?? throw new UnknownIdentifierException($"Entity with id {id} not found");
 
-        return await repository.Delete(existingEntity, cancellationToken);
+        var isDeleted = await repository.Delete(existingEntity, cancellationToken);
+        
+        if (isDeleted)
+        {
+            await CacheService.InvalidateCache<TEntity>(id, cancellationToken);
+        }
+
+        return isDeleted;
     }
 
-    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate,
-        CancellationToken cancellationToken)
+    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
     {
         var entity = await repository.GetByPredicate(predicate, cancellationToken);
 
