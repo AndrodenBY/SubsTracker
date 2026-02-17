@@ -52,6 +52,12 @@ public static class SubscriptionFilterHelper
             filter.Content,
             subscription => subscription.Content == filter.Content!.Value
         );
+        
+        predicate = FilterHelper.AddFilterCondition<Subscription, bool>(
+            predicate,
+            filter.Active,
+            subscription => subscription.Active == filter.Active
+        );
 
         return predicate;
     }
