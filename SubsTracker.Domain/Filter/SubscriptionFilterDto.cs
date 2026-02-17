@@ -10,4 +10,5 @@ public class SubscriptionFilterDto
     public decimal? Price { get; set; }
     public SubscriptionType? Type { get; set; }
     public SubscriptionContent? Content { get; set; }
+    public bool Active { get; set; }
 }
