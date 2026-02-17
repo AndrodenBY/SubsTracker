@@ -1,3 +1,4 @@
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
@@ -9,7 +10,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
     {
         await response.Content.ReadAsStringAsync();
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
