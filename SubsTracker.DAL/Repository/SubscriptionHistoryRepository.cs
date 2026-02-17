@@ -27,6 +27,8 @@ public class SubscriptionHistoryRepository(SubsDbContext context)
         Guid subscriptionId, decimal? price, CancellationToken cancellationToken)
     {
         if (originalType != updatedType)
-            await Create(subscriptionId, SubscriptionAction.ChangeType, price, cancellationToken);
+        {
+            await Create(subscriptionId, SubscriptionAction.ChangeType, price, cancellationToken);   
+        }
     }
 }
