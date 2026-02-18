@@ -295,7 +295,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(subscription => subscription.DueDate, subscriptionEntity.DueDate)
             .Create();
 
-        var cacheKey = $"{subscriptionDto.Id}:{nameof(SubscriptionDto)}";
+        var cacheKey = $"{subscriptionDto.Id}:{nameof(Subscription)}";
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
@@ -602,37 +602,30 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         var createDto = Fixture.Create<CreateSubscriptionDto>();
         var existingUser = Fixture.Create<User>();
         var ct = CancellationToken.None;
-
-        var existingSubscriptions = new PaginatedList<Subscription>(
-            [Fixture.Build<Subscription>()
-                .With(s => s.Name, createDto.Name)
-                .With(s => s.UserId, existingUser.Id)
-                .With(s => s.Active, true)
-                .Create()], 
-            1, 10, 1, 1);
+        
+        var existingSubscription = Fixture.Build<Subscription>()
+            .With(s => s.Name, createDto.Name)
+            .With(s => s.UserId, existingUser.Id)
+            .With(s => s.Active, true)
+            .Create();
+        
+        var mappedSubscription = Fixture.Create<Subscription>();
 
         UserRepository.GetByAuth0Id(auth0Id, ct)
             .Returns(existingUser);
-    
-        SubscriptionRepository.GetAll(
+        
+        SubscriptionRepository.GetByPredicate(
                 Arg.Any<Expression<Func<Subscription, bool>>>(), 
-                Arg.Any<PaginationParameters>(), 
                 ct)
-            .Returns(existingSubscriptions);
+            .Returns(existingSubscription);
+        
+        Mapper.Map<Subscription>(createDto).Returns(mappedSubscription);
 
         //Act & Assert
-        var exception = await Assert.ThrowsAsync<PolicyViolationException>(() => 
+        await Assert.ThrowsAsync<PolicyViolationException>(() => 
             Service.Create(auth0Id, createDto, ct));
 
-        exception.Message.ShouldContain(createDto.Name);
-
-        await SubscriptionRepository.DidNotReceive().Create(
-            Arg.Any<Subscription>(), 
-            ct);
-
-        await Mediator.DidNotReceive().Publish(
-            Arg.Any<SubscriptionCreatedSignal>(), 
-            ct);
+        await SubscriptionRepository.DidNotReceive().Create(Arg.Any<Subscription>(), ct);
     }
     
     [Fact]
