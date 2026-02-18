@@ -21,8 +21,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
             : _dbSet;
 
         var count = await query.CountAsync(cancellationToken);
-        query = query.OrderBy(entity => entity.Id);
-        
+
         if (paginationParameters is not null)
         {
             query = query

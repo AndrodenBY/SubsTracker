@@ -14,19 +14,8 @@ public static class PaginationExtensions
             ? PaginationConstants.DefaultPageSize 
             : pageSize;
         
-        var pageCount = totalCount == 0 
-            ? 0 
-            : (int)Math.Ceiling(totalCount / (double)appliedPageSize);
-        
-        var appliedPageNumber = totalCount == 0 
-            ? 0 
-            : Math.Max(1, pageNumber);
+        var pageCount = (int)Math.Ceiling(totalCount / (double)appliedPageSize);
 
-        return new PaginatedList<TItem>(
-            source.ToList(), 
-            appliedPageNumber, 
-            appliedPageSize, 
-            pageCount, 
-            totalCount);
+        return new PaginatedList<TItem>(source.ToList(), pageNumber, appliedPageSize, pageCount, totalCount);
     }
 }
