@@ -11,9 +11,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     private readonly HttpClient _client;
     private readonly UserGroupTestsDataSeedingHelper _dataSeedingHelper;
     private readonly ITestHarness _harness;
+    private readonly TestsWebApplicationFactory _factory;
 
     public UserGroupsControllerTests(TestsWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
         _client.DefaultRequestHeaders.Authorization =
             new AuthenticationHeaderValue("Bearer", "fake-jwt-token");
@@ -21,6 +23,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         _dataSeedingHelper = new UserGroupTestsDataSeedingHelper(factory);
         _assertHelper = new UserGroupTestsAssertionHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
+        
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
     }
 
     [Fact]
@@ -67,10 +74,11 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
     {
         //Arrange
         var createDto = _dataSeedingHelper.AddCreateUserGroupDto();
-        var seedUser = await _dataSeedingHelper.AddSeedUserOnly();
+        await _dataSeedingHelper.AddSeedUserOnly();
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.PostAsJsonAsync($"{EndpointConst.Group}/{seedUser.User.Id}/create", createDto);
+        var response = await client.PostAsJsonAsync($"{EndpointConst.Group}", createDto);
 
         //Assert
         await _assertHelper.CreateValidAssert(response, createDto);

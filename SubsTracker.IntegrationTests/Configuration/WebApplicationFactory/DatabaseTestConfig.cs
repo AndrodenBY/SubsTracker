@@ -1,13 +1,8 @@
-using Microsoft.EntityFrameworkCore.Diagnostics;
-using Microsoft.EntityFrameworkCore.Storage;
-
 namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 public static class DatabaseTestConfig
 {
-    private static readonly InMemoryDatabaseRoot DbRoot = new();
-
-    public static IServiceCollection ReplaceDatabase(this IServiceCollection services)
+    public static IServiceCollection ReplaceDatabase(this IServiceCollection services, string connectionString)
     {
         var descriptors = services.Where(d => 
             d.ServiceType.Namespace?.Contains("EntityFrameworkCore") == true ||
@@ -22,11 +17,9 @@ public static class DatabaseTestConfig
         
         services.AddDbContext<SubsDbContext>(options =>
         {
-            options.UseInMemoryDatabase(DatabaseConstant.InMemoryDbName, DbRoot);
-            options.ConfigureWarnings(x => x.Ignore(InMemoryEventId.TransactionIgnoredWarning));
+            options.UseNpgsql(connectionString);
         });
 
         return services;
     }
 }
-

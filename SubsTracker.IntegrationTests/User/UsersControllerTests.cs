@@ -12,9 +12,15 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 
     public UsersControllerTests(TestsWebApplicationFactory factory)
     {
+        _factory = factory;
         _client = factory.CreateClient();
         _dataSeedingHelper = new UserTestsDataSeedingHelper(factory);
         _assertHelper = new UserTestsAssertionHelper(factory);
+        
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
     }
 
     [Fact]

@@ -10,7 +10,7 @@ public class SubscriptionServiceTestsBase
     protected readonly IMessageService MessageService;
     protected readonly SubscriptionModelService Service;
     protected readonly ISubscriptionRepository SubscriptionRepository;
-    protected readonly IRepository<User> UserRepository;
+    protected readonly IUserRepository UserRepository;
 
     protected SubscriptionServiceTestsBase()
     {
@@ -22,7 +22,7 @@ public class SubscriptionServiceTestsBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
-        UserRepository = Substitute.For<IRepository<User>>();
+        UserRepository = Substitute.For<IUserRepository>();
         MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
         HistoryRepository = Substitute.For<ISubscriptionHistoryRepository>();

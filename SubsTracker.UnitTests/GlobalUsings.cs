@@ -21,6 +21,7 @@ global using Microsoft.Extensions.DependencyInjection.Extensions;
 global using SubsTracker.DAL.Models.Subscription;
 global using SubsTracker.DAL.Models.User;
 global using SubsTracker.DAL.Interfaces.Repositories;
+global using SubsTracker.DAL.Interfaces;
 
 //BLL
 global using SubsTracker.BLL.DTOs.User;
@@ -41,7 +42,7 @@ global using CachingService = SubsTracker.BLL.Services.Cache.CacheService;
 global using SubsTracker.Domain.Filter;
 global using SubsTracker.Domain.Enums;
 global using SubsTracker.Domain.Exceptions;
-global using InvalidOperationException = SubsTracker.Domain.Exceptions.InvalidOperationException;
+global using InvalidOperationException = SubsTracker.Domain.Exceptions.PolicyViolationException;
 
 //Messaging
 global using SubsTracker.Messaging.Interfaces;

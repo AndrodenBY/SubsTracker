@@ -11,7 +11,7 @@ public interface IUserGroupService :
 {
     Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
     Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken);
-    Task<UserGroupDto> Create(Guid userId, CreateUserGroupDto createDto, CancellationToken cancellationToken);
+    Task<UserGroupDto> Create(string auth0Id, CreateUserGroupDto createDto, CancellationToken cancellationToken);
     Task<UserGroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken);
     Task<UserGroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken);
     new Task<bool> Delete(Guid id, CancellationToken cancellationToken);

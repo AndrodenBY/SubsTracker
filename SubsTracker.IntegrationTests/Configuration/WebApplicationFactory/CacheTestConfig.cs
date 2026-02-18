@@ -1,33 +1,31 @@
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using SubsTracker.BLL.Interfaces.Cache;
+using StackExchange.Redis;
 
 namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 public static class CacheTestConfig
 {
-    public static IServiceCollection ReplaceCache(this IServiceCollection services)
+    public static IServiceCollection ConfigureTestContainerCache(this IServiceCollection services, string redisConnectionString)
     {
-        services.RemoveAll<ICacheService>();
-        services.AddSingleton<ICacheService, FakeCacheService>();
+        var descriptors = services.Where(d => 
+            d.ServiceType.Name.Contains("IDistributedCache") ||
+            d.ServiceType.Name.Contains("IConnectionMultiplexer")
+        ).ToList();
 
-        services.RemoveAll<ICacheAccessService>();
-        services.AddSingleton<ICacheAccessService, FakeCacheAccessService>();
+        foreach (var descriptor in descriptors)
+        {
+            services.Remove(descriptor);
+        }
+        
+        services.AddStackExchangeRedisCache(options =>
+        {
+            options.Configuration = redisConnectionString;
+            options.InstanceName = "Tests_";
+        });
 
-        return services;
-    }
+        services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConnectionString));
 
-    public static IServiceCollection ReplaceCache(this IServiceCollection services, ICacheService cacheService)
-    {
-        services.RemoveAll<ICacheService>();
-        services.AddSingleton(cacheService);
-        return services;
-    }
-
-    public static IServiceCollection ReplaceCacheAccess(this IServiceCollection services, ICacheAccessService accessService)
-    {
-        services.RemoveAll<ICacheAccessService>();
-        services.AddSingleton(accessService);
         return services;
     }
 }
-

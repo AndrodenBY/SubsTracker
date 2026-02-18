@@ -5,6 +5,7 @@ using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Subscription;
 
+[Collection("SequentialIntegrationTests")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -21,6 +22,11 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         _dataSeedingHelper = new SubscriptionTestsDataSeedingHelper(factory);
         _assertHelper = new SubscriptionTestsAssertionHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
+        
+        using var scope = _factory.Services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        dbContext.Database.EnsureDeleted();
+        dbContext.Database.EnsureCreated();
     }
 
     [Fact]
@@ -29,6 +35,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
         var subscription = seed.Subscriptions.First();
+        
         var client = _factory.CreateAuthenticatedClient();
 
         //Act
@@ -70,10 +77,11 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     {
         //Arrange
         var subscriptionDto = _dataSeedingHelper.AddCreateSubscriptionDto();
-        var dataSeedObject = await _dataSeedingHelper.AddSeedUserOnly();
-
+        await _dataSeedingHelper.AddSeedUserOnly();
+        var client = _factory.CreateAuthenticatedClient();
+        
         //Act
-        var response = await _client.PostAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", subscriptionDto);
+        var response = await client.PostAsJsonAsync($"{EndpointConst.Subscription}", subscriptionDto);
 
         //Assert
         await _assertHelper.CreateValidAssert(response);
@@ -86,13 +94,14 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var dataSeedObject = await _dataSeedingHelper.AddSeedData();
         var subscription = dataSeedObject.Subscriptions.First();
         var updateDto = _dataSeedingHelper.AddUpdateSubscriptionDto(subscription.Id);
-
+        
+        var client = _factory.CreateAuthenticatedClient();
+    
         //Act
-        var response = await _client.PutAsJsonAsync(
-            $"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", updateDto);
+        var response = await client.PutAsJsonAsync($"{EndpointConst.Subscription}", updateDto);
 
         //Assert
-        await _assertHelper.UpdateValidAssert(response, subscription.Id, updateDto.Name);
+        await _assertHelper.UpdateValidAssert(response, updateDto.Name);
     }
     
     [Fact]
@@ -101,15 +110,15 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
         var subscription = seedData.Subscriptions.First();
+        
         var client = _factory.CreateAuthenticatedClient();
-        
+
         //Act
-        var response = await client.PatchAsync(
-            $"{EndpointConst.Subscription}/{subscription.Id}/cancel?userId={seedData.User.Id}", null);
-        
+        var response = await client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/cancel", null);
+
         //Assert
         await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
-        
+    
         (await _harness.Published.Any<SubscriptionCanceledEvent>(x =>
             x.Context.Message.Id == subscription.Id)).ShouldBeTrue();
     }
@@ -150,7 +159,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
             .First();
         
         //Act
-        var response = await client.GetAsync($"{EndpointConst.Subscription}/bills/users/{seedData.User.Id}");
+        var response = await client.GetAsync($"{EndpointConst.Subscription}/bills/users");
         
         //Assert
         await _assertHelper.GetUpcomingBillsValidAssert(response, upcoming);
