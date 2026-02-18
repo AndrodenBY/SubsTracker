@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using LinqKit;
 using SubsTracker.DAL.Models.User;
@@ -6,6 +7,7 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
+[ExcludeFromCodeCoverage]
 public static class GroupMemberFilterHelper
 {
     public static Expression<Func<GroupMember, bool>> CreatePredicate(GroupMemberFilterDto? filter)

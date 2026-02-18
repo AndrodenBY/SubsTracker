@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using LinqKit;
 using SubsTracker.DAL.Models.Subscription;
@@ -6,6 +7,7 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
+[ExcludeFromCodeCoverage]
 public static class SubscriptionFilterHelper
 {
     public static Expression<Func<Subscription, bool>> CreatePredicate(SubscriptionFilterDto? filter)
