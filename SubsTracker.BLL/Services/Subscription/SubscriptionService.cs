@@ -105,9 +105,8 @@ public class SubscriptionService(
         return Mapper.Map<SubscriptionDto>(renewedSubscription);
     }
     
-    public Task<List<SubscriptionDto>> GetUpcomingBills(string auth0Id, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionDto>> GetUpcomingBills(string auth0Id, CancellationToken cancellationToken)
     {
-        var result = mediator.Send(new GetUpcomingBills(auth0Id), cancellationToken);
-        return Task.FromResult(result);
+        return await mediator.Send(new GetUpcomingBills(auth0Id), cancellationToken);
     }
 }
