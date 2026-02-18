@@ -1,5 +1,3 @@
-using SubsTracker.Domain.Pagination;
-
 namespace SubsTracker.UnitTests.SubscriptionService;
 
 public class SubscriptionServiceTests : SubscriptionServiceTestsBase
@@ -346,6 +344,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         )!.Returns(callInfo =>
@@ -372,6 +371,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         await SubscriptionRepository.Received(1).GetUserInfoById(subscriptionEntity.Id, default);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         );
@@ -412,6 +412,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         CacheService.CacheDataWithLock(
             cacheKey,
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         ).Returns(cachedDto);
@@ -425,6 +426,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         await SubscriptionRepository.DidNotReceive().GetUserInfoById(Arg.Any<Guid>(), default);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             default
         );
@@ -436,158 +438,90 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         //Arrange
         var subscriptionToFind = Fixture.Create<Subscription>();
         var subscriptionDto = Fixture.Build<SubscriptionDto>()
-            .With(s => s.Id, subscriptionToFind.Id)
-            .With(s => s.Name, subscriptionToFind.Name)
+            .With(subscription => subscription.Id, subscriptionToFind.Id)
+            .With(subscription => subscription.Name, subscriptionToFind.Name)
             .Create();
 
         var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
-        
-        var paginatedResult = new PaginatedList<Subscription>(
-            new List<Subscription> { subscriptionToFind }, 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 1, 
-            TotalCount: 1
-        );
-        
-        SubscriptionRepository.GetAll(
-                Arg.Any<Expression<Func<Subscription, bool>>>(),
-                Arg.Is<PaginationParameters>(p => p.PageNumber == 1),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(paginatedResult);
-        
-        Mapper.Map<SubscriptionDto>(subscriptionToFind).Returns(subscriptionDto);
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+            .Returns(new List<Subscription> { subscriptionToFind });
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>())
+            .Returns(new List<SubscriptionDto> { subscriptionDto });
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        await SubscriptionRepository.Received(1).GetAll(
-            Arg.Any<Expression<Func<Subscription, bool>>>(),
-            Arg.Any<PaginationParameters>(),
-            Arg.Any<CancellationToken>()
-        );
-
         result.ShouldNotBeNull();
-        result.Items.ShouldHaveSingleItem();
-        result.Items.First().Name.ShouldBe(subscriptionToFind.Name);
-        result.TotalCount.ShouldBe(1);
+        result.ShouldHaveSingleItem();
+        result.Single().Name.ShouldBe(subscriptionToFind.Name);
     }
 
     [Fact]
-    public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyPaginatedList()
+    public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
         //Arrange
+        var subscriptionToFind = Fixture.Create<Subscription>();
+        Fixture.Build<SubscriptionDto>()
+            .With(subscription => subscription.Id, subscriptionToFind.Id)
+            .With(subscription => subscription.Name, subscriptionToFind.Name)
+            .Create();
+
         var filter = new SubscriptionFilterDto { Name = "LetThatSinkIn" };
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
-        
-        var emptyPaginatedResult = new PaginatedList<Subscription>(
-            new List<Subscription>(), 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 0, 
-            TotalCount: 0
-        );
-        
-        SubscriptionRepository.GetAll(
-                Arg.Any<Expression<Func<Subscription, bool>>>(),
-                Arg.Any<PaginationParameters>(),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(emptyPaginatedResult);
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+            .Returns(new List<Subscription>());
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        result.ShouldNotBeNull();
-        result.Items.ShouldBeEmpty();
-        result.TotalCount.ShouldBe(0);
-        result.PageCount.ShouldBe(0);
-        
-        await SubscriptionRepository.Received(1).GetAll(
-            Arg.Any<Expression<Func<Subscription, bool>>>(),
-            Arg.Any<PaginationParameters>(),
-            Arg.Any<CancellationToken>()
-        );
+        result.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task GetAll_WhenNoSubscriptions_ReturnsEmptyPaginatedList()
+    public async Task GetAll_WhenNoSubscriptions_ReturnsEmptyList()
     {
         //Arrange
         var filter = new SubscriptionFilterDto();
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
-        
-        var emptyPaginatedResult = new PaginatedList<Subscription>(
-            new List<Subscription>(), 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 0, 
-            TotalCount: 0
-        );
-        
-        SubscriptionRepository.GetAll(
-                Arg.Any<Expression<Func<Subscription, bool>>>(),
-                Arg.Any<PaginationParameters>(),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(emptyPaginatedResult);
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+            .Returns(new List<Subscription>());
+        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<Subscription>>()).Returns(new List<SubscriptionDto>());
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        result.ShouldNotBeNull();
-        result.Items.ShouldBeEmpty();
-        result.TotalCount.ShouldBe(0);
-        result.PageCount.ShouldBe(0);
-        result.PageNumber.ShouldBe(1);
+        result.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task GetAll_WhenFilterIsEmpty_ReturnsAllPaginatedSubscriptions()
+    public async Task GetAll_WhenFilterIsEmpty_ReturnsAllSubscriptions()
     {
         //Arrange
         var subscriptions = Fixture.CreateMany<Subscription>(3).ToList();
         var subscriptionDtos = Fixture.CreateMany<SubscriptionDto>(3).ToList();
-        
-        var paginatedEntities = new PaginatedList<Subscription>(
-            subscriptions, 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 1, 
-            TotalCount: 3
-        );
 
         var filter = new SubscriptionFilterDto();
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
-        
-        SubscriptionRepository.GetAll(
-                Arg.Any<Expression<Func<Subscription, bool>>>(),
-                Arg.Any<PaginationParameters>(),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(paginatedEntities);
-        
-        Mapper.Map<SubscriptionDto>(subscriptions[0]).Returns(subscriptionDtos[0]);
-        Mapper.Map<SubscriptionDto>(subscriptions[1]).Returns(subscriptionDtos[1]);
-        Mapper.Map<SubscriptionDto>(subscriptions[2]).Returns(subscriptionDtos[2]);
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), default)
+            .Returns(subscriptions);
+        Mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
         result.ShouldNotBeNull();
-        result.Items.ShouldNotBeEmpty();
-        result.Items.Count.ShouldBe(3);
-        result.TotalCount.ShouldBe(3);
-        result.Items.ShouldBe(subscriptionDtos);
+        result.ShouldNotBeEmpty();
+        result.Count.ShouldBe(3);
+        result.ShouldBe(subscriptionDtos);
     }
     
-    [Fact]
+        [Fact]
     public async Task Create_WhenValidModel_ReturnsCreatedSubscription()
     {
         //Arrange
@@ -603,23 +537,21 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         var subscriptionDto = Fixture.Build<SubscriptionDto>()
             .With(s => s.Name, createDto.Name)
             .Create();
-        
+
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
             .Returns(existingUser);
-        
-        var emptyPagedResult = new PaginatedList<Subscription>([], 1, 10, 0, 0);
-        SubscriptionRepository.GetAll(
-                Arg.Any<Expression<Func<Subscription, bool>>>(), 
-                Arg.Any<PaginationParameters>(),
-                Arg.Any<CancellationToken>())
-            .Returns(emptyPagedResult);
-        
-        Mapper.Map<Subscription>(createDto).Returns(subscriptionEntity);
-        
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<Subscription, bool>>>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Subscription>());
+
+        Mapper.Map<Subscription>(createDto)
+            .Returns(subscriptionEntity);
+
         SubscriptionRepository.Create(subscriptionEntity, Arg.Any<CancellationToken>())
             .Returns(subscriptionEntity);
 
-        Mapper.Map<SubscriptionDto>(subscriptionEntity).Returns(subscriptionDto);
+        Mapper.Map<SubscriptionDto>(subscriptionEntity)
+            .Returns(subscriptionDto);
 
         //Act
         var result = await Service.Create(auth0Id, createDto, default);
@@ -629,8 +561,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.Name.ShouldBe(createDto.Name);
 
         await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
-
-        // Verify Repository Calls
+    
         await SubscriptionRepository.Received(1).Create(
             Arg.Is<Subscription>(s => s.Name == createDto.Name && s.UserId == existingUser.Id), 
             Arg.Any<CancellationToken>());

@@ -8,7 +8,6 @@ using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.Domain.Filter;
-using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.API.Controllers;
 
@@ -44,10 +43,10 @@ public class UsersController(
     ///     Retrieves all users with optional filtering.
     /// </summary>
     [HttpGet]
-    public async Task<PaginatedList<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<List<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, CancellationToken cancellationToken)
     {
-        var pagedResult = await service.GetAll(filterDto, paginationParameters, cancellationToken);
-        return pagedResult.MapToPage(mapper.Map<UserViewModel>);
+        var getAll = await service.GetAll(filterDto, cancellationToken);
+        return mapper.Map<List<UserViewModel>>(getAll);
     }
 
     /// <summary>

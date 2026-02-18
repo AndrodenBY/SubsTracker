@@ -12,7 +12,6 @@ using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
-using SubsTracker.Domain.Pagination;
 using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.BLL.Services.User;
@@ -22,27 +21,28 @@ public class GroupMemberService(
     IMessageService messageService,
     IMapper mapper,
     ICacheService cacheService,
-    ICacheAccessService cacheAccessService) 
-    : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper, cacheService),
+    ICacheAccessService cacheAccessService
+) : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(
+        memberRepository, mapper, cacheService),
     IGroupMemberService
 {
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<GroupMemberDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember,
+            cancellationToken);
 
         async Task<GroupMemberDto?> GetGroupMember()
         {
             var memberWithEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
             return Mapper.Map<GroupMemberDto>(memberWithEntities);
         }
-        
-        return await CacheService.CacheDataWithLock(cacheKey, GetGroupMember, cancellationToken);
     }
 
-    public async Task<PaginatedList<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<List<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = GroupMemberFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, paginationParameters, cancellationToken);
+        return await base.GetAll(predicate, cancellationToken);
     }
 
     public async Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)

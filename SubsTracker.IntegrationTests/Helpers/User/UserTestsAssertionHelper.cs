@@ -1,4 +1,3 @@
-using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.User;
@@ -25,11 +24,11 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<PaginatedList<UserViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<List<UserViewModel>>(content);
 
         result.ShouldNotBeNull();
-        result.Items.ShouldHaveSingleItem();
-        result.Items.Single().Email.ShouldBe(expectedEmail);
+        result.ShouldHaveSingleItem();
+        result.Single().Email.ShouldBe(expectedEmail);
     }
     
     public async Task GetByAuth0IdValidAssert(HttpResponseMessage response, UserModel expected)
@@ -51,11 +50,10 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<PaginatedList<UserViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<List<UserViewModel>>(content);
 
         result.ShouldNotBeNull();
-        result.Items.ShouldBeEmpty();
-        result.TotalCount.ShouldBe(0);
+        result.ShouldBeEmpty();
     }
 
     public async Task CreateValidAssert(HttpResponseMessage response, CreateUserDto expected)

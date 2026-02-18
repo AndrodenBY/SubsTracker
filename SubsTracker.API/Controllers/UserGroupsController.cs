@@ -7,7 +7,6 @@ using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.Domain.Filter;
-using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.API.Controllers;
 
@@ -34,20 +33,20 @@ public class UserGroupsController(
     ///     Retrieves all user groups with optional filtering
     /// </summary>
     [HttpGet]
-    public async Task<PaginatedList<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<List<UserGroupViewModel>> GetAll([FromQuery] UserGroupFilterDto? filterDto, CancellationToken cancellationToken)
     {
-        var pagedResult = await service.GetAll(filterDto, paginationParameters, cancellationToken);
-        return pagedResult.MapToPage(mapper.Map<UserGroupViewModel>);
+        var getAll = await service.GetAll(filterDto, cancellationToken);
+        return mapper.Map<List<UserGroupViewModel>>(getAll);
     }
 
     /// <summary>
     ///     Retrieves all members of a group with optional filtering
     /// </summary>
     [HttpGet("members")]
-    public async Task<PaginatedList<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, [FromQuery] PaginationParameters paginationParameters, CancellationToken cancellationToken)
+    public async Task<List<GroupMemberViewModel>> GetAllMembers([FromQuery] GroupMemberFilterDto? filterDto, CancellationToken cancellationToken)
     {
-        var pagedResult = await memberService.GetAll(filterDto, paginationParameters, cancellationToken);
-        return pagedResult.MapToPage(mapper.Map<GroupMemberViewModel>);
+        var entities = await memberService.GetAll(filterDto, cancellationToken);
+        return mapper.Map<List<GroupMemberViewModel>>(entities);
     }
 
     /// <summary>

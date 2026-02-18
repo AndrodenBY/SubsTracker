@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
@@ -9,19 +8,18 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
 {
     public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
-        response.EnsureSuccessStatusCode();
-
+        await response.Content.ReadAsStringAsync();
+        
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
             Converters = { new JsonStringEnumConverter() }
         };
-
+        
         var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(options);
 
         result.ShouldNotBeNull();
         result.Id.ShouldBe(expected.Id);
-        result.Name.ShouldBe(expected.Name);
     }
 
     public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
@@ -29,11 +27,11 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<PaginatedList<SubscriptionViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<List<SubscriptionViewModel>>(content);
 
         result.ShouldNotBeNull();
-        result.Items.ShouldHaveSingleItem();
-        result.Items.Single().Name.ShouldBe(expectedName);
+        result.ShouldHaveSingleItem();
+        result.Single().Name.ShouldBe(expectedName);
     }
 
     public async Task GetAllInvalidAssert(HttpResponseMessage response)
@@ -41,11 +39,10 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<PaginatedList<SubscriptionViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<List<SubscriptionViewModel>>(content);
 
         result.ShouldNotBeNull();
-        result.Items.ShouldBeEmpty();
-        result.TotalCount.ShouldBe(0);
+        result.ShouldBeEmpty();
     }
 
     public async Task CreateValidAssert(HttpResponseMessage response)

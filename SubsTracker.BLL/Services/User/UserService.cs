@@ -2,11 +2,9 @@ using AutoMapper;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
-using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
-using SubsTracker.Domain.Pagination;
 using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
 using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
@@ -17,28 +15,22 @@ namespace SubsTracker.BLL.Services.User;
 public class UserService(
     IUserRepository userRepository,
     IMapper mapper,
-    ICacheService cacheService) 
-    : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
+    ICacheService cacheService
+) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
     IUserService
 {
-    public async Task<PaginatedList<UserDto>> GetAll(UserFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = UserFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, paginationParameters, cancellationToken);
+        return await base.GetAll(predicate, cancellationToken);
     }
 
     public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<UserDto>(auth0Id);
-
-        async Task<UserDto?> GetUser()
-        {
-            var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                       ?? throw new UnknownIdentifierException($"User with {auth0Id} not found");
-            return Mapper.Map<UserDto>(user);
-        }
-
-        return await CacheService.CacheDataWithLock(cacheKey, GetUser, cancellationToken);
+        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+            ?? throw new UnknownIdentifierException($"User with {auth0Id} not found");
+        
+        return Mapper.Map<UserDto>(user);
     }
     
     public async Task<UserDto> Create(string auth0Id, CreateUserDto createDto, CancellationToken cancellationToken)

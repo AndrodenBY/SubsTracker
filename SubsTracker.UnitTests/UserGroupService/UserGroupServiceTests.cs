@@ -1,5 +1,3 @@
-using SubsTracker.Domain.Pagination;
-
 namespace SubsTracker.UnitTests.UserGroupService;
 
 public class UserGroupServiceTests : UserGroupServiceTestsBase
@@ -10,163 +8,91 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         //Arrange
         var userGroupToFind = Fixture.Create<UserGroup>();
         var userGroupDto = Fixture.Build<UserGroupDto>()
-            .With(ug => ug.Id, userGroupToFind.Id)
-            .With(ug => ug.Name, userGroupToFind.Name)
+            .With(userGroup => userGroup.Name, userGroupToFind.Name)
+            .With(userGroup => userGroup.Id, userGroupToFind.Id)
             .Create();
 
         var filter = new UserGroupFilterDto { Name = userGroupToFind.Name };
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
-        
-        var paginatedResult = new PaginatedList<UserGroup>(
-            new List<UserGroup> { userGroupToFind }, 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 1, 
-            TotalCount: 1
-        );
-        
-        GroupRepository.GetAll(
-                Arg.Any<Expression<Func<UserGroup, bool>>>(),
-                Arg.Is<PaginationParameters>(p => p.PageNumber == 1),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(paginatedResult);
-        
-        Mapper.Map<UserGroupDto>(userGroupToFind).Returns(userGroupDto);
+
+        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+            .Returns(new List<UserGroup> { userGroupToFind });
+        Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto> { userGroupDto });
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
         await GroupRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<UserGroup, bool>>>(),
-            Arg.Any<PaginationParameters>(),
-            Arg.Any<CancellationToken>()
+            default
         );
 
         result.ShouldNotBeNull();
-        result.Items.ShouldHaveSingleItem();
-        result.Items.First().Name.ShouldBe(userGroupToFind.Name);
-        result.TotalCount.ShouldBe(1);
+        result.ShouldHaveSingleItem();
+        result.Single().Name.ShouldBe(userGroupToFind.Name);
     }
 
     [Fact]
-    public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyPaginatedList()
+    public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
         //Arrange
+        var userGroupToFind = Fixture.Create<UserGroup>();
+        Fixture.Build<UserGroupDto>()
+            .With(userGroup => userGroup.Name, userGroupToFind.Name)
+            .With(userGroup => userGroup.Id, userGroupToFind.Id)
+            .Create();
+
         var filter = new UserGroupFilterDto { Name = "Pv$$YbR3aK3rS123" };
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
 
-        var paginatedResult = new PaginatedList<UserGroup>(
-            new List<UserGroup>(), 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 0, 
-            TotalCount: 0
-        );
-
-        GroupRepository.GetAll(
-                Arg.Any<Expression<Func<UserGroup, bool>>>(),
-                Arg.Is<PaginationParameters>(p => p.PageNumber == 1),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(paginatedResult);
+        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+            .Returns(new List<UserGroup>());
+        Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        await GroupRepository.Received(1).GetAll(
-            Arg.Any<Expression<Func<UserGroup, bool>>>(),
-            Arg.Any<PaginationParameters>(),
-            Arg.Any<CancellationToken>()
-        );
-
-        result.ShouldNotBeNull();
-        result.Items.ShouldBeEmpty();
-        result.TotalCount.ShouldBe(0);
+        result.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task GetAll_WhenNoUserGroups_ReturnsEmptyPaginatedList()
+    public async Task GetAll_WhenNoUserGroups_ReturnsEmptyList()
     {
         //Arrange
         var filter = new UserGroupFilterDto();
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
 
-        var paginatedResult = new PaginatedList<UserGroup>(
-            new List<UserGroup>(), 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 0, 
-            TotalCount: 0
-        );
-
-        GroupRepository.GetAll(
-                Arg.Any<Expression<Func<UserGroup, bool>>>(),
-                Arg.Any<PaginationParameters>(),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(paginatedResult);
+        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+            .Returns(new List<UserGroup>());
+        Mapper.Map<List<UserGroupDto>>(Arg.Any<List<UserGroup>>()).Returns(new List<UserGroupDto>());
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        await GroupRepository.Received(1).GetAll(
-            Arg.Any<Expression<Func<UserGroup, bool>>>(),
-            Arg.Any<PaginationParameters>(),
-            Arg.Any<CancellationToken>()
-        );
-
-        result.ShouldNotBeNull();
-        result.Items.ShouldBeEmpty();
-        result.TotalCount.ShouldBe(0);
+        result.ShouldBeEmpty();
     }
 
     [Fact]
-    public async Task GetAll_WhenFilterIsEmpty_ReturnsAllPaginatedUserGroups()
+    public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUserGroups()
     {
         //Arrange
         var userGroups = Fixture.CreateMany<UserGroup>(3).ToList();
         var userGroupDtos = Fixture.CreateMany<UserGroupDto>(3).ToList();
 
         var filter = new UserGroupFilterDto();
-        var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
 
-        var paginatedResult = new PaginatedList<UserGroup>(
-            userGroups, 
-            PageNumber: 1, 
-            PageSize: 10, 
-            PageCount: 1, 
-            TotalCount: 3
-        );
-
-        GroupRepository.GetAll(
-                Arg.Any<Expression<Func<UserGroup, bool>>>(),
-                Arg.Any<PaginationParameters>(),
-                Arg.Any<CancellationToken>()
-            )
-            .Returns(paginatedResult);
-
-        Mapper.Map<UserGroupDto>(userGroups[0]).Returns(userGroupDtos[0]);
-        Mapper.Map<UserGroupDto>(userGroups[1]).Returns(userGroupDtos[1]);
-        Mapper.Map<UserGroupDto>(userGroups[2]).Returns(userGroupDtos[2]);
+        GroupRepository.GetAll(Arg.Any<Expression<Func<UserGroup, bool>>>(), default)
+            .Returns(userGroups);
+        Mapper.Map<List<UserGroupDto>>(userGroups).Returns(userGroupDtos);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, default);
 
         //Assert
-        await GroupRepository.Received(1).GetAll(
-            Arg.Any<Expression<Func<UserGroup, bool>>>(),
-            Arg.Any<PaginationParameters>(),
-            Arg.Any<CancellationToken>()
-        );
-
         result.ShouldNotBeNull();
-        result.Items.Count.ShouldBe(3);
-        result.TotalCount.ShouldBe(3);
-        result.Items.ShouldBe(userGroupDtos);
+        result.ShouldNotBeEmpty();
+        result.Count.ShouldBe(3);
+        result.ShouldBe(userGroupDtos);
     }
     
     [Fact]
@@ -234,6 +160,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
             default
         )!.Returns(callInfo =>
@@ -256,6 +183,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         result.Name.ShouldBe(userGroupDto.Name);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
             default
         );
@@ -299,6 +227,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
             default
         )!.Returns(callInfo =>
@@ -329,6 +258,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
 
         CacheService.CacheDataWithLock(
             cacheKey,
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
             default
         ).Returns(cachedDto);
@@ -342,6 +272,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         await GroupRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), default);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
+            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
             default
         );

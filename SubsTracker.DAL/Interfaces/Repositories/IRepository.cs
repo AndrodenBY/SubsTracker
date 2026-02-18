@@ -1,11 +1,10 @@
 using System.Linq.Expressions;
-using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.DAL.Interfaces.Repositories;
 
 public interface IRepository<TEntity> where TEntity : IBaseModel
 {
-    Task<PaginatedList<TEntity>> GetAll(Expression<Func<TEntity, bool>>? predicate, PaginationParameters? paginationParameters, CancellationToken cancellationToken);
+    Task<List<TEntity>> GetAll(Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken);
     Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken);
     Task<TEntity> Create(TEntity entityToCreate, CancellationToken cancellationToken);
     Task<TEntity> Update(TEntity entityToUpdate, CancellationToken cancellationToken);

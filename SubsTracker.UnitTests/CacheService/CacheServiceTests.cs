@@ -13,7 +13,7 @@ public class CacheServiceTests : CacheServiceTestsBase
         CacheMock.GetAsync(key, Arg.Any<CancellationToken>()).Returns(ToBytes(cachedData));
 
         //Act
-        var result = await Service.CacheDataWithLock<string>(key, null, default, TimeSpan.FromMinutes(5));
+        var result = await Service.CacheDataWithLock<string>(key, TimeSpan.FromMinutes(5), null, default);
 
         //Assert
         result.ShouldBe(cachedData);
@@ -43,7 +43,7 @@ public class CacheServiceTests : CacheServiceTestsBase
             .Returns(mockLock);
 
         //Act
-        var result = await Service.CacheDataWithLock(key, () => Task.FromResult<string?>(expectedData), default, expiration);
+        var result = await Service.CacheDataWithLock(key, expiration, () => Task.FromResult<string?>(expectedData), default);
 
         //Assert
         result.ShouldNotBeNull();
@@ -82,9 +82,10 @@ public class CacheServiceTests : CacheServiceTestsBase
 
         //Act
         var result = await Service.CacheDataWithLock(
-            key,
+            key, 
+            TimeSpan.FromMinutes(5), 
             () => Task.FromResult<string?>("bad_data"),
-            default, TimeSpan.FromMinutes(5));
+            default);
 
         //Assert
         result.ShouldBe(expectedData);

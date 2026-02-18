@@ -12,7 +12,6 @@ using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
-using SubsTracker.Domain.Pagination;
 using UserModel = SubsTracker.DAL.Models.User.User;
 
 namespace SubsTracker.BLL.Services.User;
@@ -23,27 +22,28 @@ public class UserGroupService(
     ISubscriptionRepository subscriptionRepository,
     IGroupMemberService memberService,
     IMapper mapper,
-    ICacheService cacheService) 
-    : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(groupRepository, mapper, cacheService),
+    ICacheService cacheService
+) : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(groupRepository,
+        mapper, cacheService),
     IUserGroupService
 {
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<UserGroupDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup,
+            cancellationToken);
 
         async Task<UserGroupDto?> GetUserGroup()
         {
             var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
             return Mapper.Map<UserGroupDto>(groupWithEntities);
         }
-        
-        return await CacheService.CacheDataWithLock(cacheKey, GetUserGroup, cancellationToken);
     }
 
-    public async Task<PaginatedList<UserGroupDto>> GetAll(UserGroupFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<List<UserGroupDto>> GetAll(UserGroupFilterDto? filter, CancellationToken cancellationToken)
     {
         var predicate = UserGroupFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, paginationParameters, cancellationToken);
+        return await base.GetAll(predicate, cancellationToken);
     }
 
     public async Task<UserGroupDto> Create(string auth0Id, CreateUserGroupDto createDto, CancellationToken cancellationToken)

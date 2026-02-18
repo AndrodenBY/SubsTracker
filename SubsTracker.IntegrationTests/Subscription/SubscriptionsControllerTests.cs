@@ -35,6 +35,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
         var subscription = seed.Subscriptions.First();
+        
         var client = _factory.CreateAuthenticatedClient();
 
         //Act
@@ -49,10 +50,9 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     {
         //Arrange
         await _dataSeedingHelper.AddSeedUserWithSubscriptions("Target Subscription", "Unrelated App");
-        var url = $"{EndpointConst.Subscription}?Name=Target Subscription&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync(url);
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name=Target Subscription");
 
         //Assert
         await _assertHelper.GetAllValidAssert(response, "Target Subscription");
@@ -64,10 +64,9 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         await _dataSeedingHelper.AddSeedData();
         var nonExistentName = "NonExistentFilter";
-        var url = $"{EndpointConst.Subscription}?Name={nonExistentName}&PageNumber=1&PageSize=10";
 
         //Act
-        var response = await _client.GetAsync(url);
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={nonExistentName}");
 
         //Assert
         await _assertHelper.GetAllInvalidAssert(response);

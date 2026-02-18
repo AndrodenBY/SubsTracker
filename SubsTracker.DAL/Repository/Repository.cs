@@ -2,7 +2,6 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.DAL.Repository;
 
@@ -11,30 +10,16 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     protected readonly SubsDbContext Context = context;
 
-    public async Task<PaginatedList<TEntity>> GetAll(
-        Expression<Func<TEntity, bool>>? predicate,
-        PaginationParameters? paginationParameters,
-        CancellationToken cancellationToken)
+    public Task<List<TEntity>> GetAll(
+        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var query = predicate is not null
-            ? _dbSet.Where(predicate)
-            : _dbSet;
+        var query = _dbSet
+            .AsQueryable()
+            .AsNoTracking();
 
-        var count = await query.CountAsync(cancellationToken);
+        if (predicate is not null) query = query.Where(predicate);
 
-        if (paginationParameters is not null)
-        {
-            query = query
-                .Skip((paginationParameters.PageNumber - 1) * paginationParameters.PageSize)
-                .Take(paginationParameters.PageSize);
-        }
-
-        var list = await query.AsNoTracking().ToListAsync(cancellationToken);
-
-        var pageNumber = paginationParameters?.PageNumber ?? 1;
-        var pageSize = paginationParameters?.PageSize ?? count;
-
-        return list.ToPagedList(pageNumber, pageSize, count);
+        return query.ToListAsync(cancellationToken);
     }
 
     public virtual Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)

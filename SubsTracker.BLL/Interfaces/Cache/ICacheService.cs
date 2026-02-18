@@ -15,13 +15,13 @@ public interface ICacheService
     /// </remarks>
     /// <typeparam name="TValue">Type of the cached object, must be a reference type</typeparam>
     /// <param name="cacheKey">Unique identifier for the cached data</param>
+    /// <param name="expirationTime">Time in which the data should remain in the cache</param>
     /// <param name="dataFactory">Asynchronous delegate for fetching the data if it's missing from the cache</param>
     /// <param name="cancellationToken">Token used to cancel the operation if requested</param>
-    /// <param name="expirationTime">Time in which the data should remain in the cache</param>
     /// <returns>The cached or freshly fetched instance of <typeparamref name="TValue"/>; otherwise, <c>null</c></returns>
     Task<TValue?> CacheDataWithLock<TValue>(
         string cacheKey, 
+        TimeSpan expirationTime, 
         Func<Task<TValue?>> dataFactory, 
-        CancellationToken cancellationToken,
-        TimeSpan? expirationTime = null) where TValue : class;
+        CancellationToken cancellationToken) where TValue : class;
 }

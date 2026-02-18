@@ -6,15 +6,14 @@ using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.BLL.Services;
 
 public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IRepository<TEntity> repository,
     IMapper mapper,
-    ICacheService cacheService) 
-    : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
+    ICacheService cacheService
+) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
     where TEntity : class, IBaseModel
     where TDto : class
     where TCreateDto : class
@@ -27,20 +26,17 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 
     protected ICacheService CacheService => cacheService;
 
-    public virtual async Task<PaginatedList<TDto>> GetAll(
-        Expression<Func<TEntity, bool>>? predicate,
-        PaginationParameters? paginationParameters,
-        CancellationToken cancellationToken)
+    public virtual async Task<List<TDto>> GetAll(
+        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
-        var pagedEntities = await Repository.GetAll(predicate, paginationParameters, cancellationToken);
-        
-        return pagedEntities.MapToPage(entity => Mapper.Map<TDto>(entity));
+        var entities = await Repository.GetAll(predicate, cancellationToken);
+        return Mapper.Map<List<TDto>>(entities);
     }
 
     public virtual async Task<TDto> GetById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<TEntity>(id);
-        var result = await CacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
+        var result = await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken)
                      ?? throw new UnknownIdentifierException($"Entity with {id} not found");
         
         async Task<TDto?> GetEntity()
