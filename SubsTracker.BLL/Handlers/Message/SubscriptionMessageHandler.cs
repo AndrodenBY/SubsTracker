@@ -1,24 +1,24 @@
 using DispatchR.Abstractions.Notification;
-
-using SubsTracker.BLL.Handlers.Notifications;
+using SubsTracker.BLL.Handlers.Signals;
+using SubsTracker.BLL.Handlers.Signals.Subscription;
 using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.BLL.Handlers.Message;
 
 public class SubscriptionMessageHandler(IMessageService messageService) 
-    : INotificationHandler<SubscriptionCanceledNotification>, 
-        INotificationHandler<SubscriptionRenewedNotification>
+    : INotificationHandler<SubscriptionCanceledSignal>, 
+        INotificationHandler<SubscriptionRenewedSignal>
 {
-    public async ValueTask Handle(SubscriptionCanceledNotification notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(SubscriptionCanceledSignal signal, CancellationToken cancellationToken)
     {
-        var emailEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(notification.Subscription);
+        var emailEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(signal.Subscription);
         await messageService.NotifySubscriptionCanceled(emailEvent, cancellationToken);
     }
     
-    public async ValueTask Handle(SubscriptionRenewedNotification notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(SubscriptionRenewedSignal signal, CancellationToken cancellationToken)
     {
-        var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(notification.Subscription);
+        var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(signal.Subscription);
         await messageService.NotifySubscriptionRenewed(subscriptionRenewedEvent, cancellationToken);
     }
 }

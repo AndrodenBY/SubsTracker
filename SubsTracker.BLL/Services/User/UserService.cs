@@ -1,4 +1,6 @@
 using AutoMapper;
+using DispatchR;
+using SubsTracker.BLL.Handlers.Signals.User;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
@@ -17,7 +19,8 @@ namespace SubsTracker.BLL.Services.User;
 public class UserService(
     IUserRepository userRepository,
     IMapper mapper,
-    ICacheService cacheService) 
+    ICacheService cacheService,
+    IMediator mediator) 
     : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
     IUserService
 {
@@ -29,7 +32,7 @@ public class UserService(
 
     public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<UserDto>(auth0Id);
+        var cacheKey = RedisKeySetter.SetCacheKey<UserModel>(auth0Id);
 
         async Task<UserDto?> GetUser()
         {
@@ -58,26 +61,30 @@ public class UserService(
             existingUser.Auth0Id = auth0Id;
             await userRepository.Update(existingUser, cancellationToken);
         }
-    
+
+        await mediator.Publish(new UserCreatedSignal(existingUser.Auth0Id), cancellationToken);
         return Mapper.Map<UserDto>(existingUser);
     }
 
     public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
         
-        Mapper.Map(updateDto, user);
-        var updatedEntity = await userRepository.Update(user, cancellationToken);
+        Mapper.Map(updateDto, existingUser);
+        var updatedEntity = await userRepository.Update(existingUser, cancellationToken);
     
+        
+        await mediator.Publish(new UserUpdatedSignal(updatedEntity.Auth0Id), cancellationToken);
         return Mapper.Map<UserDto>(updatedEntity);
     }
 
     public async Task<bool> Delete(string auth0Id, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
-        
-        return await userRepository.Delete(user, cancellationToken);
+
+        await mediator.Publish(new UserDeletedSignal(existingUser.Auth0Id), cancellationToken);
+        return await userRepository.Delete(existingUser, cancellationToken);
     }
 }
