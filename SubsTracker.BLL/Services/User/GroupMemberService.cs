@@ -1,42 +1,33 @@
 using AutoMapper;
+using DispatchR;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Handlers.Signals.Member;
 using SubsTracker.BLL.Helpers.Filters;
-using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
-using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
-using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.BLL.Services.User;
 
 public class GroupMemberService(
     IGroupMemberRepository memberRepository,
-    IMessageService messageService,
     IMapper mapper,
     ICacheService cacheService,
-    ICacheAccessService cacheAccessService) 
+    IMediator mediator) 
     : Service<GroupMember, GroupMemberDto, CreateGroupMemberDto, UpdateGroupMemberDto, GroupMemberFilterDto>(memberRepository, mapper, cacheService),
     IGroupMemberService
 {
     public async Task<GroupMemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<GroupMemberDto>(id);
-
-        async Task<GroupMemberDto?> GetGroupMember()
-        {
-            var memberWithEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
-            return Mapper.Map<GroupMemberDto>(memberWithEntities);
-        }
-        
-        return await CacheService.CacheDataWithLock(cacheKey, GetGroupMember, cancellationToken);
+        var memberWithEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
+        return Mapper.Map<GroupMemberDto>(memberWithEntities);
     }
 
     public async Task<PaginatedList<GroupMemberDto>> GetAll(GroupMemberFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
@@ -48,15 +39,24 @@ public class GroupMemberService(
     public async Task<GroupMemberDto> JoinGroup(CreateGroupMemberDto createDto, CancellationToken cancellationToken)
     {
         var user = memberRepository.GetFullInfoById(createDto.UserId, cancellationToken);
-        if (user is null) throw new UnknownIdentifierException($"User with id {createDto.UserId} not found");
+        if (user is null)
+        {
+            throw new UnknownIdentifierException($"User with id {createDto.UserId} not found");
+        }
 
         var group = memberRepository.GetFullInfoById(createDto.GroupId, cancellationToken);
-        if (group is null) throw new UnknownIdentifierException($"Group with id {createDto.GroupId} not found");
+        if (group is null)
+        {
+            throw new UnknownIdentifierException($"Group with id {createDto.GroupId} not found");
+        }
 
         var existingMember =
             await memberRepository.GetByPredicate(
-                gm => gm.UserId == createDto.UserId && gm.GroupId == createDto.GroupId, cancellationToken);
-        if (existingMember is not null) throw new InvalidRequestDataException("Member already exists");
+                member => member.UserId == createDto.UserId && member.GroupId == createDto.GroupId, cancellationToken);
+        if (existingMember is not null)
+        {
+            throw new InvalidRequestDataException("Member already exists");
+        }
 
         return await base.Create(createDto, cancellationToken);
     }
@@ -67,11 +67,12 @@ public class GroupMemberService(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new UnknownIdentifierException($"User {userId} is not a member of group {groupId}");
 
-        var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
-
-        await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<GroupMemberDto>(memberToDelete.Id)],
+        await mediator.Publish(new MemberLeftSignal(
+            memberToDelete.Id, 
+            memberToDelete.GroupId, 
+            memberToDelete.Group.Name, 
+            memberToDelete.User.Email), 
             cancellationToken);
-        await messageService.NotifyMemberLeftGroup(memberLeftEvent, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }
 
@@ -91,8 +92,13 @@ public class GroupMemberService(
         Mapper.Map(updateDto, memberToUpdate);
         var updatedMember = await memberRepository.Update(memberToUpdate, cancellationToken);
 
-        var memberChangedRoleEvent = GroupMemberNotificationHelper.CreateMemberChangedRoleEvent(updatedMember);
-        await messageService.NotifyMemberChangedRole(memberChangedRoleEvent, cancellationToken);
+        await mediator.Publish(new MemberChangedRoleSignal(
+                updatedMember.Id, 
+                updatedMember.GroupId, 
+                updatedMember.Group.Name, 
+                updatedMember.User.Email, 
+                updatedMember.Role), 
+            cancellationToken);
         return Mapper.Map<GroupMemberDto>(updatedMember);
     }
 }

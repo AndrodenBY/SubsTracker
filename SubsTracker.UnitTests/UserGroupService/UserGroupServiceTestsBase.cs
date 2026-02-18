@@ -1,3 +1,5 @@
+using DispatchR;
+
 namespace SubsTracker.UnitTests.UserGroupService;
 
 public class UserGroupServiceTestsBase
@@ -10,6 +12,7 @@ public class UserGroupServiceTestsBase
     protected readonly GroupModelService Service;
     protected readonly ISubscriptionRepository SubscriptionRepository;
     protected readonly IUserRepository UserRepository;
+    protected readonly IMediator Mediator;
 
     protected UserGroupServiceTestsBase()
     {
@@ -26,6 +29,7 @@ public class UserGroupServiceTestsBase
         Mapper = Substitute.For<IMapper>();
         _memberService = Substitute.For<IGroupMemberService>();
         CacheService = Substitute.For<ICacheService>();
+        Mediator = Substitute.For<IMediator>();
 
         Service = new GroupModelService(
             GroupRepository,
@@ -33,7 +37,8 @@ public class UserGroupServiceTestsBase
             SubscriptionRepository,
             _memberService,
             Mapper,
-            CacheService
+            CacheService,
+            Mediator
         );
     }
 }

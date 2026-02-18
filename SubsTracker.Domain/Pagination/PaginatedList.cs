@@ -4,7 +4,7 @@ public record PaginatedList<TItem>(List<TItem> Items, int PageNumber, int PageSi
 {
     public bool HasPreviousPage => PageNumber > 1;
     
-    public bool HasNextPage => PageNumber < TotalCount;
+    public bool HasNextPage => PageNumber < PageCount; 
     
     public PaginatedList<TTarget> MapToPage<TTarget>(Func<TItem, TTarget> mapFunc)
     {

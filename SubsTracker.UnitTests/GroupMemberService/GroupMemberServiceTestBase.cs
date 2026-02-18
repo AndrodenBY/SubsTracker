@@ -1,13 +1,14 @@
+using DispatchR;
+
 namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceTestBase
 {
-    protected readonly ICacheAccessService CacheAccessService;
     protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
     protected readonly IGroupMemberRepository MemberRepository;
-    protected readonly IMessageService MessageService;
+    protected readonly IMediator Mediator;
     protected readonly MemberModelService Service;
 
     protected GroupMemberServiceTestBase()
@@ -20,17 +21,15 @@ public class GroupMemberServiceTestBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
         MemberRepository = Substitute.For<IGroupMemberRepository>();
-        MessageService = Substitute.For<IMessageService>();
+        Mediator = Substitute.For<IMediator>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
-        CacheAccessService = Substitute.For<ICacheAccessService>();
 
         Service = new MemberModelService(
             MemberRepository,
-            MessageService,
             Mapper,
             CacheService,
-            CacheAccessService
+            Mediator
         );
     }
 }

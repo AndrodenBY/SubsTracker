@@ -8,13 +8,21 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        
+        var user = Fixture.Build<UserModel>()
+            .Without(u => u.Groups)
+            .Without(u => u.Subscriptions)
+            .Create();
 
+        await dbContext.Users.AddAsync(user);
+        await dbContext.SaveChangesAsync();
+        
         var group = Fixture.Build<Group>()
             .With(g => g.Name, "Test Group")
+            .With(g => g.UserId, user.Id)
             .Without(g => g.Members)
             .Without(g => g.SharedSubscriptions)
             .Without(g => g.User)
-            .Without(g => g.UserId)
             .Create();
 
         await dbContext.UserGroups.AddAsync(group);
@@ -22,7 +30,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         return new UserGroupSeedEntity
         {
-            User = null!,
+            User = user,
             Group = group,
             Subscriptions = new List<SubscriptionModel>(),
             Members = new List<GroupMember>()

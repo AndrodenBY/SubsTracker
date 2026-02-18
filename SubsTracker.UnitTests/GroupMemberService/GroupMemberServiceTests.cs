@@ -1,3 +1,4 @@
+using SubsTracker.BLL.Handlers.Signals.Member;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.UnitTests.GroupMemberService;
@@ -10,29 +11,32 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         //Arrange
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
+        var cancellationToken = CancellationToken.None;
 
         var memberToDelete = Fixture.Build<GroupMember>()
             .With(m => m.UserId, userId)
             .With(m => m.GroupId, groupId)
             .Create();
 
-        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), cancellationToken)
             .Returns(memberToDelete);
-        MemberRepository.GetFullInfoById(Arg.Any<Guid>(), default).Returns(memberToDelete);
-        MemberRepository.Delete(memberToDelete, default)
+    
+        MemberRepository.Delete(memberToDelete, cancellationToken)
             .Returns(true);
 
         //Act
-        var result = await Service.LeaveGroup(groupId, userId, default);
+        var result = await Service.LeaveGroup(groupId, userId, cancellationToken);
 
         //Assert
         result.ShouldBeTrue();
         await MemberRepository.Received(1)
-            .GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
-        await MemberRepository.Received(1).Delete(memberToDelete, default);
-        await MessageService.Received(1)
-            .NotifyMemberLeftGroup(Arg.Is<MemberLeftGroupEvent>(memberEvent => memberEvent.GroupId == groupId),
-                default);
+            .Delete(memberToDelete, cancellationToken);
+        await Mediator.Received(1).Publish(
+            Arg.Is<MemberLeftSignal>(signal => 
+                signal.GroupId == groupId &&
+                signal.GroupName == memberToDelete.Group.Name &&
+                signal.UserEmail == memberToDelete.User.Email),
+            cancellationToken);
     }
 
     [Fact]
@@ -42,17 +46,17 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
 
-        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), CancellationToken.None)
             .Returns((GroupMember?)null);
 
         //Act
-        var act = async () => await Service.LeaveGroup(groupId, userId, default);
+        var act = async () => await Service.LeaveGroup(groupId, userId, CancellationToken.None);
 
         //Assert
         await act.ShouldThrowAsync<UnknownIdentifierException>();
         await MemberRepository.Received(1)
-            .GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
-        await MemberRepository.DidNotReceive().Delete(Arg.Any<GroupMember>(), default);
+            .GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), CancellationToken.None);
+        await MemberRepository.DidNotReceive().Delete(Arg.Any<GroupMember>(), CancellationToken.None);
     }
 
     [Fact]
@@ -70,35 +74,21 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .Create();
 
         MemberRepository.GetByPredicateFullInfo(
-                Arg.Is<Expression<Func<GroupMember, bool>>>(expr => expr.Compile()(memberToDelete)), default)
+                Arg.Is<Expression<Func<GroupMember, bool>>>(expr => expr.Compile()(memberToDelete)), CancellationToken.None)
             .Returns(memberToDelete);
 
-        MemberRepository.Delete(memberToDelete, default)
+        MemberRepository.Delete(memberToDelete, CancellationToken.None)
             .Returns(true);
 
-        var memberCacheKey = RedisKeySetter.SetCacheKey<GroupMemberDto>(memberId);
-
         //Act
-        var result = await Service.LeaveGroup(groupId, userId, default);
+        var result = await Service.LeaveGroup(groupId, userId, CancellationToken.None);
 
         //Assert
         result.ShouldBeTrue();
 
         await MemberRepository.Received(1)
-            .GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), default);
-        await MemberRepository.Received(1).Delete(memberToDelete, default);
-
-        await CacheAccessService.Received(1)
-            .RemoveData(Arg.Is<List<string>>(keys => keys.Contains(memberCacheKey) && keys.Count == 1), default);
-
-        await MessageService.Received(1)
-            .NotifyMemberLeftGroup(
-                Arg.Is<MemberLeftGroupEvent>(e =>
-                    e.Id == memberId &&
-                    e.GroupId == groupId
-                ),
-                default
-            );
+            .GetByPredicateFullInfo(Arg.Any<Expression<Func<GroupMember, bool>>>(), CancellationToken.None);
+        await MemberRepository.Received(1).Delete(memberToDelete, CancellationToken.None);
     }
     
     [Fact]
@@ -123,21 +113,21 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .With(dto => dto.GroupId, groupId)
             .Create();
 
-        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), CancellationToken.None)
             .Returns((GroupMember?)null);
-        MemberRepository.Create(Arg.Any<GroupMember>(), default)
+        MemberRepository.Create(Arg.Any<GroupMember>(), CancellationToken.None)
             .Returns(createdMemberEntity);
         Mapper.Map<GroupMemberDto>(createdMemberEntity)
             .Returns(createdMemberDto);
 
         //Act
-        var result = await Service.JoinGroup(createDto, default);
+        var result = await Service.JoinGroup(createDto, CancellationToken.None);
 
         //Assert
         result.ShouldNotBeNull();
         result.UserId.ShouldBe(userId);
         result.GroupId.ShouldBe(groupId);
-        await MemberRepository.Received(1).Create(Arg.Any<GroupMember>(), default);
+        await MemberRepository.Received(1).Create(Arg.Any<GroupMember>(), CancellationToken.None);
     }
 
     [Fact]
@@ -157,91 +147,47 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .With(gm => gm.GroupId, groupId)
             .Create();
 
-        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), default)
+        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<GroupMember, bool>>>(), CancellationToken.None)
             .Returns(existingMemberEntity);
 
         //Act
-        var act = async () => await Service.JoinGroup(createDto, default);
+        var act = async () => await Service.JoinGroup(createDto, CancellationToken.None);
 
         //Assert
         await act.ShouldThrowAsync<InvalidRequestDataException>();
     }
     
     [Fact]
-    public async Task GetFullInfoById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
+    public async Task GetFullInfoById_WhenMemberExists_ReturnsMappedDto()
     {
         //Arrange
-        var memberId = Fixture.Create<Guid>();
-        var cacheKey = $"{memberId}:{nameof(GroupMemberDto)}";
-
-        var cachedDto = Fixture.Build<GroupMemberDto>()
-            .With(dto => dto.Id, memberId)
-            .With(dto => dto.Role, MemberRole.Admin)
+        var memberId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+    
+        var memberEntity = Fixture.Build<GroupMember>()
+            .With(m => m.Id, memberId)
             .Create();
-
-        CacheService.CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<GroupMemberDto?>>>(),
-            default
-        ).Returns(cachedDto);
-
-        //Act
-        var result = await Service.GetFullInfoById(memberId, default);
-
-        //Assert
-        result.ShouldBe(cachedDto);
-        result?.Role.ShouldBe(MemberRole.Admin);
-
-        await MemberRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), default);
-        await CacheService.Received(1).CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<GroupMemberDto?>>>(),
-            default
-        );
-    }
-
-    [Fact]
-    public async Task GetFullInfoById_WhenCacheMiss_FetchesFromRepoAndCaches()
-    {
-        //Arrange
-        var memberId = Fixture.Create<Guid>();
-        var cacheKey = $"{memberId}:{nameof(GroupMemberDto)}";
-
-        var memberEntity = Fixture.Create<GroupMember>();
-        memberEntity.Id = memberId;
-
-        var memberDto = Fixture.Build<GroupMemberDto>()
+        
+        var expectedDto = Fixture.Build<GroupMemberDto>()
             .With(dto => dto.Id, memberId)
             .Create();
 
-        MemberRepository.GetFullInfoById(memberId, default).Returns(memberEntity);
-        Mapper.Map<GroupMemberDto>(memberEntity).Returns(memberDto);
-
-        CacheService.CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<GroupMemberDto?>>>(),
-            default
-        )!.Returns(callInfo =>
-        {
-            var factory = callInfo.Arg<Func<Task<GroupMemberDto>>>();
-            return factory();
-        });
+        MemberRepository.GetFullInfoById(memberId, ct)
+            .Returns(memberEntity);
+        
+        Mapper.Map<GroupMemberDto>(memberEntity)
+            .Returns(expectedDto);
 
         //Act
-        var result = await Service.GetFullInfoById(memberId, default);
+        var result = await Service.GetFullInfoById(memberId, ct);
 
         //Assert
-        result.ShouldBe(memberDto);
-        result?.Id.ShouldBe(memberId);
-
-        await MemberRepository.Received(1).GetFullInfoById(memberId, default);
-        Mapper.Received(1).Map<GroupMemberDto>(memberEntity);
-
-        await CacheService.Received(1).CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<GroupMemberDto?>>>(),
-            default
-        );
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(memberId);
+    
+        await MemberRepository.Received(1).GetFullInfoById(memberId, ct);
+        await CacheService.DidNotReceiveWithAnyArgs().CacheDataWithLock(
+            Arg.Any<string>(), Arg.Any<Func<Task<GroupMemberDto?>>>(), Arg.Any<CancellationToken>());
     }
     
     [Fact]
@@ -266,7 +212,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .Returns(memberDtos[0], memberDtos[1], memberDtos[2]);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         result.ShouldNotBeNull();
@@ -292,7 +238,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .Returns(emptyPaginatedMembers);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         result.ShouldNotBeNull();
@@ -315,7 +261,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
         
         var paginatedResult = new PaginatedList<GroupMember>(
-            new List<GroupMember> { memberToFind }, 
+            [memberToFind],
             PageNumber: 1, 
             PageSize: 10, 
             PageCount: 1, 
@@ -332,7 +278,7 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
         Mapper.Map<GroupMemberDto>(memberToFind).Returns(memberDto);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         await MemberRepository.Received(1).GetAll(
@@ -367,23 +313,20 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .With(dto => dto.Role, MemberRole.Moderator)
             .Create();
 
-        MemberRepository.GetFullInfoById(memberId, default).Returns(memberEntity);
+        MemberRepository.GetFullInfoById(memberId, CancellationToken.None).Returns(memberEntity);
         Mapper.Map(Arg.Any<UpdateGroupMemberDto>(), memberEntity).Returns(memberEntity);
-        MemberRepository.Update(memberEntity, default).Returns(updatedMemberEntity);
+        MemberRepository.Update(memberEntity, CancellationToken.None).Returns(updatedMemberEntity);
         Mapper.Map<GroupMemberDto>(updatedMemberEntity).Returns(memberDto);
 
         //Act
-        var result = await Service.ChangeRole(memberId, default);
+        var result = await Service.ChangeRole(memberId, CancellationToken.None);
 
         //Assert
         result.ShouldNotBeNull();
         result.Role.ShouldBe(MemberRole.Moderator);
         result.Role.ShouldNotBe(memberEntity.Role);
         result.Id.ShouldBe(memberEntity.Id);
-        await MemberRepository.Received(1).Update(Arg.Any<GroupMember>(), default);
-        await MessageService.Received(1)
-            .NotifyMemberChangedRole(Arg.Is<MemberChangedRoleEvent>(memberEvent => memberEvent.Id == memberId),
-                default);
+        await MemberRepository.Received(1).Update(Arg.Any<GroupMember>(), CancellationToken.None);
     }
 
     [Fact]
@@ -399,10 +342,10 @@ public class GroupMemberServiceTests : GroupMemberServiceTestBase
             .With(dto => dto.Role, MemberRole.Moderator)
             .Create();
 
-        MemberRepository.GetFullInfoById(memberEntity.Id, default).Returns(memberEntity);
+        MemberRepository.GetFullInfoById(memberEntity.Id, CancellationToken.None).Returns(memberEntity);
 
         //Act
-        var result = async () => await Service.ChangeRole(updateDto.Id, default);
+        var result = async () => await Service.ChangeRole(updateDto.Id, CancellationToken.None);
 
         //Assert
         await result.ShouldThrowAsync<InvalidOperationException>();

@@ -72,8 +72,7 @@ public class SubscriptionsController(
     ///     Renews an existing subscription by extending its DueDate and sets Active status to true
     /// </summary>
     [HttpPatch("{subscriptionId:guid}/renew")]
-    public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, [FromQuery] int monthsToRenew,
-        CancellationToken cancellationToken)
+    public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, [FromQuery] int monthsToRenew,CancellationToken cancellationToken)
     {
         var renew = await subscriptionService.RenewSubscription(subscriptionId, monthsToRenew, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(renew);
