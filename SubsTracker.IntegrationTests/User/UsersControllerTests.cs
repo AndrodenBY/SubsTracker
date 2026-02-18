@@ -118,7 +118,6 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         await _assertHelper.UpdateValidAssert(response, updateDto.FirstName);
     }
 
-
     [Fact]
     public async Task Delete_WhenValidId_RemovesUser()
     {
