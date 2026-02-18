@@ -73,7 +73,6 @@ public class UserService(
         
         Mapper.Map(updateDto, existingUser);
         var updatedEntity = await userRepository.Update(existingUser, cancellationToken);
-    
         
         await mediator.Publish(new UserUpdatedSignal(updatedEntity.Auth0Id), cancellationToken);
         return Mapper.Map<UserDto>(updatedEntity);
