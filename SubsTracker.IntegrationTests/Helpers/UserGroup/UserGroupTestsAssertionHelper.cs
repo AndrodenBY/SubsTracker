@@ -42,7 +42,11 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
 
     public async Task CreateValidAssert(HttpResponseMessage response, CreateUserGroupDto expected)
     {
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Expected Success but got {response.StatusCode}. Details: {errorContent}");
+        }
 
         var content = await response.Content.ReadAsStringAsync();
         var viewModel = JsonConvert.DeserializeObject<UserGroupViewModel>(content);

@@ -347,7 +347,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         //Act & Assert
         await Should.ThrowAsync<InvalidRequestDataException>(async () =>
         {
-            await Service.Create(Guid.NewGuid(), createDto, default);
+            await Service.Create(string.Empty, createDto, default);
         });
     }
 
