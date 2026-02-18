@@ -14,7 +14,6 @@ using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
-using DispatchR.Abstractions;
 
 namespace SubsTracker.BLL.Services.Subscription;
 
@@ -57,7 +56,7 @@ public class SubscriptionService(
 
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
 
-        await mediator.PublishAsync(new SubscriptionCreatedNotification(createdSubscription, existingUser.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionCreatedNotification(createdSubscription, existingUser.Id), cancellationToken);
         return Mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
@@ -99,15 +98,15 @@ public class SubscriptionService(
         subscriptionToRenew.Active = true;
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
 
-        await mediator.Publish(new SubscriptionRenewedNotification(renewedSubscription, renewedSubscription.UserId),
+        await mediator.Publish(new SubscriptionRenewedNotification(renewedSubscription, renewedSubscription.UserId
+            ?? throw new InvalidOperationException("UserId cannot be null")), 
             cancellationToken);
         return Mapper.Map<SubscriptionDto>(renewedSubscription);
     }
-
+    
     public Task<List<SubscriptionDto>> GetUpcomingBills(string auth0Id, CancellationToken cancellationToken)
     {
-        var request = new GetUpcomingBills(auth0Id);
-        
-        return mediator.Send(request, cancellationToken);
+        var result = mediator.Send(new GetUpcomingBills(auth0Id), cancellationToken);
+        return Task.FromResult(result);
     }
 }
