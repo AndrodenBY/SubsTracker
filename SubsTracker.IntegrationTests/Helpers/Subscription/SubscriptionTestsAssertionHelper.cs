@@ -1,3 +1,5 @@
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
@@ -8,7 +10,13 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
     {
         await response.Content.ReadAsStringAsync();
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
+
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(options);
 
         result.ShouldNotBeNull();
         result.Id.ShouldBe(expected.Id);
