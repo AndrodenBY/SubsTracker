@@ -1,7 +1,8 @@
 using AutoMapper;
 using DispatchR;
 using SubsTracker.BLL.DTOs.Subscription;
-using SubsTracker.BLL.Handlers.Notifications;
+using SubsTracker.BLL.Handlers.Signals;
+using SubsTracker.BLL.Handlers.Signals.Subscription;
 using SubsTracker.BLL.Handlers.UpcomingBills;
 using SubsTracker.BLL.Helpers;
 using SubsTracker.BLL.Helpers.Filters;
@@ -56,7 +57,7 @@ public class SubscriptionService(
 
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
 
-        await mediator.Publish(new SubscriptionCreatedNotification(createdSubscription, existingUser.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionCreatedSignal(createdSubscription, existingUser.Id), cancellationToken);
         return Mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
@@ -68,7 +69,7 @@ public class SubscriptionService(
         Mapper.Map(updateDto, originalSubscription);
         var updated = await subscriptionRepository.Update(originalSubscription, cancellationToken);
         
-        await mediator.Publish(new SubscriptionUpdatedNotification(updated, user.Id, originalSubscription.Type), cancellationToken);
+        await mediator.Publish(new SubscriptionUpdatedSignal(updated, user.Id, originalSubscription.Type), cancellationToken);
         return Mapper.Map<SubscriptionDto>(updated);
     }
 
@@ -80,7 +81,7 @@ public class SubscriptionService(
         subscription.Active = false;
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
-        await mediator.Publish(new SubscriptionCanceledNotification(canceledSubscription, user.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionCanceledSignal(canceledSubscription, user.Id), cancellationToken);
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
@@ -98,7 +99,7 @@ public class SubscriptionService(
         subscriptionToRenew.Active = true;
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
 
-        await mediator.Publish(new SubscriptionRenewedNotification(renewedSubscription, renewedSubscription.UserId
+        await mediator.Publish(new SubscriptionRenewedSignal(renewedSubscription, renewedSubscription.UserId
             ?? throw new InvalidOperationException("UserId cannot be null")), 
             cancellationToken);
         return Mapper.Map<SubscriptionDto>(renewedSubscription);
