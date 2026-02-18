@@ -10,7 +10,6 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
     public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
     {
         response.EnsureSuccessStatusCode();
-
         var options = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
