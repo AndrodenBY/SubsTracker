@@ -1,7 +1,9 @@
 using AutoMapper;
+using DispatchR;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Handlers.Signals.Group;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
@@ -13,7 +15,6 @@ using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
-using UserModel = SubsTracker.DAL.Models.User.User;
 
 namespace SubsTracker.BLL.Services.User;
 
@@ -23,13 +24,14 @@ public class UserGroupService(
     ISubscriptionRepository subscriptionRepository,
     IGroupMemberService memberService,
     IMapper mapper,
-    ICacheService cacheService) 
+    ICacheService cacheService,
+    IMediator mediator) 
     : Service<UserGroup, UserGroupDto, CreateUserGroupDto, UpdateUserGroupDto, UserGroupFilterDto>(groupRepository, mapper, cacheService),
     IUserGroupService
 {
     public async Task<UserGroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<UserGroupDto>(id);
+        var cacheKey = RedisKeySetter.SetCacheKey<UserGroup>(id);
 
         async Task<UserGroupDto?> GetUserGroup()
         {
@@ -61,7 +63,8 @@ public class UserGroupService(
             Role = MemberRole.Admin
         };
         await memberService.Create(createMemberDto, cancellationToken);
-
+        
+        await mediator.Publish(new GroupCreatedSignal(createdGroup.Id, existingUser.Id), cancellationToken);
         return createdGroup;
     }
 
@@ -73,6 +76,8 @@ public class UserGroupService(
         Mapper.Map(updateDto, existingUserGroup);
         var updatedEntity = await groupRepository.Update(existingUserGroup, cancellationToken);
 
+        await mediator.Publish(new GroupUpdatedSignal(updateId, existingUserGroup.UserId 
+                                                                ?? throw new UnknownIdentifierException($"User with {existingUserGroup.UserId} not found")), cancellationToken);
         return Mapper.Map<UserGroupDto>(updatedEntity);
     }
 
@@ -89,8 +94,10 @@ public class UserGroupService(
                            ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found.");
 
         group.SharedSubscriptions?.Add(subscription);
-
         var updatedGroup = await groupRepository.Update(group, cancellationToken);
+        
+        await mediator.Publish(new GroupUpdatedSignal(groupId, group.UserId
+                                                               ?? throw new UnknownIdentifierException($"User with {group.UserId} not found")), cancellationToken);
         return Mapper.Map<UserGroupDto>(updatedGroup);
     }
 
@@ -105,8 +112,10 @@ public class UserGroupService(
             throw new ArgumentException($"No subscription is shared in group with id {groupId}");
 
         group.SharedSubscriptions?.Remove(subscriptionToRemove);
-
         var updatedGroup = await groupRepository.Update(group, cancellationToken);
+        
+        await mediator.Publish(new GroupUpdatedSignal(groupId, group.UserId
+                                                               ?? throw new UnknownIdentifierException($"User with {group.UserId} not found")), cancellationToken);
         return Mapper.Map<UserGroupDto>(updatedGroup);
     }
 
@@ -115,6 +124,8 @@ public class UserGroupService(
         var existingUserGroup = await groupRepository.GetById(id, cancellationToken)
                                 ?? throw new UnknownIdentifierException($"UserGroup with id {id} not found");
 
+        await mediator.Publish(new GroupDeletedSignal(id, existingUserGroup.UserId 
+                                                          ?? throw new UnknownIdentifierException($"User with {existingUserGroup.UserId} not found")), cancellationToken);
         return await groupRepository.Delete(existingUserGroup, cancellationToken);
     }
 }

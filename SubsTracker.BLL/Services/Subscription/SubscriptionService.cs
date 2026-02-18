@@ -1,7 +1,6 @@
 using AutoMapper;
 using DispatchR;
 using SubsTracker.BLL.DTOs.Subscription;
-using SubsTracker.BLL.Handlers.Signals;
 using SubsTracker.BLL.Handlers.Signals.Subscription;
 using SubsTracker.BLL.Handlers.UpcomingBills;
 using SubsTracker.BLL.Helpers;
@@ -29,7 +28,7 @@ public class SubscriptionService(
 {
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(id);
+        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionModel>(id);
         async Task<SubscriptionDto?> GetSubscription()
         {
             var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);

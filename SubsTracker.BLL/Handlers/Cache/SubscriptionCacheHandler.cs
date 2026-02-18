@@ -13,19 +13,20 @@ public class SubscriptionCacheHandler(ICacheService cacheService)
         INotificationHandler<SubscriptionCanceledSignal>, 
         INotificationHandler<SubscriptionRenewedSignal>
 {
-    public ValueTask Handle(SubscriptionUpdatedSignal notification, CancellationToken cancellationToken)
-        => InvalidateCacheEntries(notification.Subscription.Id, notification.UserId, cancellationToken);
-    
-    public ValueTask Handle(SubscriptionDeletedSignal notification, CancellationToken cancellationToken) 
-        => InvalidateCacheEntries(notification.SubscriptionId, notification.UserId, cancellationToken);
-    
-    public ValueTask Handle(SubscriptionCanceledSignal signal, CancellationToken cancellationToken) 
-        => InvalidateCacheEntries(signal.Subscription.Id, signal.UserId, cancellationToken);
-
-    public ValueTask Handle(SubscriptionRenewedSignal notification, CancellationToken cancellationToken)
-        => InvalidateCacheEntries(notification.Subscription.Id, notification.UserId, cancellationToken);
+    public ValueTask Handle(SubscriptionUpdatedSignal signal, CancellationToken cancellationToken)
+        => InvalidateSubscriptionEntries(signal.Subscription.Id, signal.UserId, cancellationToken);
     
     private ValueTask InvalidateCacheEntries(Guid subscriptionId, Guid userId, CancellationToken cancellationToken)
+    public ValueTask Handle(SubscriptionDeletedSignal signal, CancellationToken cancellationToken) 
+        => InvalidateSubscriptionEntries(signal.SubscriptionId, signal.UserId, cancellationToken);
+    
+    public ValueTask Handle(SubscriptionCanceledSignal signal, CancellationToken cancellationToken) 
+        => InvalidateSubscriptionEntries(signal.Subscription.Id, signal.UserId, cancellationToken);
+
+    public ValueTask Handle(SubscriptionRenewedSignal signal, CancellationToken cancellationToken)
+        => InvalidateSubscriptionEntries(signal.Subscription.Id, signal.UserId, cancellationToken);
+    
+    private ValueTask InvalidateSubscriptionEntries(Guid subscriptionId, Guid userId, CancellationToken cancellationToken)
     {
         return new ValueTask(cacheService.InvalidateCache<Subscription>(
             subscriptionId, 

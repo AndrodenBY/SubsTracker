@@ -16,9 +16,9 @@ public class SubscriptionMessageHandler(IMessageService messageService)
         await messageService.NotifySubscriptionCanceled(emailEvent, cancellationToken);
     }
     
-    public async ValueTask Handle(SubscriptionRenewedSignal notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(SubscriptionRenewedSignal signal, CancellationToken cancellationToken)
     {
-        var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(notification.Subscription);
+        var subscriptionRenewedEvent = SubscriptionNotificationHelper.CreateSubscriptionRenewedEvent(signal.Subscription);
         await messageService.NotifySubscriptionRenewed(subscriptionRenewedEvent, cancellationToken);
     }
 }

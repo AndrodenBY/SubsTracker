@@ -10,13 +10,13 @@ public class SubscriptionHistoryHandler(ISubscriptionHistoryRepository historyRe
     : INotificationHandler<SubscriptionUpdatedSignal>, 
         INotificationHandler<SubscriptionCanceledSignal>
 {
-    public async ValueTask Handle(SubscriptionUpdatedSignal notification, CancellationToken cancellationToken)
+    public async ValueTask Handle(SubscriptionUpdatedSignal signal, CancellationToken cancellationToken)
     {
         await historyRepository.UpdateType(
-            notification.OriginalType,
-            notification.Subscription.Type,
-            notification.Subscription.Id,
-            notification.Subscription.Price,
+            signal.OriginalType,
+            signal.Subscription.Type,
+            signal.Subscription.Id,
+            signal.Subscription.Price,
             cancellationToken);
     }
     
