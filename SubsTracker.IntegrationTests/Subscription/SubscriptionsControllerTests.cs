@@ -73,7 +73,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var dataSeedObject = await _dataSeedingHelper.AddSeedUserOnly();
 
         //Act
-        var response = await _client.PostAsJsonAsync($"{EndpointConst.Subscription}/{dataSeedObject.User.Id}", subscriptionDto);
+        var response = await _client.PostAsJsonAsync($"{EndpointConst.Subscription}", subscriptionDto);
 
         //Assert
         await _assertHelper.CreateValidAssert(response);
