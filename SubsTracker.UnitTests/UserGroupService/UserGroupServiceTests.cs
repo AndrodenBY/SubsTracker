@@ -1,3 +1,4 @@
+using SubsTracker.BLL.Handlers.Signals.Group;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.UnitTests.UserGroupService;
@@ -18,7 +19,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         var paginationParams = new PaginationParameters { PageNumber = 1, PageSize = 10 };
         
         var paginatedResult = new PaginatedList<UserGroup>(
-            new List<UserGroup> { userGroupToFind }, 
+        [userGroupToFind], 
             PageNumber: 1, 
             PageSize: 10, 
             PageCount: 1, 
@@ -35,7 +36,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         Mapper.Map<UserGroupDto>(userGroupToFind).Returns(userGroupDto);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         await GroupRepository.Received(1).GetAll(
@@ -73,7 +74,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
             .Returns(paginatedResult);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         await GroupRepository.Received(1).GetAll(
@@ -110,7 +111,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
             .Returns(paginatedResult);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         await GroupRepository.Received(1).GetAll(
@@ -154,7 +155,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         Mapper.Map<UserGroupDto>(userGroups[2]).Returns(userGroupDtos[2]);
 
         //Act
-        var result = await Service.GetAll(filter, paginationParams, default);
+        var result = await Service.GetAll(filter, paginationParams, CancellationToken.None);
 
         //Assert
         await GroupRepository.Received(1).GetAll(
@@ -173,51 +174,92 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
     public async Task ShareSubscription_WhenValidData_AddSubscriptionToGroup()
     {
         //Arrange
+        var groupId = Guid.NewGuid();
+        var subscriptionId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
         var userGroup = Fixture.Build<UserGroup>()
-            .With(group => group.SharedSubscriptions, new List<Subscription>())
-            .Create();
-        var subscription = new Subscription
-        {
-            Id = Guid.NewGuid(), Price = 9.99m, Content = SubscriptionContent.Design, DueDate = DateOnly.MaxValue,
-            Type = SubscriptionType.Free
-        };
-        var expectedDto = Fixture.Build<UserGroupDto>()
-            .With(group => group.Id, userGroup.Id)
-            .With(group => group.Name, userGroup.Name)
+            .With(g => g.Id, groupId)
+            .With(g => g.UserId, userId)
+            .With(g => g.SharedSubscriptions, [])
             .Create();
 
-        GroupRepository.GetFullInfoById(userGroup.Id, default)
-            .Returns(userGroup);
-        SubscriptionRepository.GetById(subscription.Id, default)
-            .Returns(subscription);
-        GroupRepository.Update(Arg.Any<UserGroup>(), default)
-            .Returns(userGroup);
-        Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
+        var subscription = Fixture.Build<Subscription>()
+            .With(s => s.Id, subscriptionId)
+            .Create();
+
+        var expectedDto = Fixture.Build<UserGroupDto>()
+            .With(dto => dto.Id, groupId)
+            .Create();
+
+        GroupRepository.GetFullInfoById(groupId, ct).Returns(userGroup);
+        SubscriptionRepository.GetById(subscriptionId, ct).Returns(subscription);
+        GroupRepository.Update(userGroup, ct).Returns(userGroup);
+        Mapper.Map<UserGroupDto>(userGroup).Returns(expectedDto);
 
         //Act
-        var result = await Service.ShareSubscription(userGroup.Id, subscription.Id, default);
+        var result = await Service.ShareSubscription(groupId, subscriptionId, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.Id.ShouldBe(userGroup.Id);
-        await GroupRepository.Received(1)
-            .Update(Arg.Is<UserGroup>(g => g.SharedSubscriptions.Contains(subscription)), default);
+        result.Id.ShouldBe(groupId);
+        
+        await GroupRepository.Received(1).Update(
+            Arg.Is<UserGroup>(g => g.SharedSubscriptions != null && g.SharedSubscriptions.Contains(subscription)), 
+            ct);
+
+        await Mediator.Received(1).Publish(
+            Arg.Is<GroupUpdatedSignal>(s => s.GroupId == groupId && s.UserId == userId), 
+            ct);
     }
 
     [Fact]
-    public async Task ShareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
+    public async Task ShareSubscription_WhenGroupDoesNotExist_ThrowsUnknownIdentifierException()
     {
         //Arrange
-        var nonExistentGroupId = Guid.NewGuid();
+        var groupId = Guid.NewGuid();
+        var ct = CancellationToken.None;
 
-        GroupRepository.GetFullInfoById(nonExistentGroupId, default)
-            .Returns(Task.FromResult<UserGroup?>(null));
+        GroupRepository.GetFullInfoById(groupId, ct).Returns((UserGroup?)null);
 
-        //Act
-        var result = async () => await Service.ShareSubscription(nonExistentGroupId, Guid.NewGuid(), default);
+        //Act & Assert
+        await Should.ThrowAsync<UnknownIdentifierException>(async () =>
+        {
+            await Service.ShareSubscription(groupId, Guid.NewGuid(), ct);
+        });
 
-        //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
+        await GroupRepository.DidNotReceive().Update(Arg.Any<UserGroup>(), ct);
+        await Mediator.DidNotReceive().Publish(Arg.Any<GroupUpdatedSignal>(), ct);
+    }
+
+    [Fact]
+    public async Task ShareSubscription_WhenAlreadyShared_ThrowsPolicyViolationException()
+    {
+        //Arrange
+        var groupId = Guid.NewGuid();
+        var subscriptionId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        var subscription = Fixture.Build<Subscription>()
+            .With(s => s.Id, subscriptionId)
+            .Create();
+
+        var userGroup = Fixture.Build<UserGroup>()
+            .With(g => g.Id, groupId)
+            .With(g => g.SharedSubscriptions, [subscription])
+            .Create();
+
+        GroupRepository.GetFullInfoById(groupId, ct).Returns(userGroup);
+
+        //Act & Assert
+        await Should.ThrowAsync<PolicyViolationException>(async () =>
+        {
+            await Service.ShareSubscription(groupId, subscriptionId, ct);
+        });
+
+        await SubscriptionRepository.DidNotReceive().GetById(Arg.Any<Guid>(), ct);
+        await GroupRepository.DidNotReceive().Update(Arg.Any<UserGroup>(), ct);
     }
 
     [Fact]
@@ -235,20 +277,20 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
-            default
+            CancellationToken.None
         )!.Returns(callInfo =>
         {
             var factory = callInfo.Arg<Func<Task<UserGroupDto>>>();
             return factory();
         });
-        GroupRepository.GetById(userGroupDto.Id, default)
+        GroupRepository.GetById(userGroupDto.Id, CancellationToken.None)
             .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(userGroup)
             .Returns(userGroupDto);
 
         //Act
-        var result = await Service.GetById(userGroupDto.Id, default);
+        var result = await Service.GetById(userGroupDto.Id, CancellationToken.None);
 
         //Assert
         result.ShouldNotBeNull();
@@ -257,7 +299,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<Func<Task<UserGroupDto?>>>(),
-            default
+            CancellationToken.None
         );
     }
 
@@ -268,7 +310,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         var emptyId = Guid.Empty;
 
         //Act
-        var emptyIdResult = async () => await Service.GetById(emptyId, default);
+        var emptyIdResult = async () => await Service.GetById(emptyId, CancellationToken.None);
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(emptyIdResult);
@@ -281,7 +323,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         var fakeId = Guid.NewGuid();
 
         //Act
-        var fakeIdResult = async () => await Service.GetById(fakeId, default);
+        var fakeIdResult = async () => await Service.GetById(fakeId, CancellationToken.None);
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(fakeIdResult);
@@ -300,23 +342,23 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
             Arg.Any<Func<Task<UserGroupDto?>>>(),
-            default
+            CancellationToken.None
         )!.Returns(callInfo =>
         {
             var factory = callInfo.Arg<Func<Task<UserGroupDto>>>();
             return factory();
         });
-        GroupRepository.GetById(userGroupDto.Id, default)
+        GroupRepository.GetById(userGroupDto.Id, CancellationToken.None)
             .Returns(userGroup);
 
         Mapper.Map<UserGroupDto>(userGroup)
             .Returns(userGroupDto);
 
         //Act
-        await Service.GetById(userGroupDto.Id, default);
+        await Service.GetById(userGroupDto.Id, CancellationToken.None);
 
         //Assert
-        await GroupRepository.Received(1).GetById(userGroup.Id, default);
+        await GroupRepository.Received(1).GetById(userGroup.Id, CancellationToken.None);
         Mapper.Received(1).Map<UserGroupDto>(userGroup);
     }
 
@@ -325,25 +367,25 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
     {
         //Arrange
         var cachedDto = Fixture.Create<UserGroupDto>();
-        var cacheKey = RedisKeySetter.SetCacheKey<UserGroupDto>(cachedDto.Id);
+        var cacheKey = RedisKeySetter.SetCacheKey<UserGroup>(cachedDto.Id);
 
         CacheService.CacheDataWithLock(
             cacheKey,
             Arg.Any<Func<Task<UserGroupDto?>>>(),
-            default
+            CancellationToken.None
         ).Returns(cachedDto);
 
         //Act
-        var result = await Service.GetFullInfoById(cachedDto.Id, default);
+        var result = await Service.GetFullInfoById(cachedDto.Id, CancellationToken.None);
 
         //Assert
         result.ShouldBe(cachedDto);
 
-        await GroupRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), default);
+        await GroupRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), CancellationToken.None);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
             Arg.Any<Func<Task<UserGroupDto?>>>(),
-            default
+            CancellationToken.None
         );
     }
     
@@ -353,15 +395,15 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         //Arrange
         var userGroupEntity = Fixture.Create<UserGroup>();
 
-        GroupRepository.GetById(userGroupEntity.Id, default).Returns(userGroupEntity);
-        GroupRepository.Delete(userGroupEntity, default).Returns(true);
+        GroupRepository.GetById(userGroupEntity.Id, CancellationToken.None).Returns(userGroupEntity);
+        GroupRepository.Delete(userGroupEntity, CancellationToken.None).Returns(true);
 
         //Act
-        var result = await Service.Delete(userGroupEntity.Id, default);
+        var result = await Service.Delete(userGroupEntity.Id, CancellationToken.None);
 
         //Assert
         result.ShouldBeTrue();
-        await GroupRepository.Received(1).Delete(userGroupEntity, default);
+        await GroupRepository.Received(1).Delete(userGroupEntity, CancellationToken.None);
     }
 
     [Fact]
@@ -370,10 +412,10 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
         //Arrange
         var emptyId = Guid.Empty;
 
-        GroupRepository.GetById(emptyId, default).Returns((UserGroup?)null);
+        GroupRepository.GetById(emptyId, CancellationToken.None).Returns((UserGroup?)null);
 
         //Act
-        var result = async () => await Service.Delete(emptyId, default);
+        var result = async () => await Service.Delete(emptyId, CancellationToken.None);
 
         //Assert
         await result.ShouldThrowAsync<UnknownIdentifierException>();
@@ -383,159 +425,235 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
     public async Task Create_WhenCalled_ReturnsCreatedUserGroupDto()
     {
         //Arrange
+        var auth0Id = Fixture.Create<string>();
         var createDto = Fixture.Create<CreateUserGroupDto>();
-        var userGroupEntity = Fixture.Build<UserGroup>()
-            .With(userGroup => userGroup.Name, createDto.Name)
-            .With(userGroup => userGroup.UserId, createDto.UserId)
-            .Create();
-        var userGroupDto = Fixture.Build<UserGroupDto>()
-            .With(userGroup => userGroup.Name, userGroupEntity.Name)
-            .With(userGroup => userGroup.Id, userGroupEntity.Id)
+        var ct = CancellationToken.None;
+
+        var existingUser = Fixture.Build<User>()
+            .With(u => u.Id, createDto.UserId)
             .Create();
 
-        UserRepository.GetById(createDto.UserId, default).Returns(new User { Id = createDto.UserId });
-        GroupRepository.Create(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
-        Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>()).Returns(userGroupEntity);
-        Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(userGroupDto);
+        var userGroupEntity = Fixture.Build<UserGroup>()
+            .With(g => g.Name, createDto.Name)
+            .With(g => g.UserId, existingUser.Id)
+            .Create();
+
+        var userGroupDto = Fixture.Build<UserGroupDto>()
+            .With(dto => dto.Name, userGroupEntity.Name)
+            .With(dto => dto.Id, userGroupEntity.Id)
+            .Create();
+
+        UserRepository.GetByAuth0Id(auth0Id, ct).Returns(existingUser);
+        
+        Mapper.Map<UserGroup>(createDto).Returns(userGroupEntity);
+        GroupRepository.Create(userGroupEntity, ct).Returns(userGroupEntity);
+        Mapper.Map<UserGroupDto>(userGroupEntity).Returns(userGroupDto);
 
         //Act
-        var result = await Service.Create(createDto, default);
+        var result = await Service.Create(auth0Id, createDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        await GroupRepository.Received(1).Create(Arg.Any<UserGroup>(), default);
-        result.ShouldBeEquivalentTo(userGroupDto);
+        result.Id.ShouldBe(userGroupDto.Id);
+        
+        await GroupRepository.Received(1).Create(userGroupEntity, ct);
+        await Mediator.Received(1).Publish(Arg.Is<GroupCreatedSignal>(s => 
+            s.GroupId == userGroupEntity.Id && 
+            s.UserId == existingUser.Id), ct);
     }
 
     [Fact]
-    public async Task Create_WhenEmptyDto_ThrowsValidationException()
+    public async Task Create_WhenUserDoesNotExist_ThrowsInvalidRequestDataException()
     {
         //Arrange
-        var createDto = new CreateUserGroupDto { Name = string.Empty, UserId = Guid.Empty };
+        var auth0Id = Fixture.Create<string>();
+        var createDto = Fixture.Create<CreateUserGroupDto>();
+        var ct = CancellationToken.None;
+
+        UserRepository.GetByAuth0Id(auth0Id, ct).Returns((User?)null);
 
         //Act & Assert
         await Should.ThrowAsync<InvalidRequestDataException>(async () =>
         {
-            await Service.Create(string.Empty, createDto, default);
+            await Service.Create(auth0Id, createDto, ct);
         });
+
+        await GroupRepository.DidNotReceive().Create(Arg.Any<UserGroup>(), ct);
+        await Mediator.DidNotReceive().Publish(Arg.Any<GroupCreatedSignal>(), ct);
     }
 
     [Fact]
-    public async Task Create_WhenCalled_CallsRepositoryExactlyOnce()
+    public async Task Create_WhenCalled_CallsDependenciesExactlyOnce()
     {
         //Arrange
+        var auth0Id = Fixture.Create<string>();
         var createDto = Fixture.Create<CreateUserGroupDto>();
+        var ct = CancellationToken.None;
+        var existingUser = Fixture.Create<User>();
+
         var userGroupEntity = Fixture.Build<UserGroup>()
-            .With(userGroup => userGroup.Name, createDto.Name)
-            .With(userGroup => userGroup.UserId, createDto.UserId)
-            .Create();
-        var userGroupDto = Fixture.Build<UserGroupDto>()
-            .With(userGroup => userGroup.Name, userGroupEntity.Name)
-            .With(userGroup => userGroup.Id, userGroupEntity.Id)
+            .With(g => g.Id, Guid.NewGuid())
+            .With(g => g.UserId, existingUser.Id)
             .Create();
 
-        UserRepository.GetById(createDto.UserId, default)
-            .Returns(new User { Id = createDto.UserId });
-        GroupRepository.Create(Arg.Any<UserGroup>(), default)
-            .Returns(userGroupEntity);
-        Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>())
-            .Returns(userGroupEntity);
-        Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>())
-            .Returns(userGroupDto);
+        UserRepository.GetByAuth0Id(auth0Id, ct).Returns(existingUser);
+        Mapper.Map<UserGroup>(createDto).Returns(userGroupEntity);
+        GroupRepository.Create(userGroupEntity, ct).Returns(userGroupEntity);
+        Mapper.Map<UserGroupDto>(userGroupEntity).Returns(Fixture.Create<UserGroupDto>());
 
         //Act
-        await Service.Create(createDto, default);
+        await Service.Create(auth0Id, createDto, ct);
 
         //Assert
-        await GroupRepository.Received(1).Create(Arg.Any<UserGroup>(), default);
+        await UserRepository.Received(1).GetByAuth0Id(auth0Id, ct);
+        await GroupRepository.Received(1).Create(Arg.Any<UserGroup>(), ct);
+        await Mediator.Received(1).Publish(Arg.Any<GroupCreatedSignal>(), ct);
     }
-    
+
     [Fact]
     public async Task UnshareSubscription_WhenDataIsValid_RemovesSubscription()
     {
         //Arrange
-        var subscription = new Subscription
-        {
-            Id = Guid.NewGuid(), Type = SubscriptionType.Free, Content = SubscriptionContent.Design,
-            DueDate = DateOnly.MinValue, Price = 9.99m
-        };
+        var groupId = Guid.NewGuid();
+        var subscriptionId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        var subscription = Fixture.Build<Subscription>()
+            .With(s => s.Id, subscriptionId)
+            .Create();
+
         var userGroup = Fixture.Build<UserGroup>()
-            .With(group => group.SharedSubscriptions, new List<Subscription> { subscription })
+            .With(g => g.Id, groupId)
+            .With(g => g.UserId, userId)
+            .With(g => g.SharedSubscriptions, [subscription])
             .Create();
+
         var expectedDto = Fixture.Build<UserGroupDto>()
-            .With(group => group.Id, userGroup.Id)
-            .With(group => group.Name, userGroup.Name)
+            .With(dto => dto.Id, groupId)
             .Create();
 
-        GroupRepository.GetFullInfoById(userGroup.Id, default)
-            .Returns(userGroup);
-        GroupRepository.Update(Arg.Any<UserGroup>(), default)
-            .Returns(userGroup);
-
-        Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(expectedDto);
+        GroupRepository.GetFullInfoById(groupId, ct).Returns(userGroup);
+        GroupRepository.Update(userGroup, ct).Returns(userGroup);
+        Mapper.Map<UserGroupDto>(userGroup).Returns(expectedDto);
 
         //Act
-        var result = await Service.UnshareSubscription(userGroup.Id, subscription.Id, default);
+        var result = await Service.UnshareSubscription(groupId, subscriptionId, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        await GroupRepository.Received(1)
-            .Update(Arg.Is<UserGroup>(g => !g.SharedSubscriptions.Contains(subscription)), default);
+        
+        await GroupRepository.Received(1).Update(
+            Arg.Is<UserGroup>(g => g.SharedSubscriptions != null && !g.SharedSubscriptions.Contains(subscription)), 
+            ct);
+
+        await Mediator.Received(1).Publish(
+            Arg.Is<GroupUpdatedSignal>(s => s.GroupId == groupId && s.UserId == userId), 
+            ct);
     }
 
     [Fact]
-    public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
+    public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsUnknownIdentifierException()
     {
         //Arrange
-        GroupRepository.GetById(Arg.Any<Guid>(), default)
-            .Returns((UserGroup?)null);
+        var groupId = Guid.NewGuid();
+        var ct = CancellationToken.None;
 
-        //Act
-        var result = async () => await Service.UnshareSubscription(Guid.NewGuid(), Guid.NewGuid(), default);
+        GroupRepository.GetFullInfoById(groupId, ct).Returns((UserGroup?)null);
 
-        //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
+        //Act & Assert
+        await Should.ThrowAsync<UnknownIdentifierException>(async () =>
+        {
+            await Service.UnshareSubscription(groupId, Guid.NewGuid(), ct);
+        });
+
+        await GroupRepository.DidNotReceive().Update(Arg.Any<UserGroup>(), ct);
+        await Mediator.DidNotReceive().Publish(Arg.Any<GroupUpdatedSignal>(), ct);
+    }
+
+    [Fact]
+    public async Task UnshareSubscription_WhenSubscriptionNotShared_ThrowsArgumentException()
+    {
+        //Arrange
+        var groupId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        var userGroup = Fixture.Build<UserGroup>()
+            .With(g => g.Id, groupId)
+            .With(g => g.SharedSubscriptions, []) 
+            .Create();
+
+        GroupRepository.GetFullInfoById(groupId, ct).Returns(userGroup);
+
+        //Act & Assert
+        await Should.ThrowAsync<ArgumentException>(async () =>
+        {
+            await Service.UnshareSubscription(groupId, Guid.NewGuid(), ct);
+        });
+
+        await GroupRepository.DidNotReceive().Update(Arg.Any<UserGroup>(), ct);
     }
     
     [Fact]
     public async Task Update_WhenValidModel_ReturnsUpdatedUserGroupDto()
     {
         //Arrange
-        var userGroupEntity = Fixture.Create<UserGroup>();
-        var updateDto = Fixture.Build<UpdateUserGroupDto>()
-            .With(userGroup => userGroup.Id, userGroupEntity.Id)
-            .Create();
-        var userGroupDto = Fixture.Build<UserGroupDto>()
-            .With(userGroup => userGroup.Name, updateDto.Name)
-            .With(userGroup => userGroup.Id, updateDto.Id)
+        var updateId = Guid.NewGuid();
+        var userId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        var userGroupEntity = Fixture.Build<UserGroup>()
+            .With(g => g.Id, updateId)
+            .With(g => g.UserId, userId)
             .Create();
 
-        GroupRepository.GetById(updateDto.Id, default).Returns(userGroupEntity);
-        GroupRepository.Update(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
+        var updateDto = Fixture.Build<UpdateUserGroupDto>()
+            .With(dto => dto.Id, updateId)
+            .Create();
+
+        var userGroupDto = Fixture.Build<UserGroupDto>()
+            .With(dto => dto.Id, updateId)
+            .With(dto => dto.Name, updateDto.Name)
+            .Create();
+
+        GroupRepository.GetById(updateId, ct).Returns(userGroupEntity);
+        GroupRepository.Update(userGroupEntity, ct).Returns(userGroupEntity);
+    
         Mapper.Map(updateDto, userGroupEntity).Returns(userGroupEntity);
         Mapper.Map<UserGroupDto>(userGroupEntity).Returns(userGroupDto);
 
         //Act
-        var result = await Service.Update(updateDto.Id, updateDto, default);
+        var result = await Service.Update(updateId, updateDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.Id.ShouldBeEquivalentTo(userGroupEntity.Id);
+        result.Id.ShouldBe(updateId);
         result.Name.ShouldBe(updateDto.Name);
-        result.Name.ShouldNotBe(userGroupEntity.Name);
-        await GroupRepository.Received(1).Update(Arg.Any<UserGroup>(), default);
+
+        await GroupRepository.Received(1).Update(userGroupEntity, ct);
+    
+        await Mediator.Received(1).Publish(Arg.Is<GroupUpdatedSignal>(s => 
+            s.GroupId == updateId && 
+            s.UserId == userId), ct);
     }
 
     [Fact]
-    public async Task Update_WhenGivenEmptyModel_ReturnsNotFoundException()
+    public async Task Update_WhenGivenUnknownId_ThrowsUnknownIdentifierException()
     {
         //Arrange
-        var emptyDto = new UpdateUserGroupDto();
+        var updateId = Guid.NewGuid();
+        var updateDto = Fixture.Create<UpdateUserGroupDto>();
+        var ct = CancellationToken.None;
 
-        //Act
-        var result = async () => await Service.Update(Guid.Empty, emptyDto, default);
+        GroupRepository.GetById(updateId, ct).Returns((UserGroup?)null);
 
-        //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
+        //Act & Assert
+        await Should.ThrowAsync<UnknownIdentifierException>(async () =>
+        {
+            await Service.Update(updateId, updateDto, ct);
+        });
+
+        await GroupRepository.DidNotReceive().Update(Arg.Any<UserGroup>(), ct);
+        await Mediator.DidNotReceive().Publish(Arg.Any<GroupUpdatedSignal>(), ct);
     }
 }
