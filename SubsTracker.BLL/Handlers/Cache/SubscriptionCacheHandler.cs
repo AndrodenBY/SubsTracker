@@ -16,7 +16,6 @@ public class SubscriptionCacheHandler(ICacheService cacheService)
     public ValueTask Handle(SubscriptionUpdatedSignal signal, CancellationToken cancellationToken)
         => InvalidateSubscriptionEntries(signal.Subscription.Id, signal.UserId, cancellationToken);
     
-    private ValueTask InvalidateCacheEntries(Guid subscriptionId, Guid userId, CancellationToken cancellationToken)
     public ValueTask Handle(SubscriptionDeletedSignal signal, CancellationToken cancellationToken) 
         => InvalidateSubscriptionEntries(signal.SubscriptionId, signal.UserId, cancellationToken);
     
