@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Auth0.AuthenticationApi;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -20,7 +22,12 @@ public static class ApplicationLayerServiceRegister
     {
         services.RegisterBusinessLayerDependencies(configuration)
             .AddAutoMapper(_ => { }, typeof(ViewModelMappingProfile).Assembly)
-            .AddControllers();
+            .AddControllers()
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+            });
         services.AddFluentValidationAutoValidation()
             .AddFluentValidationClientsideAdapters()
             .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
