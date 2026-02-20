@@ -1,4 +1,3 @@
-using SubsTracker.BLL.Handlers.Signals;
 using SubsTracker.BLL.Handlers.Signals.Subscription;
 using SubsTracker.BLL.Handlers.UpcomingBills;
 using SubsTracker.Domain.Pagination;
@@ -241,10 +240,10 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         //Arrange
         var auth0Id = Fixture.Create<string>();
         var ct = CancellationToken.None;
-        var expectedDtos = Fixture.CreateMany<SubscriptionDto>(3).ToList();
-
+        var expectedDtos = Fixture.Create<List<SubscriptionDto>>();
+        
         Mediator.Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct)
-            .Returns(expectedDtos);
+            .Returns(new ValueTask<List<SubscriptionDto>>(expectedDtos));
 
         //Act
         var result = await Service.GetUpcomingBills(auth0Id, ct);
@@ -253,7 +252,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.ShouldNotBeNull();
         result.Count.ShouldBe(3);
         result.ShouldBe(expectedDtos);
-        Mediator.Received(1).Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct);
+        await Mediator.Received(1).Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct).AsTask();
         await UserRepository.DidNotReceiveWithAnyArgs().GetByAuth0Id(Arg.Any<string>(), ct);
         await SubscriptionRepository.DidNotReceiveWithAnyArgs().GetUpcomingBills(Arg.Any<Guid>(), ct);
         await CacheService.DidNotReceiveWithAnyArgs().RemoveData(Arg.Any<List<string>>(), ct);
@@ -277,7 +276,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.ShouldNotBeNull();
         result.ShouldBe(expectedBills);
         
-        Mediator.Received(1).Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct);
+        await Mediator.Received(1).Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct);
         
         await UserRepository.DidNotReceiveWithAnyArgs().GetByAuth0Id(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await SubscriptionRepository.DidNotReceiveWithAnyArgs().GetUpcomingBills(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
