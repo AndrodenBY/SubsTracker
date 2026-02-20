@@ -428,13 +428,13 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     }
 
     [Fact]
-    public async Task GetById_WhenEmptyGuid_ThrowsNotFoundException()
+    public async Task GetById_WhenEmptyGuid_ThrowsUnknownIdentifierException()
     {
         //Arrange
         var emptyId = Guid.Empty;
 
         //Act
-        var emptyIdResult = async() => await Service.GetById(emptyId, Arg.Any<CancellationToken>());
+        var emptyIdResult = async() => await Service.GetById(emptyId, CancellationToken.None);
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(emptyIdResult);
