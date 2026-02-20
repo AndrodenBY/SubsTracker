@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.BLL.Helpers.Notifications;
 
+[ExcludeFromCodeCoverage]
 public static class SubscriptionNotificationHelper
 {
     public static SubscriptionCanceledEvent CreateSubscriptionCanceledEvent(SubscriptionEntity subscriptionEntity)

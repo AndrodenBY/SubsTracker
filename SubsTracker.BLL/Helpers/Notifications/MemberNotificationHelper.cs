@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.BLL.Helpers.Notifications;
 
-public static class GroupMemberNotificationHelper
+[ExcludeFromCodeCoverage]
+public static class MemberNotificationHelper
 {
     public static MemberChangedRoleEvent CreateMemberChangedRoleEvent(MemberEntity memberEntity)
     {

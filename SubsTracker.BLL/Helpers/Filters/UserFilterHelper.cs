@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using LinqKit;
 using SubsTracker.DAL.Entities;
@@ -5,6 +6,7 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
+[ExcludeFromCodeCoverage]
 public static class UserFilterHelper
 {
     public static Expression<Func<UserEntity, bool>> CreatePredicate(UserFilterDto? filter)

@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using SubsTracker.API.Constants;
 using SubsTracker.BLL.DTOs.User.Create;
 
 namespace SubsTracker.API.Validators.Member;
 
+[ExcludeFromCodeCoverage]
 public class CreateMemberDtoValidator : AbstractValidator<CreateMemberDto>
 {
     public CreateMemberDtoValidator()

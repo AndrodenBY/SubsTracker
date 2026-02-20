@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.API.ViewModel;
 
+[ExcludeFromCodeCoverage]
 public class MemberViewModel
 {
     public Guid Id { get; set; }

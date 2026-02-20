@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace SubsTracker.API.ViewModel;
 
+[ExcludeFromCodeCoverage]
 public class UserViewModel
 {
     public required string Auth0Id { get; set; }

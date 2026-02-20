@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using SubsTracker.API.Constants;
 using SubsTracker.BLL.DTOs.User.Create;
 
 namespace SubsTracker.API.Validators.Group;
 
+[ExcludeFromCodeCoverage]
 public class CreateGroupDtoValidator : AbstractValidator<CreateGroupDto>
 {
     public CreateGroupDtoValidator()

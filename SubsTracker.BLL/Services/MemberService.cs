@@ -66,7 +66,7 @@ public class MemberService(
                                  member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new UnknownIdentifierException($"User {userId} is not a member of group {groupId}");
 
-        var memberLeftEvent = GroupMemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
+        var memberLeftEvent = MemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
 
         await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<MemberDto>(memberToDelete.Id)],
             cancellationToken);
@@ -90,7 +90,7 @@ public class MemberService(
         Mapper.Map(updateDto, memberToUpdate);
         var updatedMember = await memberRepository.Update(memberToUpdate, cancellationToken);
 
-        var memberChangedRoleEvent = GroupMemberNotificationHelper.CreateMemberChangedRoleEvent(updatedMember);
+        var memberChangedRoleEvent = MemberNotificationHelper.CreateMemberChangedRoleEvent(updatedMember);
         await messageService.NotifyMemberChangedRole(memberChangedRoleEvent, cancellationToken);
         return Mapper.Map<MemberDto>(updatedMember);
     }
