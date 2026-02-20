@@ -30,9 +30,9 @@
 
     <ItemGroup>
         <Folder Include="Middlewares\"/>
-        <Folder Include="Validators\GroupMember\"/>
+        <Folder Include="Validators\Member\" />
         <Folder Include="Validators\Subscription\"/>
-        <Folder Include="Validators\UserGroup\"/>
+        <Folder Include="Validators\Group\" />
         <Folder Include="Validators\User\"/>
     </ItemGroup>
 

@@ -1,28 +1,28 @@
-using SubsTracker.DAL.Entities.User;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.BLL.Helpers.Notifications;
 
 public static class GroupMemberNotificationHelper
 {
-    public static MemberChangedRoleEvent CreateMemberChangedRoleEvent(GroupMember member)
+    public static MemberChangedRoleEvent CreateMemberChangedRoleEvent(MemberEntity memberEntity)
     {
         return new MemberChangedRoleEvent(
-            member.Id,
-            member.GroupId,
-            MemberRoleMapperHelper.ToMessagingRole(member.Role),
-            member.Group.Name,
-            member.UserEntity.Email
+            memberEntity.Id,
+            memberEntity.GroupId,
+            MemberRoleMapperHelper.ToMessagingRole(memberEntity.Role),
+            memberEntity.GroupEntity.Name,
+            memberEntity.UserEntity.Email
         );
     }
 
-    public static MemberLeftGroupEvent CreateMemberLeftGroupEvent(GroupMember member)
+    public static MemberLeftGroupEvent CreateMemberLeftGroupEvent(MemberEntity memberEntity)
     {
         return new MemberLeftGroupEvent(
-            member.Id,
-            member.GroupId,
-            member.Group.Name,
-            member.UserEntity.Email
+            memberEntity.Id,
+            memberEntity.GroupId,
+            memberEntity.GroupEntity.Name,
+            memberEntity.UserEntity.Email
         );
     }
 }

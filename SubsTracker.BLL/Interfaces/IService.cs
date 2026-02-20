@@ -4,7 +4,7 @@ using SubsTracker.DAL.Interfaces;
 namespace SubsTracker.BLL.Interfaces;
 
 public interface IService<TEntity, TDto, in TCreateDto, in TUpdateDto, TFilterDto>
-    where TEntity : IBaseModel
+    where TEntity : IBaseEntity
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class

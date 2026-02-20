@@ -1,3 +1,4 @@
+using SubsTracker.API.ViewModel;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;

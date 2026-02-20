@@ -1,3 +1,4 @@
+using SubsTracker.API.ViewModel;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
@@ -11,7 +12,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var viewModel = JsonConvert.DeserializeObject<UserGroupViewModel>(content);
+        var viewModel = JsonConvert.DeserializeObject<GroupViewModel>(content);
 
         viewModel.ShouldNotBeNull();
         viewModel.Id.ShouldBe(expected.Id);
@@ -23,7 +24,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<List<UserGroupViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<List<GroupViewModel>>(content);
 
         result.ShouldNotBeNull();
         result.ShouldContain(g => g.Name == expectedName);
@@ -34,13 +35,13 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var result = JsonConvert.DeserializeObject<List<UserGroupViewModel>>(content);
+        var result = JsonConvert.DeserializeObject<List<GroupViewModel>>(content);
 
         result.ShouldNotBeNull();
         result.ShouldBeEmpty();
     }
 
-    public async Task CreateValidAssert(HttpResponseMessage response, CreateUserGroupDto expected)
+    public async Task CreateValidAssert(HttpResponseMessage response, CreateGroupDto expected)
     {
         if (!response.IsSuccessStatusCode)
         {
@@ -49,7 +50,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         }
 
         var content = await response.Content.ReadAsStringAsync();
-        var viewModel = JsonConvert.DeserializeObject<UserGroupViewModel>(content);
+        var viewModel = JsonConvert.DeserializeObject<GroupViewModel>(content);
 
         viewModel.ShouldNotBeNull();
         viewModel.Name.ShouldBe(expected.Name);
@@ -66,7 +67,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var viewModel = JsonConvert.DeserializeObject<UserGroupViewModel>(content);
+        var viewModel = JsonConvert.DeserializeObject<GroupViewModel>(content);
 
         viewModel.ShouldNotBeNull();
         viewModel.Id.ShouldBe(groupId);
@@ -95,7 +96,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var members = JsonConvert.DeserializeObject<List<GroupMemberViewModel>>(content);
+        var members = JsonConvert.DeserializeObject<List<MemberViewModel>>(content);
 
         members.ShouldNotBeNull();
         members.ShouldAllBe(m => m.Role == targetRole);
@@ -107,7 +108,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         actual.Role.ShouldBe(targetRole);
     }
 
-    public async Task JoinGroupValidAssert(HttpResponseMessage response, CreateGroupMemberDto createDto)
+    public async Task JoinGroupValidAssert(HttpResponseMessage response, CreateMemberDto createDto)
     {
         response.EnsureSuccessStatusCode();
 
@@ -139,7 +140,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var updated = JsonConvert.DeserializeObject<GroupMemberViewModel>(content);
+        var updated = JsonConvert.DeserializeObject<MemberViewModel>(content);
 
         updated.ShouldNotBeNull();
         updated.Role.ShouldBe(expectedRole);
@@ -150,7 +151,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var updated = JsonConvert.DeserializeObject<UserGroupViewModel>(content);
+        var updated = JsonConvert.DeserializeObject<GroupViewModel>(content);
 
         updated.ShouldNotBeNull();
     }
@@ -160,7 +161,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         response.EnsureSuccessStatusCode();
 
         var content = await response.Content.ReadAsStringAsync();
-        var updated = JsonConvert.DeserializeObject<UserGroupViewModel>(content);
+        var updated = JsonConvert.DeserializeObject<GroupViewModel>(content);
 
         updated.ShouldNotBeNull();
     }

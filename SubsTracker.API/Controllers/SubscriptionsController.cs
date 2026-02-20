@@ -2,9 +2,9 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Extension;
-using SubsTracker.API.ViewModel.Subscription;
+using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.Subscription;
-using SubsTracker.BLL.Interfaces.Subscription;
+using SubsTracker.BLL.Interfaces;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
@@ -14,8 +14,8 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class SubscriptionsController(
     ISubscriptionService subscriptionService,
-    IMapper mapper
-) : ControllerBase
+    IMapper mapper) 
+    : ControllerBase
 {
     /// <summary>
     ///     Retrieves a subscription by its ID
@@ -41,8 +41,7 @@ public class SubscriptionsController(
     ///     Creates a new subscription for a specific user
     /// </summary>
     [HttpPost]
-    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto,
-        CancellationToken cancellationToken)
+    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
         var create = await subscriptionService.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
@@ -72,8 +71,7 @@ public class SubscriptionsController(
     ///     Renews an existing subscription by extending its DueDate and sets Active status to true
     /// </summary>
     [HttpPatch("{subscriptionId:guid}/renew")]
-    public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, [FromQuery] int monthsToRenew,
-        CancellationToken cancellationToken)
+    public async Task<SubscriptionViewModel> RenewSubscription(Guid subscriptionId, [FromQuery] int monthsToRenew, CancellationToken cancellationToken)
     {
         var renew = await subscriptionService.RenewSubscription(subscriptionId, monthsToRenew, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(renew);

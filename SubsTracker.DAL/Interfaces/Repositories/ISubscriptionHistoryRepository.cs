@@ -1,4 +1,4 @@
-using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.DAL.Interfaces.Repositories;

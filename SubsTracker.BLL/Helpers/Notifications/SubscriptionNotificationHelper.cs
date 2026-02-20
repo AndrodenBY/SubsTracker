@@ -1,4 +1,4 @@
-using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.BLL.Helpers.Notifications;

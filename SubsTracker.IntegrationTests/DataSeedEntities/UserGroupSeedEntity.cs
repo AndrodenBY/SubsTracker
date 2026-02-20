@@ -1,12 +1,11 @@
-using SubsTracker.DAL.Entities.Subscription;
-using SubsTracker.DAL.Entities.User;
+using SubsTracker.DAL.Entities;
 
 namespace SubsTracker.IntegrationTests.DataSeedEntities;
 
 public class UserGroupSeedEntity
 {
-    public DAL.Entities.User.UserEntity UserEntity { get; set; } = null!;
-    public DAL.Entities.User.UserGroup Group { get; set; } = null!;
-    public List<SubscriptionEntity> Subscriptions { get; set; } = new();
-    public List<GroupMember> Members { get; set; } = new();
+    public UserModel UserEntity { get; set; } = null!;
+    public Group GroupEntity { get; set; } = null!;
+    public List<SubscriptionModel> Subscriptions { get; set; } = new();
+    public List<MemberEntity> Members { get; set; } = new();
 }

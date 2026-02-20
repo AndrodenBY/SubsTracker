@@ -14,7 +14,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IMapper mapper,
     ICacheService cacheService
 ) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
-    where TEntity : class, IBaseModel
+    where TEntity : class, IBaseEntity
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class

@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 
 namespace SubsTracker.DAL.Repository;

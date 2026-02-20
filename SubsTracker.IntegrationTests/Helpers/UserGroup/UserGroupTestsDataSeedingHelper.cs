@@ -1,4 +1,4 @@
-using SubsTracker.DAL.Entities.User;
+using SubsTracker.DAL.Entities;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
@@ -24,9 +24,9 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         return new UserGroupSeedEntity
         {
             UserEntity = null!,
-            Group = group,
+            GroupEntity = group,
             Subscriptions = new List<SubscriptionModel>(),
-            Members = new List<GroupMember>()
+            Members = new List<MemberEntity>()
         };
     }
 
@@ -35,35 +35,35 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var owner = Fixture.Build<UserModel>()
+        var owner = Fixture.Build<UserEntity>()
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
 
-        var memberUsers = Fixture.CreateMany<UserModel>(3)
-            .Select(_ => Fixture.Build<UserModel>()
+        var memberUsers = Fixture.CreateMany<UserEntity>(3)
+            .Select(_ => Fixture.Build<UserEntity>()
                 .Without(x => x.Groups)
                 .Without(x => x.Subscriptions)
                 .Create())
             .ToList();
 
 
-        var ownerMember = Fixture.Build<GroupMember>()
+        var ownerMember = Fixture.Build<MemberEntity>()
             .With(m => m.UserId, owner.Id)
             .With(m => m.Role, MemberRole.Admin)
-            .Without(m => m.Group)
+            .Without(m => m.GroupEntity)
             .Without(m => m.UserEntity)
             .Create();
 
-        var participantMembers = Fixture.Build<GroupMember>()
+        var participantMembers = Fixture.Build<MemberEntity>()
             .With(m => m.Role, MemberRole.Participant)
-            .Without(m => m.Group)
+            .Without(m => m.GroupEntity)
             .Without(m => m.UserEntity)
             .CreateMany(3).ToList();
 
         for (var i = 0; i < participantMembers.Count; i++) participantMembers[i].UserId = memberUsers[i].Id;
 
-        var allMembers = new List<GroupMember>();
+        var allMembers = new List<MemberEntity>();
         allMembers.Add(ownerMember);
         allMembers.AddRange(participantMembers);
 
@@ -74,7 +74,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .With(g => g.Members, allMembers)
             .Create();
 
-        var usersToSave = new List<UserModel> { owner };
+        var usersToSave = new List<UserEntity> { owner };
         usersToSave.AddRange(memberUsers);
         await db.Users.AddRangeAsync(usersToSave);
 
@@ -85,7 +85,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         return new UserGroupSeedEntity
         {
             UserEntity = owner,
-            Group = group,
+            GroupEntity = group,
             Members = allMembers,
             Subscriptions = new List<SubscriptionModel>()
         };
@@ -96,7 +96,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -114,12 +114,13 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         return subscription;
     }
 
-    public async Task<CreateGroupMemberDto> AddCreateGroupMemberDto(Guid groupId)
+    public async Task<CreateMemberDto> AddCreateGroupMemberDto(Guid groupId, Guid userId)
     {
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
+            .With(u => u.Id, userId)
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -127,7 +128,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         await db.Users.AddAsync(user);
         await db.SaveChangesAsync();
 
-        return new CreateGroupMemberDto
+        return new CreateMemberDto
         {
             UserId = user.Id,
             GroupId = groupId,
@@ -140,7 +141,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -158,18 +159,18 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         return new UserGroupSeedEntity
         {
             UserEntity = user,
-            Group = group,
-            Members = new List<GroupMember>(),
+            GroupEntity = group,
+            Members = new List<MemberEntity>(),
             Subscriptions = new List<SubscriptionModel>()
         };
     }
 
-    public async Task<GroupMember> AddMemberOnly()
+    public async Task<MemberEntity> AddMemberOnly()
     {
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -185,12 +186,12 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         await db.UserGroups.AddAsync(group);
         await db.SaveChangesAsync();
 
-        var member = Fixture.Build<GroupMember>()
+        var member = Fixture.Build<MemberEntity>()
             .With(m => m.UserId, user.Id)
             .With(m => m.GroupId, group.Id)
             .With(m => m.Role, MemberRole.Participant)
             .Without(m => m.UserEntity)
-            .Without(m => m.Group)
+            .Without(m => m.GroupEntity)
             .Create();
 
         await db.Members.AddAsync(member);
@@ -204,7 +205,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -233,9 +234,9 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         return new UserGroupSeedEntity
         {
             UserEntity = user,
-            Group = group,
+            GroupEntity = group,
             Subscriptions = new List<SubscriptionModel> { subscription },
-            Members = new List<GroupMember>()
+            Members = new List<MemberEntity>()
         };
     }
 
@@ -244,7 +245,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
@@ -256,23 +257,23 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         {
             UserEntity = user,
             Subscriptions = null!,
-            Group = null!,
+            GroupEntity = null!,
             Members = null!
         };
     }
 
-    public CreateUserGroupDto AddCreateUserGroupDto()
+    public CreateGroupDto AddCreateUserGroupDto()
     {
-        var createDto = Fixture.Build<CreateUserGroupDto>()
+        var createDto = Fixture.Build<CreateGroupDto>()
             .With(d => d.Name, "Created Group Name")
             .Create();
 
         return createDto;
     }
 
-    public UpdateUserGroupDto AddUpdateUserGroupDto(Guid groupId)
+    public UpdateGroupDto AddUpdateUserGroupDto(Guid groupId)
     {
-        var updateDto = Fixture.Build<UpdateUserGroupDto>()
+        var updateDto = Fixture.Build<UpdateGroupDto>()
             .With(d => d.Id, groupId)
             .With(d => d.Name, "Updated Group Name")
             .Create();

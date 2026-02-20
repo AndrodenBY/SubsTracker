@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using LinqKit;
-using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Filter;
 

@@ -1,6 +1,5 @@
 using AutoMapper;
-using SubsTracker.API.ViewModel.Subscription;
-using SubsTracker.API.ViewModel.User;
+using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.DTOs.User;
 
@@ -11,8 +10,8 @@ public class ViewModelMappingProfile : Profile
     public ViewModelMappingProfile()
     {
         CreateMap<UserDto, UserViewModel>();
-        CreateMap<UserGroupDto, UserGroupViewModel>();
-        CreateMap<GroupMemberDto, GroupMemberViewModel>();
+        CreateMap<GroupDto, GroupViewModel>();
+        CreateMap<MemberDto, MemberViewModel>();
         CreateMap<SubscriptionDto, SubscriptionViewModel>();
         CreateMap<UpdateSubscriptionDto, SubscriptionDto>();
     }

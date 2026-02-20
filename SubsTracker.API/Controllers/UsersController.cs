@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Extension;
 using SubsTracker.API.Helpers;
-using SubsTracker.API.ViewModel.User;
+using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.BLL.Interfaces;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.API.Controllers;
@@ -16,8 +16,8 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class UsersController(
     IUserService service,
-    IMapper mapper
-) : ControllerBase
+    IMapper mapper) 
+    : ControllerBase
 {
     /// <summary>
     ///     Retrieves a user by their ID.

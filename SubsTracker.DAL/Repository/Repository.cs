@@ -5,7 +5,7 @@ using SubsTracker.DAL.Interfaces.Repositories;
 
 namespace SubsTracker.DAL.Repository;
 
-public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> where TEntity : class, IBaseModel
+public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> where TEntity : class, IBaseEntity
 {
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     protected readonly SubsDbContext Context = context;

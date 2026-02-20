@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using SubsTracker.DAL.Entities.Subscription;
-using SubsTracker.DAL.Entities.User;
+using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces;
 
 namespace SubsTracker.DAL;
@@ -15,8 +14,8 @@ public class SubsDbContext : DbContext
     public DbSet<UserEntity> Users { get; set; }
     public DbSet<SubscriptionEntity> Subscriptions { get; set; }
     public DbSet<SubscriptionHistory> SubscriptionHistory { get; set; }
-    public DbSet<UserGroup> UserGroups { get; set; }
-    public DbSet<GroupMember> Members { get; set; }
+    public DbSet<GroupEntity> UserGroups { get; set; }
+    public DbSet<MemberEntity> Members { get; set; }
 
     public override int SaveChanges()
     {
@@ -32,7 +31,7 @@ public class SubsDbContext : DbContext
 
     private void OnBeforeSaving()
     {
-        var entries = ChangeTracker.Entries<IBaseModel>();
+        var entries = ChangeTracker.Entries<IBaseEntity>();
 
         foreach (var entry in entries)
             switch (entry.State)
