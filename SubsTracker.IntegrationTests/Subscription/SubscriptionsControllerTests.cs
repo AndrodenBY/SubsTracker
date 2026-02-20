@@ -1,6 +1,12 @@
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using MassTransit.Testing;
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
+using SubsTracker.DAL;
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.Constants;
+using SubsTracker.IntegrationTests.Helpers.Subscription;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Subscription;

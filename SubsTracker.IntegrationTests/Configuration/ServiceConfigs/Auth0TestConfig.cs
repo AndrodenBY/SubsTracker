@@ -1,9 +1,13 @@
 using Auth0.AuthenticationApi;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using SubsTracker.API.Auth0;
 using SubsTracker.IntegrationTests.Helpers;
 
-namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+namespace SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 
 public static class Auth0TestConfig
 {

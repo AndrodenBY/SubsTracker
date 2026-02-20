@@ -1,5 +1,11 @@
+using Microsoft.Extensions.DependencyInjection;
+using SubsTracker.BLL.DTOs.User.Create;
+using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
 using SubsTracker.IntegrationTests.Configuration;
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.IntegrationTests.DataSeedEntities;
+using AutoFixture;
 
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
@@ -12,14 +18,14 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
 
         var existingUsers = dbContext.Users
             .Where(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
-        
+    
         if (existingUsers.Any())
         {
             dbContext.Users.RemoveRange(existingUsers);
             await dbContext.SaveChangesAsync(); 
         }
         
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id) 
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
@@ -31,8 +37,8 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         return new UserSeedEntity
         {
             UserEntity = user,
-            Subscriptions = new List<SubscriptionModel>(),
-            UserGroups = new List<Group>()
+            Subscriptions = new List<SubscriptionEntity>(),
+            UserGroups = new List<GroupEntity>()
         };
     }
 
@@ -42,18 +48,18 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .Create();
 
         var groups = groupNames.Select(name =>
-            Fixture.Build<Group>()
+            Fixture.Build<GroupEntity>()
                 .With(g => g.UserId, user.Id)
                 .With(g => g.Name, name)
                 .Create()
         ).ToList();
 
         var subscriptions = subscriptionNames.Select(name =>
-            Fixture.Build<SubscriptionModel>()
+            Fixture.Build<SubscriptionEntity>()
                 .With(s => s.UserId, user.Id)
                 .With(s => s.Name, name)
                 .With(s => s.Active, true)

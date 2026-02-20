@@ -1,16 +1,24 @@
+using AutoFixture;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using SubsTracker.BLL.DTOs.User.Create;
+using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.DataSeedEntities;
+using SubsTracker.Domain.Enums;
 
-namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
+namespace SubsTracker.IntegrationTests.Helpers.Group;
 
-public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
+public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
-    public async Task<UserGroupSeedEntity> AddOnlyUserGroup()
+    public async Task<GroupSeedEntity> AddOnlyUserGroup()
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var group = Fixture.Build<Group>()
+        var group = Fixture.Build<GroupEntity>()
             .With(g => g.Name, "Test Group")
             .Without(g => g.Members)
             .Without(g => g.SharedSubscriptions)
@@ -21,16 +29,16 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         await dbContext.UserGroups.AddAsync(group);
         await dbContext.SaveChangesAsync();
 
-        return new UserGroupSeedEntity
+        return new GroupSeedEntity
         {
             UserEntity = null!,
             GroupEntity = group,
-            Subscriptions = new List<SubscriptionModel>(),
+            Subscriptions = new List<SubscriptionEntity>(),
             Members = new List<MemberEntity>()
         };
     }
 
-    public async Task<UserGroupSeedEntity> AddUserGroupWithMembers()
+    public async Task<GroupSeedEntity> AddUserGroupWithMembers()
     {
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
@@ -67,7 +75,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         allMembers.Add(ownerMember);
         allMembers.AddRange(participantMembers);
 
-        var group = Fixture.Build<Group>()
+        var group = Fixture.Build<GroupEntity>()
             .With(g => g.UserId, owner.Id)
             .With(g => g.Name, "Group With Members")
             .Without(g => g.SharedSubscriptions)
@@ -82,36 +90,13 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         await db.UserGroups.AddAsync(group);
         await db.SaveChangesAsync();
 
-        return new UserGroupSeedEntity
+        return new GroupSeedEntity
         {
             UserEntity = owner,
             GroupEntity = group,
             Members = allMembers,
-            Subscriptions = new List<SubscriptionModel>()
+            Subscriptions = new List<SubscriptionEntity>()
         };
-    }
-
-    public async Task<SubscriptionModel> AddSubscription()
-    {
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        var user = Fixture.Build<UserEntity>()
-            .Without(u => u.Groups)
-            .Without(u => u.Subscriptions)
-            .Create();
-
-        await db.Users.AddAsync(user);
-
-        var subscription = Fixture.Build<SubscriptionModel>()
-            .With(s => s.UserId, user.Id)
-            .Without(s => s.User)
-            .Create();
-
-        await db.Subscriptions.AddAsync(subscription);
-        await db.SaveChangesAsync();
-
-        return subscription;
     }
 
     public async Task<CreateMemberDto> AddCreateGroupMemberDto(Guid groupId, Guid userId)
@@ -119,24 +104,30 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserEntity>()
-            .With(u => u.Id, userId)
-            .Without(u => u.Groups)
-            .Without(u => u.Subscriptions)
-            .Create();
+        // Check if the user already exists to avoid PK violation
+        var existingUser = await db.Users.AnyAsync(u => u.Id == userId);
 
-        await db.Users.AddAsync(user);
-        await db.SaveChangesAsync();
+        if (!existingUser)
+        {
+            var user = Fixture.Build<UserEntity>()
+                .With(u => u.Id, userId)
+                .Without(u => u.Groups)
+                .Without(u => u.Subscriptions)
+                .Create();
+
+            db.Users.Add(user);
+            await db.SaveChangesAsync();
+        }
 
         return new CreateMemberDto
         {
-            UserId = user.Id,
+            UserId = userId,
             GroupId = groupId,
             Role = MemberRole.Participant
         };
     }
 
-    public async Task<UserGroupSeedEntity> AddUserGroupAndUser()
+    public async Task<GroupSeedEntity> AddUserGroupAndUser()
     {
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
@@ -148,20 +139,20 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         await db.Users.AddAsync(user);
 
-        var group = Fixture.Build<Group>()
+        var group = Fixture.Build<GroupEntity>()
             .With(g => g.UserId, user.Id)
             .With(g => g.Name, "Group Without Members")
             .Create();
 
-        await db.UserGroups.AddAsync(group);
+        db.UserGroups.Add(group);
         await db.SaveChangesAsync();
 
-        return new UserGroupSeedEntity
+        return new GroupSeedEntity
         {
             UserEntity = user,
             GroupEntity = group,
             Members = new List<MemberEntity>(),
-            Subscriptions = new List<SubscriptionModel>()
+            Subscriptions = new List<SubscriptionEntity>()
         };
     }
 
@@ -171,94 +162,69 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserEntity>()
+            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
 
-        await db.Users.AddAsync(user);
-
-        var group = Fixture.Build<Group>()
+        var group = Fixture.Build<GroupEntity>()
             .With(g => g.UserId, user.Id)
             .Without(g => g.Members)
             .Without(g => g.SharedSubscriptions)
+            .Without(g => g.User)
             .Create();
-
-        await db.UserGroups.AddAsync(group);
-        await db.SaveChangesAsync();
 
         var member = Fixture.Build<MemberEntity>()
-            .With(m => m.UserId, user.Id)
-            .With(m => m.GroupId, group.Id)
+            // 1. Assign the actual objects, not just IDs
+            // This forces EF Core to use the established relationship
+            .With(m => m.UserEntity, user)
+            .With(m => m.GroupEntity, group)
             .With(m => m.Role, MemberRole.Participant)
-            .Without(m => m.UserEntity)
-            .Without(m => m.GroupEntity)
             .Create();
 
+        // 2. Add only the 'root' or the entities individually 
+        // Since member has references to user and group, AddAsync(member) 
+        // actually tracks all three, but being explicit is safer:
+        await db.Users.AddAsync(user);
+        await db.UserGroups.AddAsync(group);
         await db.Members.AddAsync(member);
+    
         await db.SaveChangesAsync();
 
         return member;
     }
 
-    public async Task<UserGroupSeedEntity> AddGroupWithSharedSubscription()
-    {
-        using var scope = CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        var user = Fixture.Build<UserEntity>()
-            .Without(u => u.Groups)
-            .Without(u => u.Subscriptions)
-            .Create();
-
-        await db.Users.AddAsync(user);
-
-        var subscription = Fixture.Build<SubscriptionModel>()
-            .With(s => s.UserId, user.Id)
-            .With(s => s.Name, "Shared Sub")
-            .With(s => s.Active, true)
-            .With(s => s.DueDate, DateOnly.FromDateTime(DateTime.Today.AddDays(10)))
-            .Without(s => s.User)
-            .Create();
-
-        await db.Subscriptions.AddAsync(subscription);
-
-        var group = Fixture.Build<Group>()
-            .With(g => g.UserId, user.Id)
-            .With(g => g.Name, "Group With Shared Sub")
-            .With(g => g.SharedSubscriptions, [subscription])
-            .Create();
-
-        await db.UserGroups.AddAsync(group);
-        await db.SaveChangesAsync();
-
-        return new UserGroupSeedEntity
-        {
-            UserEntity = user,
-            GroupEntity = group,
-            Subscriptions = new List<SubscriptionModel> { subscription },
-            Members = new List<MemberEntity>()
-        };
-    }
-
-    public async Task<UserGroupSeedEntity> AddSeedUserOnly()
+    public async Task<GroupSeedEntity> AddSeedUserOnly()
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
+        // 1. ОЧИСТКА: Удаляем пользователя, если он остался от прошлых тестов
+        var existingUser = await dbContext.Users
+            .FirstOrDefaultAsync(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
+        
+        if (existingUser != null)
+        {
+            dbContext.Users.Remove(existingUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        // 2. СОЗДАНИЕ: Теперь можно спокойно добавлять
         var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
+            .Without(u => u.Subscriptions) // На всякий случай отключаем навигационные свойства
             .Create();
 
         await dbContext.Users.AddAsync(user);
         await dbContext.SaveChangesAsync();
 
-        return new UserGroupSeedEntity
+        return new GroupSeedEntity
         {
             UserEntity = user,
-            Subscriptions = null!,
+            Subscriptions = new List<SubscriptionEntity>(),
             GroupEntity = null!,
-            Members = null!
+            Members = new List<MemberEntity>()
         };
     }
 

@@ -1,4 +1,12 @@
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
+using SubsTracker.Domain.Enums;
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.DataSeedEntities;
+using Microsoft.Extensions.DependencyInjection;
+using AutoFixture;
+using Microsoft.EntityFrameworkCore;
 
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
@@ -6,31 +14,38 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 {
     public async Task<SubscriptionSeedEntity> AddSeedData()
     {
-        using var scope = CreateScope();
+        using var scope = factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        
-        var user = Fixture.Build<UserModel>()
+
+        // Clean up existing data
+        var existingUser = await dbContext.Users
+            .FirstOrDefaultAsync(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
+        if (existingUser != null)
+        {
+            dbContext.Users.Remove(existingUser);
+            await dbContext.SaveChangesAsync();
+        }
+
+        var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
+            .Without(u => u.Subscriptions)
             .Create();
 
-        var fixedDueDate = DateOnly.FromDateTime(DateTime.Today);
-
-        var subscription = Fixture.Build<SubscriptionModel>()
+        var subscription = Fixture.Build<SubscriptionEntity>()
             .With(s => s.UserId, user.Id)
-            .With(s => s.Active, true)
-            .With(s => s.DueDate, fixedDueDate)
             .Without(s => s.User)
+            .Without(s => s.History) 
             .Create();
 
         await dbContext.Users.AddAsync(user);
         await dbContext.Subscriptions.AddAsync(subscription);
         await dbContext.SaveChangesAsync();
 
-        return new SubscriptionSeedEntity
-        {
+        return new SubscriptionSeedEntity 
+        { 
             UserEntity = user,
-            Subscriptions = new List<SubscriptionModel> { subscription }
+            Subscriptions = new List<SubscriptionEntity> { subscription }
         };
     }
 
@@ -39,7 +54,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
@@ -59,13 +74,13 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
 
         var subscriptions = subscriptionNames.Select(name =>
-            Fixture.Build<SubscriptionModel>()
+            Fixture.Build<SubscriptionEntity>()
                 .With(s => s.UserId, user.Id)
                 .With(s => s.Name, name)
                 .With(s => s.Active, true)
@@ -108,28 +123,28 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
-        var user = Fixture.Build<UserModel>()
+        var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
             .Create();
 
         var today = DateOnly.FromDateTime(DateTime.Today);
 
-        var upcoming = Fixture.Build<SubscriptionModel>()
+        var upcoming = Fixture.Build<SubscriptionEntity>()
             .With(s => s.UserId, user.Id)
             .With(s => s.DueDate, today.AddDays(5))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
 
-        var distant = Fixture.Build<SubscriptionModel>()
+        var distant = Fixture.Build<SubscriptionEntity>()
             .With(s => s.UserId, user.Id)
             .With(s => s.DueDate, today.AddDays(20))
             .With(s => s.Active, true)
             .Without(s => s.User)
             .Create();
 
-        var expired = Fixture.Build<SubscriptionModel>()
+        var expired = Fixture.Build<SubscriptionEntity>()
             .With(s => s.UserId, user.Id)
             .With(s => s.DueDate, today.AddDays(-2))
             .With(s => s.Active, true)
@@ -143,7 +158,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         return new SubscriptionSeedEntity
         {
             UserEntity = user,
-            Subscriptions = new List<SubscriptionModel> { upcoming, distant, expired }
+            Subscriptions = new List<SubscriptionEntity> { upcoming, distant, expired }
         };
     }
 }

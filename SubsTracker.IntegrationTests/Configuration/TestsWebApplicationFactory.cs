@@ -1,9 +1,14 @@
 using System.Net.Http.Headers;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
+using SubsTracker.API;
+using SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 using SubsTracker.IntegrationTests.Helpers;
 using Testcontainers.PostgreSql;
 using Testcontainers.Redis;
 
-namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+namespace SubsTracker.IntegrationTests.Configuration;
 
 public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
 {

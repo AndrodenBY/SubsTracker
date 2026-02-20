@@ -1,8 +1,11 @@
+using MassTransit;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using SubsTracker.Messaging.Interfaces;
 using SubsTracker.Messaging.Services;
 
-namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+namespace SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 
 public static class MassTransitTestConfig
 {

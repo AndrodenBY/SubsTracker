@@ -1,7 +1,9 @@
+using SubsTracker.DAL.Entities;
+
 namespace SubsTracker.IntegrationTests.DataSeedEntities;
 
 public class SubscriptionSeedEntity
 {
-    public UserModel UserEntity { get; set; } = null!;
-    public List<SubscriptionModel> Subscriptions { get; set; } = new();
+    public UserEntity UserEntity { get; set; } = null!;
+    public List<SubscriptionEntity> Subscriptions { get; set; } = new();
 }

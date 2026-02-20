@@ -1,13 +1,22 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Shouldly;
 using SubsTracker.API.ViewModel;
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.BLL.DTOs.User.Create;
+using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
+using SubsTracker.Domain.Enums;
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.DataSeedEntities;
 
-namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
+namespace SubsTracker.IntegrationTests.Helpers.Group;
 
-public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
+public class GroupTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
 
-    public async Task GetByIdValidAssert(HttpResponseMessage response, Group expected)
+    public async Task GetByIdValidAssert(HttpResponseMessage response, GroupEntity expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -90,7 +99,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         entity.ShouldBeNull();
     }
 
-    public async Task GetAllMembersValidAssert(HttpResponseMessage response, UserGroupSeedEntity seedEntity,
+    public async Task GetAllMembersValidAssert(HttpResponseMessage response, GroupSeedEntity seedEntity,
         MemberRole targetRole)
     {
         response.EnsureSuccessStatusCode();

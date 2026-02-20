@@ -46,10 +46,10 @@ public class MemberService(
 
     public async Task<MemberDto> JoinGroup(CreateMemberDto createDto, CancellationToken cancellationToken)
     {
-        var user = memberRepository.GetFullInfoById(createDto.UserId, cancellationToken);
+        var user = await memberRepository.GetFullInfoById(createDto.UserId, cancellationToken);
         if (user is null) throw new UnknownIdentifierException($"User with id {createDto.UserId} not found");
 
-        var group = memberRepository.GetFullInfoById(createDto.GroupId, cancellationToken);
+        var group = await memberRepository.GetFullInfoById(createDto.GroupId, cancellationToken);
         if (group is null) throw new UnknownIdentifierException($"Group with id {createDto.GroupId} not found");
 
         var existingMember =

@@ -1,5 +1,12 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Shouldly;
 using SubsTracker.API.ViewModel;
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.BLL.DTOs.User.Create;
+using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
+using SubsTracker.IntegrationTests.Configuration;
 
 namespace SubsTracker.IntegrationTests.Helpers.User;
 
@@ -7,7 +14,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
 {
     private readonly IServiceScope _scope = factory.Services.CreateScope();
 
-    public async Task GetByIdValidAssert(HttpResponseMessage response, UserModel expected)
+    public async Task GetByIdValidAssert(HttpResponseMessage response, UserEntity expected)
     {
         response.EnsureSuccessStatusCode();
 
@@ -32,7 +39,7 @@ public class UserTestsAssertionHelper(TestsWebApplicationFactory factory) : Test
         result.Single().Email.ShouldBe(expectedEmail);
     }
     
-    public async Task GetByAuth0IdValidAssert(HttpResponseMessage response, UserModel expected)
+    public async Task GetByAuth0IdValidAssert(HttpResponseMessage response, UserEntity expected)
     {
         response.EnsureSuccessStatusCode();
 

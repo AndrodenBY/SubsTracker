@@ -1,4 +1,8 @@
-namespace SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using SubsTracker.DAL;
+
+namespace SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 
 public static class DatabaseTestConfig
 {

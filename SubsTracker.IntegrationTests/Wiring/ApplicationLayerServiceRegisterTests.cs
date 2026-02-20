@@ -1,4 +1,12 @@
+using System.Diagnostics;
 using Auth0.AuthenticationApi;
+using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
+using Shouldly;
+using SubsTracker.API;
 
 namespace SubsTracker.IntegrationTests.Wiring;
 

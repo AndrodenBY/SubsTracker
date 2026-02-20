@@ -1,4 +1,9 @@
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using System.Net.Http.Json;
+using Microsoft.Extensions.DependencyInjection;
+using Shouldly;
+using SubsTracker.DAL;
+using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.Constants;
 using SubsTracker.IntegrationTests.Helpers.User;
 
 namespace SubsTracker.IntegrationTests.User;

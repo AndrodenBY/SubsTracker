@@ -1,4 +1,6 @@
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
+using SubsTracker.IntegrationTests.Configuration;
 
 namespace SubsTracker.IntegrationTests.Helpers;
 

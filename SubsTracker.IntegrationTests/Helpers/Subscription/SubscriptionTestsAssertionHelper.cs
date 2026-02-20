@@ -1,11 +1,18 @@
+using System.Net.Http.Json;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
+using Shouldly;
 using SubsTracker.API.ViewModel;
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
+using SubsTracker.IntegrationTests.Configuration;
 
 namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
-    public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionModel expected)
+    public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionEntity expected)
     {
         await response.Content.ReadAsStringAsync();
         
@@ -72,7 +79,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         viewModel.Name.ShouldBe(expectedName);
     }
 
-    public async Task CancelSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original)
+    public async Task CancelSubscriptionValidAssert(HttpResponseMessage response, SubscriptionEntity original)
     {
         response.EnsureSuccessStatusCode();
 
@@ -91,7 +98,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity.Active.ShouldBeFalse();
     }
 
-    public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionModel original,
+    public async Task RenewSubscriptionValidAssert(HttpResponseMessage response, SubscriptionEntity original,
         DateOnly expectedDueDate)
     {
         response.EnsureSuccessStatusCode();
@@ -114,7 +121,7 @@ public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory
         entity.Active.ShouldBeTrue();
     }
 
-    public async Task GetUpcomingBillsValidAssert(HttpResponseMessage response, SubscriptionModel expected)
+    public async Task GetUpcomingBillsValidAssert(HttpResponseMessage response, SubscriptionEntity expected)
     {
         response.EnsureSuccessStatusCode();
 
