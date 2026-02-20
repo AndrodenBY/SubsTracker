@@ -19,7 +19,7 @@ public class UserGroupTestsAssertionHelper(TestsWebApplicationFactory factory) :
         viewModel.Name.ShouldBe(expected.Name);
     }
 
-    public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
+    public static async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
     {
         response.EnsureSuccessStatusCode();
 

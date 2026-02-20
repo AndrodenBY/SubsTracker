@@ -54,7 +54,7 @@ public class UserGroupsControllerTests : IClassFixture<TestsWebApplicationFactor
         var response = await _client.GetAsync(url);
 
         //Assert
-        await _assertHelper.GetAllValidAssert(response, seedData.Group.Name);
+        await UserGroupTestsAssertionHelper.GetAllValidAssert(response, seedData.Group.Name);
     }
 
     [Fact]
