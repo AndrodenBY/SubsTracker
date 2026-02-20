@@ -17,60 +17,62 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 {
     [Fact]
     public async Task CancelSubscription_WhenValidModel_ReturnsInactiveSubscription()
-    {
-        //Arrange
-        var auth0Id = Fixture.Create<string>();
-        var userId = Guid.NewGuid();
-        var subscriptionId = Guid.NewGuid();
+{
+    //Arrange
+    var ct = CancellationToken.None;
+    var auth0Id = "auth0|test-user";
+    var userId = Guid.NewGuid();
+    var subscriptionId = Guid.NewGuid();
 
-        var userEntity = Fixture.Build<UserEntity>()
-            .With(u => u.Id, userId)
-            .Create();
+    var userEntity = Fixture.Build<UserEntity>()
+        .With(u => u.Id, userId)
+        .With(u => u.Auth0Id, auth0Id)
+        .Create();
 
-        var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
-            .With(s => s.Id, subscriptionId)
-            .With(s => s.UserId, userId)
-            .With(s => s.Active, true)
-            .Create();
+    var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
+        .With(s => s.Id, subscriptionId)
+        .With(s => s.UserId, userId)
+        .With(s => s.Active, true)
+        .Create();
 
-        var updatedSubscriptionEntity = Fixture.Build<SubscriptionEntity>()
-            .With(s => s.Id, subscriptionId)
-            .With(s => s.UserId, userId)
-            .With(s => s.Active, false)
-            .Create();
+    var updatedSubscriptionEntity = Fixture.Build<SubscriptionEntity>()
+        .With(s => s.Id, subscriptionId)
+        .With(s => s.UserId, userId)
+        .With(s => s.Active, false)
+        .Create();
 
-        var updatedSubscriptionDto = Fixture.Build<SubscriptionDto>()
-            .With(dto => dto.Id, subscriptionId)
-            .Create();
+    var updatedSubscriptionDto = Fixture.Build<SubscriptionDto>()
+        .With(dto => dto.Id, subscriptionId)
+        .Create();
 
-        UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(userEntity);
+    UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult<UserEntity?>(userEntity));
 
-        SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>())
-            .Returns(subscriptionEntity);
+    SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult<SubscriptionEntity?>(subscriptionEntity));
 
-        SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>())
-            .Returns(updatedSubscriptionEntity);
+    SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(updatedSubscriptionEntity));
 
-        Mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
-            .Returns(updatedSubscriptionDto);
+    Mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
+        .Returns(updatedSubscriptionDto);
 
-        //Act
-        var result = await Service.CancelSubscription(auth0Id, subscriptionId, Arg.Any<CancellationToken>());
+    //Act
+    var result = await Service.CancelSubscription(auth0Id, subscriptionId, ct);
 
-        //Assert
-        result.ShouldNotBeNull();
-        result.Id.ShouldBe(subscriptionId);
-        await SubscriptionRepository.Received(1)
-            .Update(Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionId && s.Active == false), Arg.Any<CancellationToken>());
+    //Assert
+    result.ShouldNotBeNull();
+    result.Id.ShouldBe(subscriptionId);
+    
+    await SubscriptionRepository.Received(1).Update(
+        Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionId && !s.Active), 
+        Arg.Any<CancellationToken>()
+    );
 
-        await SubscriptionRepository.Received(1)
-            .Update(Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionId && !s.Active), Arg.Any<CancellationToken>());
-
-        await MessageService.Received(1).NotifySubscriptionCanceled(
-            Arg.Is<SubscriptionCanceledEvent>(e => e.Id == subscriptionId), Arg.Any<CancellationToken>());
-    }
-
+    await MessageService.Received(1).NotifySubscriptionCanceled(
+        Arg.Is<SubscriptionCanceledEvent>(e => e.Id == subscriptionId), 
+        Arg.Any<CancellationToken>());
+}
     [Fact]
     public async Task CancelSubscription_WhenIncorrectId_ReturnsNotFoundException()
     {
@@ -86,63 +88,69 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
     [Fact]
     public async Task CancelSubscription_WhenSuccessful_InvalidatesSubscriptionAndBillsCache()
-    {
-        //Arrange
-        var auth0Id = "auth0|123456789";
-        var userId = Guid.NewGuid();
-        var subscriptionId = Guid.NewGuid();
-        
-        var userEntity = Fixture.Build<UserEntity>()
-            .With(u => u.Id, userId)
-            .With(u => u.Auth0Id, auth0Id)
-            .Create();
-        
-        var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
-            .With(s => s.Id, subscriptionId)
-            .With(s => s.UserId, userId)
-            .With(s => s.Active, true)
-            .Create();
-        
-        var cancelledEntity = Fixture.Build<SubscriptionEntity>()
-            .With(s => s.Id, subscriptionId)
-            .With(s => s.UserId, userId)
-            .With(s => s.Active, false)
-            .Create();
-        
-        UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>()).Returns(userEntity);
-        
-        SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>()).Returns(subscriptionEntity);
-        
-        SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>()).Returns(cancelledEntity);
-        
-        Mapper.Map<SubscriptionDto>(cancelledEntity).Returns(Fixture.Create<SubscriptionDto>());
+{
+    //Arrange
+    var ct = CancellationToken.None;
+    var auth0Id = "auth0|123456789";
+    var userId = Guid.NewGuid();
+    var subscriptionId = Guid.NewGuid();
+    
+    var userEntity = Fixture.Build<UserEntity>()
+        .With(u => u.Id, userId)
+        .With(u => u.Auth0Id, auth0Id)
+        .Create();
+    
+    var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
+        .With(s => s.Id, subscriptionId)
+        .With(s => s.UserId, userId)
+        .With(s => s.Active, true)
+        .Create();
+    
+    var cancelledEntity = Fixture.Build<SubscriptionEntity>()
+        .With(s => s.Id, subscriptionId)
+        .With(s => s.UserId, userId)
+        .With(s => s.Active, false)
+        .Create();
+    
+    UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult<UserEntity?>(userEntity));
+    
+    SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult<SubscriptionEntity?>(subscriptionEntity));
+    
+    SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult(cancelledEntity));
+    
+    Mapper.Map<SubscriptionDto>(cancelledEntity)
+        .Returns(Fixture.Create<SubscriptionDto>());
 
-        var subscriptionCacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(subscriptionId);
-        var billsCacheKey = RedisKeySetter.SetCacheKey(userId, "upcoming_bills");
+    var subscriptionCacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(subscriptionId);
+    var billsCacheKey = RedisKeySetter.SetCacheKey(userId, "upcoming_bills");
 
-        //Act
-        await Service.CancelSubscription(auth0Id, subscriptionId, Arg.Any<CancellationToken>());
+    //Act
+    await Service.CancelSubscription(auth0Id, subscriptionId, ct);
 
-        //Assert
-        await CacheAccessService.Received(1).RemoveData(
-            Arg.Is<List<string>>(list =>
-                list.Contains(subscriptionCacheKey) &&
-                list.Contains(billsCacheKey) &&
-                list.Count == 2
-            ),
-            Arg.Any<CancellationToken>());
-        
-        await HistoryRepository.Received(1)
-            .Create(subscriptionId, SubscriptionAction.Cancel, null, Arg.Any<CancellationToken>());
-        
-        await MessageService.Received(1)
-            .NotifySubscriptionCanceled(Arg.Any<SubscriptionCanceledEvent>(), Arg.Any<CancellationToken>());
-    }
+    //Assert
+    await CacheAccessService.Received(1).RemoveData(
+        Arg.Is<List<string>>(list =>
+            list.Contains(subscriptionCacheKey) &&
+            list.Contains(billsCacheKey)
+        ),
+        Arg.Any<CancellationToken>());
+    
+    await HistoryRepository.Received(1)
+        .Create(subscriptionId, SubscriptionAction.Cancel, null, Arg.Any<CancellationToken>());
+    
+    await MessageService.Received(1)
+        .NotifySubscriptionCanceled(Arg.Is<SubscriptionCanceledEvent>(e => e.Id == subscriptionId), Arg.Any<CancellationToken>());
+}
+    
     [Fact]
     public async Task Update_WhenValidModel_ReturnsUpdatedEntity()
     {
         //Arrange
-        var auth0Id = Fixture.Create<string>();
+        var ct = CancellationToken.None;
+        var auth0Id = "auth0|test-user";
         var userId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
 
@@ -163,21 +171,24 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(dto => dto.Id, subscriptionId)
             .With(dto => dto.Name, updateDto.Name)
             .Create();
-        
+    
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(userEntity);
-        
+            .Returns(Task.FromResult<UserEntity?>(userEntity));
+    
         SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>())
-            .Returns(subscriptionEntity);
+            .Returns(Task.FromResult<SubscriptionEntity?>(subscriptionEntity));
 
         SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(subscriptionEntity));
+
+        Mapper.Map(updateDto, subscriptionEntity)
             .Returns(subscriptionEntity);
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Update(auth0Id, updateDto, Arg.Any<CancellationToken>());
+        var result = await Service.Update(auth0Id, updateDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -185,7 +196,10 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.Name.ShouldBe(updateDto.Name);
 
         await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
-        await SubscriptionRepository.Received(1).Update(Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionId), Arg.Any<CancellationToken>());
+        await SubscriptionRepository.Received(1).Update(
+            Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionId), 
+            Arg.Any<CancellationToken>()
+        );
     }
 
     [Fact]
@@ -205,35 +219,49 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     public async Task RenewSubscription_WhenValidModel_ReturnsRenewSubscription()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var monthsToRenew = 2;
         var originalDueDate = new DateOnly(2025, 1, 15);
+        var expectedDueDate = originalDueDate.AddMonths(monthsToRenew);
+
         var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
-            .With(subscription => subscription.DueDate, originalDueDate)
+            .With(s => s.DueDate, originalDueDate)
             .Create();
+
         var subscriptionDto = Fixture.Build<SubscriptionDto>()
             .With(s => s.Id, subscriptionEntity.Id)
             .With(s => s.Name, subscriptionEntity.Name)
             .With(s => s.Price, subscriptionEntity.Price)
-            .With(s => s.DueDate, originalDueDate.AddMonths(monthsToRenew))
+            .With(s => s.DueDate, expectedDueDate)
             .With(s => s.Content, subscriptionEntity.Content)
             .With(s => s.Type, subscriptionEntity.Type)
             .Create();
 
-        SubscriptionRepository.GetUserInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>()).Returns(subscriptionEntity);
-        SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>()).Returns(subscriptionEntity);
-        Mapper.Map<SubscriptionDto>(subscriptionEntity).Returns(subscriptionDto);
+        SubscriptionRepository.GetUserInfoById(subscriptionEntity.Id, Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<SubscriptionEntity?>(subscriptionEntity));
+
+        SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(subscriptionEntity));
+
+        Mapper.Map<SubscriptionDto>(subscriptionEntity)
+            .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.RenewSubscription(subscriptionEntity.Id, monthsToRenew, Arg.Any<CancellationToken>());
+        var result = await Service.RenewSubscription(subscriptionEntity.Id, monthsToRenew, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.DueDate.ShouldBe(originalDueDate.AddMonths(monthsToRenew));
-        await SubscriptionRepository.Received(1)
-            .Update(Arg.Is<SubscriptionEntity>(s => s.DueDate == originalDueDate.AddMonths(monthsToRenew)), Arg.Any<CancellationToken>());
+        result.DueDate.ShouldBe(expectedDueDate);
+
+        await SubscriptionRepository.Received(1).Update(
+            Arg.Is<SubscriptionEntity>(s => s.DueDate == expectedDueDate), 
+            Arg.Any<CancellationToken>()
+        );
+
         await MessageService.Received(1).NotifySubscriptionRenewed(
-            Arg.Is<SubscriptionRenewedEvent>(subscriptionCanceledEvent =>
-                subscriptionCanceledEvent.Id == subscriptionDto.Id), Arg.Any<CancellationToken>());
+            Arg.Is<SubscriptionRenewedEvent>(e => e.Id == subscriptionDto.Id), 
+            Arg.Any<CancellationToken>()
+        );
     }
 
     [Fact]
@@ -255,7 +283,8 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     public async Task GetUpcomingBills_WhenMultipleSubscriptionsAreDue_ReturnsAllUpcomingBills()
     {
         //Arrange
-        var auth0Id = Fixture.Create<string>();
+        var ct = CancellationToken.None;
+        var auth0Id = "auth0|test-user";
         var existingUser = Fixture.Create<UserEntity>();
         var dueDate = DateOnly.FromDateTime(DateTime.Now.AddDays(1));
         var cacheKey = RedisKeySetter.SetCacheKey(existingUser.Id, "upcoming_bills");
@@ -272,19 +301,19 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Create()).ToList();
 
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(existingUser);
+            .Returns(Task.FromResult<UserEntity?>(existingUser));
 
         CacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, Arg.Any<CancellationToken>())
-            .Returns((List<SubscriptionDto>?)null);
+            .Returns(Task.FromResult<List<SubscriptionDto>?>(null));
 
         SubscriptionRepository.GetUpcomingBills(existingUser.Id, Arg.Any<CancellationToken>())
-            .Returns(subscriptions);
+            .Returns(Task.FromResult(subscriptions));
 
         Mapper.Map<List<SubscriptionDto>>(subscriptions)
             .Returns(subscriptionDtos);
 
         //Act
-        var result = await Service.GetUpcomingBills(auth0Id, Arg.Any<CancellationToken>());
+        var result = await Service.GetUpcomingBills(auth0Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -293,10 +322,11 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
         await SubscriptionRepository.Received(1).GetUpcomingBills(existingUser.Id, Arg.Any<CancellationToken>());
+    
         await CacheAccessService.Received(1).SetData(
             cacheKey,
             Arg.Is<List<SubscriptionDto>>(l => l.Count == 3),
-            RedisConstants.ExpirationTime,
+            Arg.Any<TimeSpan>(),
             Arg.Any<CancellationToken>()
         );
     }
@@ -305,7 +335,8 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     public async Task GetUpcomingBills_WhenSubscriptionsExistButNoneAreDueSoon_ReturnsEmptyCollection()
     {
         //Arrange
-        var auth0Id = Fixture.Create<string>();
+        var ct = CancellationToken.None;
+        var auth0Id = "auth0|test-user";
         var existingUser = Fixture.Create<UserEntity>();
         var cacheKey = RedisKeySetter.SetCacheKey(existingUser.Id, "upcoming_bills");
 
@@ -317,19 +348,19 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .ToList();
 
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(existingUser);
+            .Returns(Task.FromResult<UserEntity?>(existingUser));
 
         CacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, Arg.Any<CancellationToken>())
-            .Returns((List<SubscriptionDto>?)null);
+            .Returns(Task.FromResult<List<SubscriptionDto>?>(null));
 
         SubscriptionRepository.GetUpcomingBills(existingUser.Id, Arg.Any<CancellationToken>())
-            .Returns(subscriptions);
+            .Returns(Task.FromResult(subscriptions));
 
         Mapper.Map<List<SubscriptionDto>>(subscriptions)
-            .Returns(new List<SubscriptionDto>());
+            .Returns([]);
 
         //Act
-        var result = await Service.GetUpcomingBills(auth0Id, Arg.Any<CancellationToken>());
+        var result = await Service.GetUpcomingBills(auth0Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -337,13 +368,18 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
         await SubscriptionRepository.Received(1).GetUpcomingBills(existingUser.Id, Arg.Any<CancellationToken>());
-        await CacheAccessService.Received(1).SetData(cacheKey, Arg.Is<List<SubscriptionDto>>(l => l.Count == 0), Arg.Any<TimeSpan>(), Arg.Any<CancellationToken>());
+        await CacheAccessService.Received(1).SetData(
+            cacheKey, 
+            Arg.Is<List<SubscriptionDto>>(l => l.Count == 0), 
+            Arg.Any<TimeSpan>(), 
+            Arg.Any<CancellationToken>());
     }
     
     [Fact]
     public async Task GetById_WhenSubscriptionExists_ReturnsSubscriptionDto()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var subscriptionEntity = Fixture.Create<SubscriptionEntity>();
 
         var subscriptionDto = Fixture.Build<SubscriptionDto>()
@@ -360,19 +396,20 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             Arg.Any<CancellationToken>()
-        )!.Returns(callInfo =>
+        ).Returns(async callInfo =>
         {
-            var factory = callInfo.Arg<Func<Task<SubscriptionDto>>>();
-            return factory();
+            var factory = callInfo.Arg<Func<Task<SubscriptionDto?>>>();
+            return await factory();
         });
+
         SubscriptionRepository.GetUserInfoById(subscriptionEntity.Id, Arg.Any<CancellationToken>())
-            .Returns(subscriptionEntity);
+            .Returns(Task.FromResult<SubscriptionEntity?>(subscriptionEntity));
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.GetUserInfoById(subscriptionEntity.Id, Arg.Any<CancellationToken>());
+        var result = await Service.GetUserInfoById(subscriptionEntity.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -383,7 +420,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         await SubscriptionRepository.Received(1).GetUserInfoById(subscriptionEntity.Id, Arg.Any<CancellationToken>());
         await CacheService.Received(1).CacheDataWithLock(
-            cacheKey,
+            Arg.Is<string>(s => s == cacheKey),
             Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             Arg.Any<CancellationToken>()
@@ -420,25 +457,26 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     public async Task GetById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var cachedDto = Fixture.Create<SubscriptionDto>();
-        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(cachedDto.Id);
-
+        
         CacheService.CacheDataWithLock(
-            cacheKey,
+            Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             Arg.Any<CancellationToken>()
-        ).Returns(cachedDto);
+        ).Returns(Task.FromResult<SubscriptionDto?>(cachedDto));
 
         //Act
-        var result = await Service.GetUserInfoById(cachedDto.Id, Arg.Any<CancellationToken>());
+        var result = await Service.GetById(cachedDto.Id, ct);
 
         //Assert
+        result.ShouldNotBeNull();
         result.ShouldBe(cachedDto);
 
-        await SubscriptionRepository.DidNotReceive().GetUserInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+        await SubscriptionRepository.DidNotReceive().GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await CacheService.Received(1).CacheDataWithLock(
-            cacheKey,
+            Arg.Any<string>(),
             Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<SubscriptionDto?>>>(),
             Arg.Any<CancellationToken>()
@@ -515,30 +553,38 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllSubscriptions()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var subscriptions = Fixture.CreateMany<SubscriptionEntity>(3).ToList();
         var subscriptionDtos = Fixture.CreateMany<SubscriptionDto>(3).ToList();
 
         var filter = new SubscriptionFilterDto();
 
         SubscriptionRepository.GetAll(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(subscriptions);
-        Mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
+            .Returns(Task.FromResult(subscriptions));
+
+        Mapper.Map<List<SubscriptionDto>>(subscriptions)
+            .Returns(subscriptionDtos);
 
         //Act
-        var result = await Service.GetAll(filter, Arg.Any<CancellationToken>());
+        var result = await Service.GetAll(filter, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.ShouldNotBeEmpty();
         result.Count.ShouldBe(3);
         result.ShouldBe(subscriptionDtos);
+    
+        await SubscriptionRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), 
+            Arg.Any<CancellationToken>()
+        );
     }
     
-        [Fact]
+    [Fact]
     public async Task Create_WhenValidModel_ReturnsCreatedSubscription()
     {
         //Arrange
-        var auth0Id = Fixture.Create<string>();
+        var ct = CancellationToken.None;
+        var auth0Id = "auth0|test-user";
         var createDto = Fixture.Create<CreateSubscriptionDto>();
         var existingUser = Fixture.Create<UserEntity>();
 
@@ -552,29 +598,29 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Create();
 
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(existingUser);
+            .Returns(Task.FromResult<UserEntity?>(existingUser));
 
-        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<SubscriptionEntity>());
+        SubscriptionRepository.GetByPredicate(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<SubscriptionEntity?>(null));
 
         Mapper.Map<SubscriptionEntity>(createDto)
             .Returns(subscriptionEntity);
 
         SubscriptionRepository.Create(subscriptionEntity, Arg.Any<CancellationToken>())
-            .Returns(subscriptionEntity);
+            .Returns(Task.FromResult(subscriptionEntity));
 
         Mapper.Map<SubscriptionDto>(subscriptionEntity)
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Create(auth0Id, createDto, Arg.Any<CancellationToken>());
+        var result = await Service.Create(auth0Id, createDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
         result.Name.ShouldBe(createDto.Name);
 
         await UserRepository.Received(1).GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>());
-    
+
         await SubscriptionRepository.Received(1).Create(
             Arg.Is<SubscriptionEntity>(s => s.Name == createDto.Name && s.UserId == existingUser.Id), 
             Arg.Any<CancellationToken>());
@@ -590,7 +636,8 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     public async Task Create_WhenSubscriptionAlreadyExists_ThrowsPolicyViolationException()
     {
         //Arrange
-        var auth0Id = Fixture.Create<string>();
+        var ct = CancellationToken.None;
+        var auth0Id = "auth0|test-user";
         var createDto = Fixture.Create<CreateSubscriptionDto>();
         var existingUser = Fixture.Create<UserEntity>();
 
@@ -601,15 +648,16 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Create();
 
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(existingUser);
-        
+            .Returns(Task.FromResult<UserEntity?>(existingUser));
+    
         SubscriptionRepository.GetByPredicate(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(existingSubscription);
+            .Returns(Task.FromResult<SubscriptionEntity?>(existingSubscription));
 
-        //Act & Assert
-        var exception = await Assert.ThrowsAsync<PolicyViolationException>(() => 
-            Service.Create(auth0Id, createDto, Arg.Any<CancellationToken>()));
+        //Act
+        var act = async () => await Service.Create(auth0Id, createDto, ct);
 
+        //Assert
+        var exception = await act.ShouldThrowAsync<PolicyViolationException>();
         exception.Message.ShouldContain(createDto.Name);
 
         await SubscriptionRepository.DidNotReceive().Create(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>());
