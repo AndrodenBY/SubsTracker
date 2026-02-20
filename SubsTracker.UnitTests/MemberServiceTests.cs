@@ -68,8 +68,8 @@ public async Task LeaveGroup_WhenNotTheMemberOfTheGroup_ThrowsNotFoundException(
     await MemberRepository.DidNotReceive().Delete(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>());
 }
 
-[Fact]
-public async Task LeaveGroup_WhenSuccessful_DeletesAndNotifies()
+    [Fact]
+    public async Task LeaveGroup_WhenSuccessful_DeletesAndNotifies()
 {
     //Arrange
     var ct = CancellationToken.None;
@@ -119,7 +119,8 @@ public async Task LeaveGroup_WhenSuccessful_DeletesAndNotifies()
             .With(dto => dto.UserId, userId)
             .With(dto => dto.GroupId, groupId)
             .Create();
-
+        
+        var stubUserOrGroup = Fixture.Create<MemberEntity>(); 
         var createdMemberEntity = Fixture.Build<MemberEntity>()
             .With(gm => gm.UserId, userId)
             .With(gm => gm.GroupId, groupId)
@@ -129,21 +130,28 @@ public async Task LeaveGroup_WhenSuccessful_DeletesAndNotifies()
             .With(dto => dto.UserId, userId)
             .With(dto => dto.GroupId, groupId)
             .Create();
-
+        
+        MemberRepository.GetFullInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(stubUserOrGroup);
+        
         MemberRepository.GetByPredicate(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>())
             .Returns((MemberEntity?)null);
+        
         MemberRepository.Create(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>())
             .Returns(createdMemberEntity);
+        
         Mapper.Map<MemberDto>(createdMemberEntity)
             .Returns(createdMemberDto);
 
         //Act
-        var result = await Service.JoinGroup(createDto, Arg.Any<CancellationToken>());
+        var result = await Service.JoinGroup(createDto, CancellationToken.None);
 
-        //Assert
+        // Assert
         result.ShouldNotBeNull();
         result.UserId.ShouldBe(userId);
         result.GroupId.ShouldBe(groupId);
+    
+        // Проверяем, что метод Create был вызван 1 раз
         await MemberRepository.Received(1).Create(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>());
     }
 
@@ -153,29 +161,36 @@ public async Task LeaveGroup_WhenSuccessful_DeletesAndNotifies()
         //Arrange
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
-
+        
         var createDto = Fixture.Build<CreateMemberDto>()
             .With(dto => dto.UserId, userId)
             .With(dto => dto.GroupId, groupId)
             .Create();
+        
+        var stubMember = Fixture.Create<MemberEntity>();
 
+        MemberRepository.GetFullInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(stubMember); 
+        
         var existingMemberEntity = Fixture.Build<MemberEntity>()
-            .With(gm => gm.UserId, userId)
-            .With(gm => gm.GroupId, groupId)
+            .With(m => m.UserId, userId)
+            .With(m => m.GroupId, groupId)
             .Create();
-
-        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>())
+    
+        MemberRepository.GetByPredicate(
+                Arg.Any<Expression<Func<MemberEntity, bool>>>(), 
+                Arg.Any<CancellationToken>())
             .Returns(existingMemberEntity);
 
         //Act
-        var act = async () => await Service.JoinGroup(createDto, Arg.Any<CancellationToken>());
+        var act = async () => await Service.JoinGroup(createDto, CancellationToken.None);
 
         //Assert
         await act.ShouldThrowAsync<InvalidRequestDataException>();
     }
     
     [Fact]
-public async Task GetFullInfoById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
+    public async Task GetFullInfoById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
 {
     //Arrange
     var ct = CancellationToken.None;
@@ -211,8 +226,8 @@ public async Task GetFullInfoById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
     );
 }
 
-[Fact]
-public async Task GetFullInfoById_WhenCacheMiss_FetchesFromRepoAndCaches()
+    [Fact]
+    public async Task GetFullInfoById_WhenCacheMiss_FetchesFromRepoAndCaches()
 {
     //Arrange
     var ct = CancellationToken.None;

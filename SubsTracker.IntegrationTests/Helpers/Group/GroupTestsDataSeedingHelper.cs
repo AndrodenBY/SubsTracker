@@ -103,8 +103,7 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
     {
         using var scope = CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        // Check if the user already exists to avoid PK violation
+        
         var existingUser = await db.Users.AnyAsync(u => u.Id == userId);
 
         if (!existingUser)
@@ -175,16 +174,11 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
             .Create();
 
         var member = Fixture.Build<MemberEntity>()
-            // 1. Assign the actual objects, not just IDs
-            // This forces EF Core to use the established relationship
             .With(m => m.UserEntity, user)
             .With(m => m.GroupEntity, group)
             .With(m => m.Role, MemberRole.Participant)
             .Create();
-
-        // 2. Add only the 'root' or the entities individually 
-        // Since member has references to user and group, AddAsync(member) 
-        // actually tracks all three, but being explicit is safer:
+        
         await db.Users.AddAsync(user);
         await db.UserGroups.AddAsync(group);
         await db.Members.AddAsync(member);
@@ -198,8 +192,7 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        // 1. ОЧИСТКА: Удаляем пользователя, если он остался от прошлых тестов
+        
         var existingUser = await dbContext.Users
             .FirstOrDefaultAsync(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
         
@@ -208,12 +201,11 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
             dbContext.Users.Remove(existingUser);
             await dbContext.SaveChangesAsync();
         }
-
-        // 2. СОЗДАНИЕ: Теперь можно спокойно добавлять
+        
         var user = Fixture.Build<UserEntity>()
             .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
             .Without(u => u.Groups)
-            .Without(u => u.Subscriptions) // На всякий случай отключаем навигационные свойства
+            .Without(u => u.Subscriptions)
             .Create();
 
         await dbContext.Users.AddAsync(user);
