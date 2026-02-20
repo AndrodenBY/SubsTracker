@@ -45,13 +45,13 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         .With(dto => dto.Id, subscriptionId)
         .Create();
 
-    UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
+    UserRepository.GetByAuth0Id(auth0Id, ct)
         .Returns(Task.FromResult<UserEntity?>(userEntity));
 
-    SubscriptionRepository.GetById(subscriptionId, Arg.Any<CancellationToken>())
+    SubscriptionRepository.GetById(subscriptionId, ct)
         .Returns(Task.FromResult<SubscriptionEntity?>(subscriptionEntity));
 
-    SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), Arg.Any<CancellationToken>())
+    SubscriptionRepository.Update(Arg.Any<SubscriptionEntity>(), ct)
         .Returns(Task.FromResult(updatedSubscriptionEntity));
 
     Mapper.Map<SubscriptionDto>(updatedSubscriptionEntity)
