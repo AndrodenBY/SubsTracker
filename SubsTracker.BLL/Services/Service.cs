@@ -22,7 +22,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 {
     protected IMapper Mapper => mapper;
 
-    protected IRepository<TEntity> Repository => repository;
+    private IRepository<TEntity> Repository => repository;
 
     protected ICacheService CacheService => cacheService;
 

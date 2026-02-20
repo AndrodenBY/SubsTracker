@@ -1,9 +1,9 @@
-using SubsTracker.DAL.Models.Subscription;
+using SubsTracker.DAL.Entities.Subscription;
 
 namespace SubsTracker.DAL.Interfaces.Repositories;
 
-public interface ISubscriptionRepository : IRepository<Subscription>
+public interface ISubscriptionRepository : IRepository<SubscriptionEntity>
 {
-    Task<Subscription?> GetUserInfoById(Guid id, CancellationToken cancellationToken);
-    Task<List<Subscription>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken);
+    Task<SubscriptionEntity?> GetUserInfoById(Guid id, CancellationToken cancellationToken);
+    Task<List<SubscriptionEntity>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken);
 }

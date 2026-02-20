@@ -30,7 +30,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
 
         return new UserSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = new List<SubscriptionModel>(),
             UserGroups = new List<Group>()
         };
@@ -68,7 +68,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
 
         return new UserSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = subscriptions,
             UserGroups = groups
         };

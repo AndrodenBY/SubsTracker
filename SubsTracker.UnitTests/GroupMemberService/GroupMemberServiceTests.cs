@@ -1,3 +1,5 @@
+using SubsTracker.DAL.Entities.User;
+
 namespace SubsTracker.UnitTests.GroupMemberService;
 
 public class GroupMemberServiceTests : GroupMemberServiceTestBase

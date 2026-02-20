@@ -3,8 +3,8 @@ using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.DAL.Models.User;
+using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities.User;
 
 namespace SubsTracker.BLL.Mapper;
 
@@ -12,21 +12,21 @@ public class DtoMappingProfile : Profile
 {
     public DtoMappingProfile()
     {
-        CreateMap<User, UserDto>();
+        CreateMap<UserEntity, UserDto>();
         CreateMap<UserGroup, UserGroupDto>();
         CreateMap<GroupMember, GroupMemberDto>();
-        CreateMap<Subscription, SubscriptionDto>();
+        CreateMap<SubscriptionEntity, SubscriptionDto>();
 
-        CreateMap<CreateUserDto, User>();
+        CreateMap<CreateUserDto, UserEntity>();
         CreateMap<CreateUserGroupDto, UserGroup>();
         CreateMap<CreateGroupMemberDto, GroupMember>();
-        CreateMap<CreateSubscriptionDto, Subscription>();
+        CreateMap<CreateSubscriptionDto, SubscriptionEntity>();
 
-        CreateMap<UpdateUserDto, User>()
+        CreateMap<UpdateUserDto, UserEntity>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.Auth0Id, opt => opt.Ignore());
         CreateMap<UpdateUserGroupDto, UserGroup>();
         CreateMap<UpdateGroupMemberDto, GroupMember>();
-        CreateMap<UpdateSubscriptionDto, Subscription>();
+        CreateMap<UpdateSubscriptionDto, SubscriptionEntity>();
     }
 }

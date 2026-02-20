@@ -3,7 +3,7 @@ using SubsTracker.DAL.Interfaces;
 
 namespace SubsTracker.BLL.Interfaces;
 
-public interface IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
+public interface IService<TEntity, TDto, in TCreateDto, in TUpdateDto, TFilterDto>
     where TEntity : IBaseModel
     where TDto : class
     where TCreateDto : class

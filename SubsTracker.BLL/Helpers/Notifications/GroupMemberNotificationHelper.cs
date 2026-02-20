@@ -1,4 +1,4 @@
-using SubsTracker.DAL.Models.User;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.BLL.Helpers.Notifications;
@@ -12,7 +12,7 @@ public static class GroupMemberNotificationHelper
             member.GroupId,
             MemberRoleMapperHelper.ToMessagingRole(member.Role),
             member.Group.Name,
-            member.User.Email
+            member.UserEntity.Email
         );
     }
 
@@ -22,7 +22,7 @@ public static class GroupMemberNotificationHelper
             member.Id,
             member.GroupId,
             member.Group.Name,
-            member.User.Email
+            member.UserEntity.Email
         );
     }
 }

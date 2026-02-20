@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.DAL.Repository;
 

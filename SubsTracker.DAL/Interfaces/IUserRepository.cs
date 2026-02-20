@@ -1,9 +1,9 @@
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.DAL.Interfaces;
 
-public interface IUserRepository : IRepository<User>
+public interface IUserRepository : IRepository<UserEntity>
 {
-    Task<User?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true);
+    Task<UserEntity?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true);
 }

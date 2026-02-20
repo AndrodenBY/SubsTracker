@@ -1,3 +1,4 @@
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
 
 namespace SubsTracker.IntegrationTests.Helpers.UserGroup;
@@ -22,7 +23,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         return new UserGroupSeedEntity
         {
-            User = null!,
+            UserEntity = null!,
             Group = group,
             Subscriptions = new List<SubscriptionModel>(),
             Members = new List<GroupMember>()
@@ -51,13 +52,13 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .With(m => m.UserId, owner.Id)
             .With(m => m.Role, MemberRole.Admin)
             .Without(m => m.Group)
-            .Without(m => m.User)
+            .Without(m => m.UserEntity)
             .Create();
 
         var participantMembers = Fixture.Build<GroupMember>()
             .With(m => m.Role, MemberRole.Participant)
             .Without(m => m.Group)
-            .Without(m => m.User)
+            .Without(m => m.UserEntity)
             .CreateMany(3).ToList();
 
         for (var i = 0; i < participantMembers.Count; i++) participantMembers[i].UserId = memberUsers[i].Id;
@@ -83,7 +84,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         return new UserGroupSeedEntity
         {
-            User = owner,
+            UserEntity = owner,
             Group = group,
             Members = allMembers,
             Subscriptions = new List<SubscriptionModel>()
@@ -156,7 +157,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         return new UserGroupSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Group = group,
             Members = new List<GroupMember>(),
             Subscriptions = new List<SubscriptionModel>()
@@ -188,7 +189,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
             .With(m => m.UserId, user.Id)
             .With(m => m.GroupId, group.Id)
             .With(m => m.Role, MemberRole.Participant)
-            .Without(m => m.User)
+            .Without(m => m.UserEntity)
             .Without(m => m.Group)
             .Create();
 
@@ -231,7 +232,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         return new UserGroupSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Group = group,
             Subscriptions = new List<SubscriptionModel> { subscription },
             Members = new List<GroupMember>()
@@ -253,7 +254,7 @@ public class UserGroupTestsDataSeedingHelper(TestsWebApplicationFactory factory)
 
         return new UserGroupSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = null!,
             Group = null!,
             Members = null!

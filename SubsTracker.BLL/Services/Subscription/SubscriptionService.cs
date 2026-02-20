@@ -6,14 +6,13 @@ using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.Subscription;
 using SubsTracker.BLL.RedisSettings;
+using SubsTracker.DAL.Entities.Subscription;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using SubsTracker.Messaging.Interfaces;
-using UserModel = SubsTracker.DAL.Models.User.User;
-using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
 
 namespace SubsTracker.BLL.Services.Subscription;
 
@@ -25,7 +24,7 @@ public class SubscriptionService(
     ISubscriptionHistoryRepository historyRepository,
     ICacheService cacheService,
     ICacheAccessService cacheAccessService
-) : Service<SubscriptionModel, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
+) : Service<SubscriptionEntity, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
     ISubscriptionService
 {
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
@@ -53,7 +52,7 @@ public class SubscriptionService(
         
         await SubscriptionPolicyChecker.PreventSubscriptionDuplication(subscriptionRepository, existingUser.Id, createDto.Name, cancellationToken);
         
-        var subscriptionToCreate = Mapper.Map<SubscriptionModel>(createDto);
+        var subscriptionToCreate = Mapper.Map<SubscriptionEntity>(createDto);
         subscriptionToCreate.UserId = existingUser.Id;
 
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
@@ -120,14 +119,14 @@ public class SubscriptionService(
         return mappedList;
     }
 
-    private async Task HandlePostCancellationActions(SubscriptionModel canceledSubscription, Guid userId, CancellationToken cancellationToken)
+    private async Task HandlePostCancellationActions(SubscriptionEntity canceledSubscriptionEntity, Guid userId, CancellationToken cancellationToken)
     {
-        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscription);
+        var subscriptionCanceledEvent = SubscriptionNotificationHelper.CreateSubscriptionCanceledEvent(canceledSubscriptionEntity);
         await messageService.NotifySubscriptionCanceled(subscriptionCanceledEvent, cancellationToken);
 
         var keysToRemove = new List<string>
         {
-            RedisKeySetter.SetCacheKey<SubscriptionDto>(canceledSubscription.Id),
+            RedisKeySetter.SetCacheKey<SubscriptionDto>(canceledSubscriptionEntity.Id),
             RedisKeySetter.SetCacheKey(userId, "upcoming_bills")
         };
 

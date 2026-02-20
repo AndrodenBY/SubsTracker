@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.DAL.Repository;
 
@@ -13,7 +13,7 @@ public class GroupMemberRepository(SubsDbContext context) : Repository<GroupMemb
     {
         return _dbSet
             .AsSplitQuery()
-            .Include(g => g.User)
+            .Include(g => g.UserEntity)
             .Include(g => g.Group)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
     }
@@ -28,7 +28,7 @@ public class GroupMemberRepository(SubsDbContext context) : Repository<GroupMemb
         CancellationToken cancellationToken)
     {
         return _dbSet
-            .Include(m => m.User)
+            .Include(m => m.UserEntity)
             .Include(m => m.Group)
             .FirstOrDefaultAsync(predicate, cancellationToken);
     }

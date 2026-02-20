@@ -30,10 +30,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var seedData = await _dataSeedingHelper.AddSeedUser();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.User}/{seedData.User.Id}");
+        var response = await _client.GetAsync($"{EndpointConst.User}/{seedData.UserEntity.Id}");
 
         //Assert
-        await _assertHelper.GetByIdValidAssert(response, seedData.User);
+        await _assertHelper.GetByIdValidAssert(response, seedData.UserEntity);
     }
     
     [Fact]
@@ -46,7 +46,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.GetAsync($"{EndpointConst.User}/me");
 
         //Assert
-        await _assertHelper.GetByAuth0IdValidAssert(response, seedData.User);
+        await _assertHelper.GetByAuth0IdValidAssert(response, seedData.UserEntity);
     }
     
     [Fact]
@@ -70,10 +70,10 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var seedData = await _dataSeedingHelper.AddSeedUser();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.User}?email={seedData.User.Email}");
+        var response = await _client.GetAsync($"{EndpointConst.User}?email={seedData.UserEntity.Email}");
 
         //Assert
-        await _assertHelper.GetAllValidAssert(response, seedData.User.Email);
+        await _assertHelper.GetAllValidAssert(response, seedData.UserEntity.Email);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         var seedData = await _dataSeedingHelper.AddSeedUser(); 
-        var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.User.Id);
+        var updateDto = _dataSeedingHelper.AddUpdateUserDto(seedData.UserEntity.Id);
 
         //Act
         var response = await _client.PutAsJsonAsync($"{EndpointConst.User}/me", updateDto);
@@ -127,6 +127,6 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         var response = await _client.DeleteAsync($"{EndpointConst.User}");
 
         //Assert
-        await _assertHelper.DeleteValidAssert(response, seedData.User.Id);
+        await _assertHelper.DeleteValidAssert(response, seedData.UserEntity.Id);
     }
 }

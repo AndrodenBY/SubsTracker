@@ -1,6 +1,6 @@
 using SubsTracker.DAL.Interfaces;
 
-namespace SubsTracker.DAL.Models;
+namespace SubsTracker.DAL.Entities;
 
 public abstract class BaseModel : IBaseModel
 {

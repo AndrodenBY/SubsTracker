@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces;
-using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.DAL;
 
@@ -12,8 +12,8 @@ public class SubsDbContext : DbContext
         
     }
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Subscription> Subscriptions { get; set; }
+    public DbSet<UserEntity> Users { get; set; }
+    public DbSet<SubscriptionEntity> Subscriptions { get; set; }
     public DbSet<SubscriptionHistory> SubscriptionHistory { get; set; }
     public DbSet<UserGroup> UserGroups { get; set; }
     public DbSet<GroupMember> Members { get; set; }

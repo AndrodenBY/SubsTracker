@@ -2,13 +2,13 @@ using AutoMapper;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
 using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
-using UserModel = SubsTracker.DAL.Models.User.User;
 
 namespace SubsTracker.BLL.Services.User;
 
@@ -16,7 +16,7 @@ public class UserService(
     IUserRepository userRepository,
     IMapper mapper,
     ICacheService cacheService
-) : Service<UserModel, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
+) : Service<UserEntity, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
     IUserService
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
@@ -39,7 +39,7 @@ public class UserService(
 
         if (existingUser is null)
         {
-            var newUser = Mapper.Map<UserModel>(createDto);
+            var newUser = Mapper.Map<UserEntity>(createDto);
             newUser.Auth0Id = auth0Id; 
             var createdUser = await userRepository.Create(newUser, cancellationToken);
             return Mapper.Map<UserDto>(createdUser);

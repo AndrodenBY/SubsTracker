@@ -1,14 +1,14 @@
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces;
-using SubsTracker.DAL.Models.User;
 
 namespace SubsTracker.DAL.Repository;
 
-public class UserRepository(SubsDbContext context) : Repository<User>(context), IUserRepository
+public class UserRepository(SubsDbContext context) : Repository<UserEntity>(context), IUserRepository
 {
-    private readonly DbSet<User> _dbSet = context.Set<User>();
+    private readonly DbSet<UserEntity> _dbSet = context.Set<UserEntity>();
     
-    public async Task<User?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true)
+    public async Task<UserEntity?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true)
     {
         var query = isTracking 
             ? _dbSet.AsSplitQuery() 

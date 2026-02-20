@@ -1,6 +1,6 @@
-global using UserModel = SubsTracker.DAL.Models.User.User;
-global using Group = SubsTracker.DAL.Models.User.UserGroup;
-global using SubscriptionModel = SubsTracker.DAL.Models.Subscription.Subscription;
+global using UserModel = SubsTracker.DAL.Entities.User.UserEntity;
+global using Group = SubsTracker.DAL.Entities.User.UserGroup;
+global using SubscriptionModel = SubsTracker.DAL.Entities.Subscription.SubscriptionEntity;
 global using System.Net.Http.Json;
 global using Newtonsoft.Json;
 global using Shouldly;
@@ -14,7 +14,6 @@ global using SubsTracker.Domain.Enums;
 global using Microsoft.AspNetCore.Mvc.Testing;
 global using Microsoft.EntityFrameworkCore;
 global using SubsTracker.IntegrationTests.DataSeedEntities;
-global using SubsTracker.DAL.Models.User;
 global using SubsTracker.IntegrationTests.Helpers.Subscription;
 global using SubsTracker.API.ViewModel.User;
 global using SubsTracker.IntegrationTests.Helpers.UserGroup;

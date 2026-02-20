@@ -1,3 +1,6 @@
+using SubsTracker.DAL.Entities.Subscription;
+using SubsTracker.DAL.Entities.User;
+
 namespace SubsTracker.UnitTests.UserGroupService;
 
 public class UserGroupServiceTests : UserGroupServiceTestsBase
@@ -100,9 +103,9 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
     {
         //Arrange
         var userGroup = Fixture.Build<UserGroup>()
-            .With(group => group.SharedSubscriptions, new List<Subscription>())
+            .With(group => group.SharedSubscriptions, new List<SubscriptionEntity>())
             .Create();
-        var subscription = new Subscription
+        var subscription = new SubscriptionEntity
         {
             Id = Guid.NewGuid(), Price = 9.99m, Content = SubscriptionContent.Design, DueDate = DateOnly.MaxValue,
             Type = SubscriptionType.Free
@@ -324,7 +327,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
             .With(userGroup => userGroup.Id, userGroupEntity.Id)
             .Create();
 
-        UserRepository.GetById(createDto.UserId, default).Returns(new User { Id = createDto.UserId });
+        UserRepository.GetById(createDto.UserId, default).Returns(new UserEntity { Id = createDto.UserId });
         GroupRepository.Create(Arg.Any<UserGroup>(), default).Returns(userGroupEntity);
         Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>()).Returns(userGroupEntity);
         Mapper.Map<UserGroupDto>(Arg.Any<UserGroup>()).Returns(userGroupDto);
@@ -366,7 +369,7 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
             .Create();
 
         UserRepository.GetById(createDto.UserId, default)
-            .Returns(new User { Id = createDto.UserId });
+            .Returns(new UserEntity { Id = createDto.UserId });
         GroupRepository.Create(Arg.Any<UserGroup>(), default)
             .Returns(userGroupEntity);
         Mapper.Map<UserGroup>(Arg.Any<CreateUserGroupDto>())
@@ -385,13 +388,13 @@ public class UserGroupServiceTests : UserGroupServiceTestsBase
     public async Task UnshareSubscription_WhenDataIsValid_RemovesSubscription()
     {
         //Arrange
-        var subscription = new Subscription
+        var subscription = new SubscriptionEntity
         {
             Id = Guid.NewGuid(), Type = SubscriptionType.Free, Content = SubscriptionContent.Design,
             DueDate = DateOnly.MinValue, Price = 9.99m
         };
         var userGroup = Fixture.Build<UserGroup>()
-            .With(group => group.SharedSubscriptions, new List<Subscription> { subscription })
+            .With(group => group.SharedSubscriptions, new List<SubscriptionEntity> { subscription })
             .Create();
         var expectedDto = Fixture.Build<UserGroupDto>()
             .With(group => group.Id, userGroup.Id)

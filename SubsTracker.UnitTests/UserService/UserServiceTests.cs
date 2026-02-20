@@ -1,3 +1,5 @@
+using SubsTracker.DAL.Entities.User;
+
 namespace SubsTracker.UnitTests.UserService;
 
 public class UserServiceTests : UserServiceTestsBase
@@ -8,13 +10,13 @@ public class UserServiceTests : UserServiceTestsBase
         //Arrange
         var auth0Id = "auth0|123";
         var createDto = Fixture.Create<CreateUserDto>();
-        var userEntity = Fixture.Build<User>().With(x => x.Email, createDto.Email).Create();
+        var userEntity = Fixture.Build<UserEntity>().With(x => x.Email, createDto.Email).Create();
         var userDto = Fixture.Create<UserDto>();
 
-        UserRepository.GetByPredicate(Arg.Any<Expression<Func<User, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<User?>(null));
+        UserRepository.GetByPredicate(Arg.Any<Expression<Func<UserEntity, bool>>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<UserEntity?>(null));
 
-        Mapper.Map<User>(createDto).Returns(userEntity);
+        Mapper.Map<UserEntity>(createDto).Returns(userEntity);
         UserRepository.Create(userEntity, Arg.Any<CancellationToken>()).Returns(userEntity);
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
@@ -24,8 +26,8 @@ public class UserServiceTests : UserServiceTestsBase
         //Assert
         result.ShouldNotBeNull();
         userEntity.Auth0Id.ShouldBe(auth0Id);
-        await UserRepository.Received(1).Create(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        await UserRepository.DidNotReceive().Update(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        await UserRepository.Received(1).Create(Arg.Any<UserEntity>(), Arg.Any<CancellationToken>());
+        await UserRepository.DidNotReceive().Update(Arg.Any<UserEntity>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -44,13 +46,13 @@ public class UserServiceTests : UserServiceTestsBase
         //Arrange
         var auth0Id = "auth0|new";
         var createDto = Fixture.Create<CreateUserDto>();
-        var existingUser = Fixture.Build<User>()
+        var existingUser = Fixture.Build<UserEntity>()
             .With(x => x.Email, createDto.Email)
             .With(x => x.Auth0Id, "already-has-id")
             .Create();
         var userDto = Fixture.Create<UserDto>();
 
-        UserRepository.GetByPredicate(Arg.Any<Expression<Func<User, bool>>>(), Arg.Any<CancellationToken>())
+        UserRepository.GetByPredicate(Arg.Any<Expression<Func<UserEntity, bool>>>(), Arg.Any<CancellationToken>())
             .Returns(existingUser);
 
         Mapper.Map<UserDto>(existingUser).Returns(userDto);
@@ -59,8 +61,8 @@ public class UserServiceTests : UserServiceTestsBase
         var result = await Service.Create(auth0Id, createDto, default);
 
         //Assert
-        await UserRepository.DidNotReceive().Update(Arg.Any<User>(), Arg.Any<CancellationToken>());
-        await UserRepository.DidNotReceive().Create(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        await UserRepository.DidNotReceive().Update(Arg.Any<UserEntity>(), Arg.Any<CancellationToken>());
+        await UserRepository.DidNotReceive().Create(Arg.Any<UserEntity>(), Arg.Any<CancellationToken>());
         result.ShouldNotBeNull();
     }
     
@@ -69,7 +71,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var auth0Id = "auth0|test-id";
-        var existingUser = Fixture.Build<User>()
+        var existingUser = Fixture.Build<UserEntity>()
             .With(x => x.Auth0Id, auth0Id)
             .Create();
 
@@ -95,7 +97,7 @@ public class UserServiceTests : UserServiceTestsBase
         var auth0Id = "auth0|non-existent";
 
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<User?>(null));
+            .Returns(Task.FromResult<UserEntity?>(null));
 
         //Act
         var act = async () => await Service.Delete(auth0Id, default);
@@ -103,14 +105,14 @@ public class UserServiceTests : UserServiceTestsBase
         //Assert
         var exception = await act.ShouldThrowAsync<UnknownIdentifierException>();
         exception.Message.ShouldContain(auth0Id);
-        await UserRepository.DidNotReceive().Delete(Arg.Any<User>(), Arg.Any<CancellationToken>());
+        await UserRepository.DidNotReceive().Delete(Arg.Any<UserEntity>(), Arg.Any<CancellationToken>());
     }
     
     [Fact]
     public async Task GetAll_WhenFilteredByEmail_ReturnsCorrectUser()
     {
         //Arrange
-        var userToFind = Fixture.Create<User>();
+        var userToFind = Fixture.Create<UserEntity>();
         var userDto = Fixture.Build<UserDto>()
             .With(user => user.Email, userToFind.Email)
             .With(user => user.Id, userToFind.Id)
@@ -119,17 +121,17 @@ public class UserServiceTests : UserServiceTestsBase
 
         var filter = new UserFilterDto { Email = userToFind.Email };
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(new List<User> { userToFind });
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), default)
+            .Returns(new List<UserEntity> { userToFind });
 
-        Mapper.Map<List<UserDto>>(Arg.Any<List<User>>())
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>())
             .Returns(new List<UserDto> { userDto });
 
         //Act
         var result = await Service.GetAll(filter, default);
 
         //Assert
-        await UserRepository.Received(1).GetAll(Arg.Any<Expression<Func<User, bool>>>(), default);
+        await UserRepository.Received(1).GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), default);
         result.ShouldNotBeNull();
         result.Single().Email.ShouldBe(userToFind.Email);
     }
@@ -140,9 +142,9 @@ public class UserServiceTests : UserServiceTestsBase
         //Arrange
         var filter = new UserFilterDto { Email = "nonexistent@example.com" };
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(new List<User>());
-        Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), default)
+            .Returns(new List<UserEntity>());
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns(new List<UserDto>());
 
         //Act
         var result = await Service.GetAll(filter, default);
@@ -157,9 +159,9 @@ public class UserServiceTests : UserServiceTestsBase
         //Arrange
         var filter = new UserFilterDto();
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
-            .Returns(new List<User>());
-        Mapper.Map<List<UserDto>>(Arg.Any<List<User>>()).Returns(new List<UserDto>());
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), default)
+            .Returns(new List<UserEntity>());
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns(new List<UserDto>());
 
         //Act
         var result = await Service.GetAll(filter, default);
@@ -172,12 +174,12 @@ public class UserServiceTests : UserServiceTestsBase
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUsers()
     {
         //Arrange
-        var users = Fixture.CreateMany<User>(3).ToList();
+        var users = Fixture.CreateMany<UserEntity>(3).ToList();
         var userDtos = Fixture.CreateMany<UserDto>(3).ToList();
 
         var filter = new UserFilterDto();
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<User, bool>>>(), default)
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), default)
             .Returns(users);
         Mapper.Map<List<UserDto>>(users).Returns(userDtos);
 
@@ -196,7 +198,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var auth0Id = "auth0|661f123456789";
-        var existingUser = Fixture.Create<User>();
+        var existingUser = Fixture.Create<UserEntity>();
         var expectedDto = Fixture.Create<UserDto>();
 
         UserRepository.GetByAuth0Id(auth0Id, Arg.Any<CancellationToken>())
@@ -222,7 +224,7 @@ public class UserServiceTests : UserServiceTestsBase
         var nonExistentAuth0Id = "non-existent-id";
 
         UserRepository.GetByAuth0Id(nonExistentAuth0Id, Arg.Any<CancellationToken>())
-            .Returns((User?)null);
+            .Returns((UserEntity?)null);
 
         //Act
         var act = () => Service.GetByAuth0Id(nonExistentAuth0Id, default);
@@ -230,7 +232,7 @@ public class UserServiceTests : UserServiceTestsBase
         //Assert
         var exception = await Should.ThrowAsync<UnknownIdentifierException>(act);
         exception.Message.ShouldContain(nonExistentAuth0Id);
-        Mapper.DidNotReceive().Map<UserDto>(Arg.Any<User>());
+        Mapper.DidNotReceive().Map<UserDto>(Arg.Any<UserEntity>());
     }
 
     [Fact]
@@ -240,7 +242,7 @@ public class UserServiceTests : UserServiceTestsBase
         var emptyAuth0Id = string.Empty;
 
         UserRepository.GetByAuth0Id(emptyAuth0Id, Arg.Any<CancellationToken>())
-            .Returns((User?)null);
+            .Returns((UserEntity?)null);
 
         //Act
         var act = () => Service.GetByAuth0Id(emptyAuth0Id, default);
@@ -258,7 +260,7 @@ public class UserServiceTests : UserServiceTestsBase
         cancellationTokenSource.Cancel(); 
         
         UserRepository.GetByAuth0Id(auth0Id, cancellationTokenSource.Token)
-            .Returns(Task.FromCanceled<User?>(cancellationTokenSource.Token));
+            .Returns(Task.FromCanceled<UserEntity?>(cancellationTokenSource.Token));
 
         //Act
         var act = () => Service.GetByAuth0Id(auth0Id, cancellationTokenSource.Token);
@@ -271,14 +273,14 @@ public class UserServiceTests : UserServiceTestsBase
     public async Task GetById_WhenUserExists_ReturnsUser()
     {
         //Arrange
-        var existingUser = Fixture.Create<User>();
+        var existingUser = Fixture.Create<UserEntity>();
         var expectedDto = Fixture.Build<UserDto>()
             .With(user => user.Id, existingUser.Id)
             .With(user => user.FirstName, existingUser.FirstName)
             .With(user => user.Email, existingUser.Email)
             .Create();
 
-        var cacheKey = $"{existingUser.Id}:{nameof(User)}";
+        var cacheKey = $"{existingUser.Id}:{nameof(UserEntity)}";
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
@@ -341,7 +343,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var cachedDto = Fixture.Create<UserDto>();
-        var cacheKey = RedisKeySetter.SetCacheKey<User>(cachedDto.Id);
+        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(cachedDto.Id);
 
         CacheService.CacheDataWithLock(
             cacheKey,
@@ -369,14 +371,14 @@ public class UserServiceTests : UserServiceTestsBase
     public async Task Update_WhenCalled_ReturnsUpdatedUser()
     {
         //Arrange
-        var userEntity = Fixture.Create<User>();
+        var userEntity = Fixture.Create<UserEntity>();
         var updateDto = Fixture.Create<UpdateUserDto>();
         var userDto = Fixture.Create<UserDto>();
         
         UserRepository.GetByAuth0Id(userDto.Auth0Id, default)
             .Returns(userEntity);
 
-        UserRepository.Update(Arg.Any<User>(), default).Returns(userEntity);
+        UserRepository.Update(Arg.Any<UserEntity>(), default).Returns(userEntity);
         Mapper.Map(updateDto, userEntity).Returns(userEntity);
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
@@ -385,7 +387,7 @@ public class UserServiceTests : UserServiceTestsBase
 
         //Assert
         result.ShouldNotBeNull();
-        await UserRepository.Received(1).Update(Arg.Any<User>(), default);
+        await UserRepository.Received(1).Update(Arg.Any<UserEntity>(), default);
     }
     
     [Fact]

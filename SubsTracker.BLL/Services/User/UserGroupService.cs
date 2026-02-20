@@ -6,13 +6,12 @@ using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.RedisSettings;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
-using UserModel = SubsTracker.DAL.Models.User.User;
 
 namespace SubsTracker.BLL.Services.User;
 

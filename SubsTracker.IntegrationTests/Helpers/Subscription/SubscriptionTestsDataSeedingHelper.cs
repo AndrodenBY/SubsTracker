@@ -29,7 +29,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
         return new SubscriptionSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = new List<SubscriptionModel> { subscription }
         };
     }
@@ -49,7 +49,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
         return new SubscriptionSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = null!
         };
     }
@@ -79,7 +79,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
         return new SubscriptionSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = subscriptions
         };
     }
@@ -142,7 +142,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
 
         return new SubscriptionSeedEntity
         {
-            User = user,
+            UserEntity = user,
             Subscriptions = new List<SubscriptionModel> { upcoming, distant, expired }
         };
     }

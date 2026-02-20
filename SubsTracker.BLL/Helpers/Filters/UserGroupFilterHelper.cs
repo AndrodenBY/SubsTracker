@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using LinqKit;
-using SubsTracker.DAL.Models.User;
+using SubsTracker.DAL.Entities.User;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;

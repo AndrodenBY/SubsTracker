@@ -1,11 +1,11 @@
-namespace SubsTracker.DAL.Models.User;
+namespace SubsTracker.DAL.Entities.User;
 
-public class User : BaseModel
+public class UserEntity : BaseModel
 {
     public string? Auth0Id { get; set; }
     public string FirstName { get; set; } = string.Empty;
     public string? LastName { get; set; }
     public string Email { get; set; } = string.Empty;
-    public List<Subscription.Subscription>? Subscriptions { get; set; } = new();
+    public List<Subscription.SubscriptionEntity>? Subscriptions { get; set; } = new();
     public List<UserGroup>? Groups { get; set; } = new();
 }

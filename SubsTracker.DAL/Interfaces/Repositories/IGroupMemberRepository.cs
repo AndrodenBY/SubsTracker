@@ -1,5 +1,5 @@
 using System.Linq.Expressions;
-using SubsTracker.DAL.Models.User;
+using SubsTracker.DAL.Entities.User;
 
 namespace SubsTracker.DAL.Interfaces.Repositories;
 
