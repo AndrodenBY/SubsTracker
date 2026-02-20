@@ -122,6 +122,51 @@ public class UserServiceTests : UserServiceTestsBase
     }
     
     [Fact]
+    public async Task GetAll_WhenFilteredByFirstName_ReturnsMatchingUsers()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var firstName = "Alexander";
+        var filter = new UserFilterDto { FirstName = "aLeX" };
+
+        var user = Fixture.Build<UserEntity>().With(u => u.FirstName, firstName).Create();
+        var dto = Fixture.Build<UserDto>().With(u => u.FirstName, firstName).Create();
+
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct)
+            .Returns([user]);
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([dto]);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.ShouldHaveSingleItem();
+        result.First().FirstName.ShouldBe(firstName);
+    }
+    
+    [Fact]
+    public async Task GetAll_WhenFilteredByLastName_ReturnsCorrectUser()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var lastName = "Ivanov";
+        var filter = new UserFilterDto { LastName = "IVAN" };
+
+        var user = Fixture.Build<UserEntity>().With(u => u.LastName, lastName).Create();
+        var dto = Fixture.Build<UserDto>().With(u => u.LastName, lastName).Create();
+
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct).Returns([user]);
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([dto]);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.ShouldHaveSingleItem();
+        result.First().LastName.ShouldBe(lastName);
+    }
+    
+    [Fact]
     public async Task GetAll_WhenFilteredByEmail_ReturnsCorrectUser()
     {
         //Arrange

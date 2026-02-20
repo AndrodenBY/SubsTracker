@@ -13,8 +13,8 @@ public static class MemberNotificationHelper
             memberEntity.Id,
             memberEntity.GroupId,
             MemberRoleMapperHelper.ToMessagingRole(memberEntity.Role),
-            memberEntity.GroupEntity.Name,
-            memberEntity.UserEntity.Email
+            memberEntity.Group.Name,
+            memberEntity.User.Email
         );
     }
 
@@ -23,8 +23,8 @@ public static class MemberNotificationHelper
         return new MemberLeftGroupEvent(
             memberEntity.Id,
             memberEntity.GroupId,
-            memberEntity.GroupEntity.Name,
-            memberEntity.UserEntity.Email
+            memberEntity.Group.Name,
+            memberEntity.User.Email
         );
     }
 }

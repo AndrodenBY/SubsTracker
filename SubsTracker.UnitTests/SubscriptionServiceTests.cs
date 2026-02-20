@@ -586,6 +586,70 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         );
     }
     
+    [Theory]
+    [InlineData(SubscriptionType.Lifetime, SubscriptionContent.Design)]
+    [InlineData(SubscriptionType.Free, SubscriptionContent.News)]
+    public async Task GetAll_WhenFilteredByEnums_ReturnsMatchingSubscriptions(SubscriptionType type, SubscriptionContent content)
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var filter = new SubscriptionFilterDto { Type = type, Content = content };
+
+        var entities = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.Type, type)
+            .With(s => s.Content, content)
+            .CreateMany(1).ToList();
+        
+        var dtos = Fixture.Build<SubscriptionDto>()
+            .With(d => d.Type, type)
+            .With(d => d.Content, content)
+            .CreateMany(1).ToList();
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), ct).Returns(entities);
+        Mapper.Map<List<SubscriptionDto>>(entities).Returns(dtos);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.ShouldHaveSingleItem();
+        result.First().Type.ShouldBe(type);
+        result.First().Content.ShouldBe(content);
+    }
+    
+    [Fact]
+    public async Task GetAll_WhenFilteredByUserId_ReturnsUserSubscriptions()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var userId = Guid.NewGuid();
+        var filter = new SubscriptionFilterDto { UserId = userId };
+        
+        var userSubscriptions = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.UserId, userId)
+            .CreateMany(2).ToList();
+        
+        var subscriptionDtos = Fixture.CreateMany<SubscriptionDto>(2).ToList();
+
+        SubscriptionRepository.GetAll(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), ct)
+            .Returns(userSubscriptions);
+
+        Mapper.Map<List<SubscriptionDto>>(userSubscriptions)
+            .Returns(subscriptionDtos);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.ShouldNotBeNull();
+        result.Count.ShouldBe(2);
+        await SubscriptionRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), 
+            ct);
+    }
+    
+    
+    
     [Fact]
     public async Task Create_WhenValidModel_ReturnsCreatedSubscription()
     {

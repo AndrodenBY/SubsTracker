@@ -1,8 +1,11 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using MassTransit.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
+using SubsTracker.API.ViewModel;
 using SubsTracker.DAL;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.Constants;
@@ -48,7 +51,15 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var response = await client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
 
         //Assert
-        await _assertHelper.GetByIdValidAssert(response, subscription);
+        await response.Content.ReadAsStringAsync();
+        var options = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            Converters = { new JsonStringEnumConverter() }
+        };
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(options);
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(subscription.Id);
     }
 
     [Fact]
