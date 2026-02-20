@@ -13,8 +13,8 @@ public class MemberRepository(SubsDbContext context) : Repository<MemberEntity>(
     {
         return _dbSet
             .AsSplitQuery()
-            .Include(g => g.UserEntity)
-            .Include(g => g.GroupEntity)
+            .Include(g => g.User)
+            .Include(g => g.Group)
             .FirstOrDefaultAsync(g => g.Id == id, cancellationToken);
     }
 
@@ -24,12 +24,11 @@ public class MemberRepository(SubsDbContext context) : Repository<MemberEntity>(
         return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-    public Task<MemberEntity?> GetByPredicateFullInfo(Expression<Func<MemberEntity, bool>> predicate,
-        CancellationToken cancellationToken)
+    public Task<MemberEntity?> GetByPredicateFullInfo(Expression<Func<MemberEntity, bool>> predicate, CancellationToken cancellationToken)
     {
         return _dbSet
-            .Include(m => m.UserEntity)
-            .Include(m => m.GroupEntity)
+            .Include(m => m.User)
+            .Include(m => m.Group)
             .FirstOrDefaultAsync(predicate, cancellationToken);
     }
 }

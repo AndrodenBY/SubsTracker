@@ -12,16 +12,6 @@ namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsAssertionHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
-    public async Task GetByIdValidAssert(HttpResponseMessage response, SubscriptionEntity expected)
-    {
-        await response.Content.ReadAsStringAsync();
-        
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
-
-        result.ShouldNotBeNull();
-        result.Id.ShouldBe(expected.Id);
-    }
-
     public async Task GetAllValidAssert(HttpResponseMessage response, string expectedName)
     {
         response.EnsureSuccessStatusCode();

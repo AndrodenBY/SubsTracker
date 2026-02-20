@@ -49,6 +49,54 @@ public class GroupServiceTests : GroupServiceTestsBase
     }
 
     [Fact]
+    public async Task GetAll_WhenFilteredByPartialName_ReturnsMatchingGroups()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var filter = new GroupFilterDto { Name = "Family" };
+
+        var groups = new List<GroupEntity> 
+        { 
+            Fixture.Build<GroupEntity>().With(g => g.Name, "My Family Plan").Create(),
+            Fixture.Build<GroupEntity>().With(g => g.Name, "FamilyAccount").Create()
+        };
+
+        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), ct).Returns(groups);
+        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>())
+            .Returns(Fixture.CreateMany<GroupDto>(2).ToList());
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.Count.ShouldBe(2);
+    }
+    
+    [Fact]
+    public async Task GetAll_WhenFilteredByNameWithDifferentCase_ReturnsMatchingGroup()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var groupName = "NetflixPremium";
+        var filter = new GroupFilterDto { Name = "nEtFlIx" };
+
+        var entity = Fixture.Build<GroupEntity>().With(g => g.Name, groupName).Create();
+        var dto = Fixture.Build<GroupDto>().With(d => d.Name, groupName).Create();
+
+        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), ct)
+            .Returns([entity]);
+
+        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns([dto]);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.ShouldHaveSingleItem();
+        result.First().Name.ShouldBe(groupName);
+    }
+    
+    [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUserGroups()
     {
         //Arrange

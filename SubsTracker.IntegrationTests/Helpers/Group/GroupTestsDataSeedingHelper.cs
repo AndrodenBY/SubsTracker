@@ -13,6 +13,29 @@ namespace SubsTracker.IntegrationTests.Helpers.Group;
 
 public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
+    public async Task<SubscriptionEntity> AddSubscription()
+    {
+        using var scope = CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+
+        var user = Fixture.Build<UserEntity>()
+            .Without(u => u.Groups)
+            .Without(u => u.Subscriptions)
+            .Create();
+
+        await db.Users.AddAsync(user);
+
+        var subscription = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.UserId, user.Id)
+            .Without(s => s.User)
+            .Create();
+
+        await db.Subscriptions.AddAsync(subscription);
+        await db.SaveChangesAsync();
+
+        return subscription;
+    }
+    
     public async Task<GroupSeedEntity> AddOnlyUserGroup()
     {
         using var scope = CreateScope();
@@ -59,14 +82,14 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
         var ownerMember = Fixture.Build<MemberEntity>()
             .With(m => m.UserId, owner.Id)
             .With(m => m.Role, MemberRole.Admin)
-            .Without(m => m.GroupEntity)
-            .Without(m => m.UserEntity)
+            .Without(m => m.Group)
+            .Without(m => m.User)
             .Create();
 
         var participantMembers = Fixture.Build<MemberEntity>()
             .With(m => m.Role, MemberRole.Participant)
-            .Without(m => m.GroupEntity)
-            .Without(m => m.UserEntity)
+            .Without(m => m.Group)
+            .Without(m => m.User)
             .CreateMany(3).ToList();
 
         for (var i = 0; i < participantMembers.Count; i++) participantMembers[i].UserId = memberUsers[i].Id;
@@ -174,8 +197,8 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
             .Create();
 
         var member = Fixture.Build<MemberEntity>()
-            .With(m => m.UserEntity, user)
-            .With(m => m.GroupEntity, group)
+            .With(m => m.User, user)
+            .With(m => m.Group, group)
             .With(m => m.Role, MemberRole.Participant)
             .Create();
         

@@ -349,8 +349,65 @@ public async Task LeaveGroup_WhenNotTheMemberOfTheGroup_ThrowsNotFoundException(
         );
     }
     
+    [Theory]
+    [InlineData(MemberRole.Admin)]
+    [InlineData(MemberRole.Participant)]
+    [InlineData(MemberRole.Moderator)]
+    public async Task GetAll_WhenFilteredByRole_ReturnsMatchingMembers(MemberRole targetRole)
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var filter = new MemberFilterDto { Role = targetRole };
+
+        var entities = Fixture.Build<MemberEntity>()
+            .With(m => m.Role, targetRole)
+            .CreateMany(2).ToList();
+
+        var dtos = Fixture.Build<MemberDto>()
+            .With(d => d.Role, targetRole)
+            .CreateMany(2).ToList();
+
+        MemberRepository.GetAll(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
+            .Returns(entities);
+
+        Mapper.Map<List<MemberDto>>(entities)
+            .Returns(dtos);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.Count.ShouldBe(2);
+        result.All(m => m.Role == targetRole).ShouldBeTrue();
+    }
+    
     [Fact]
-public async Task ChangeRole_WhenNotAdmin_ChangeRole()
+    public async Task GetAll_WhenFilteredById_ReturnsSpecificMember()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var targetId = Guid.NewGuid();
+        var filter = new MemberFilterDto { Id = targetId };
+
+        var entity = Fixture.Build<MemberEntity>().With(m => m.Id, targetId).Create();
+        var dto = Fixture.Build<MemberDto>().With(d => d.Id, targetId).Create();
+
+        MemberRepository.GetAll(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
+            .Returns([entity]);
+
+        Mapper.Map<List<MemberDto>>(Arg.Is<List<MemberEntity>>(l => l.Contains(entity)))
+            .Returns([dto]);
+
+        //Act
+        var result = await Service.GetAll(filter, ct);
+
+        //Assert
+        result.ShouldHaveSingleItem();
+        result.First().Id.ShouldBe(targetId);
+    }
+    
+    [Fact]
+    public async Task ChangeRole_WhenNotAdmin_ChangeRole()
 {
     //Arrange
     var ct = CancellationToken.None;
@@ -391,8 +448,8 @@ public async Task ChangeRole_WhenNotAdmin_ChangeRole()
         .NotifyMemberChangedRole(Arg.Is<MemberChangedRoleEvent>(e => e.Id == memberId), Arg.Any<CancellationToken>());
 }
 
-[Fact]
-public async Task ChangeRole_WhenAdmin_ThrowsPolicyViolationException()
+    [Fact]
+    public async Task ChangeRole_WhenAdmin_ThrowsPolicyViolationException()
 {
     //Arrange
     var ct = CancellationToken.None;

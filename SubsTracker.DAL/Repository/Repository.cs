@@ -10,8 +10,7 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     protected readonly SubsDbContext Context = context;
 
-    public Task<List<TEntity>> GetAll(
-        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
+    public Task<List<TEntity>> GetAll(Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
     {
         var query = _dbSet
             .AsQueryable()
