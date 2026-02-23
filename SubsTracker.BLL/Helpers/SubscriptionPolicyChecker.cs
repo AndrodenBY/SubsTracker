@@ -1,5 +1,4 @@
 using SubsTracker.DAL.Entities;
-using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
 

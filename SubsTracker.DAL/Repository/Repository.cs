@@ -10,13 +10,13 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
     private readonly DbSet<TEntity> _dbSet = context.Set<TEntity>();
     protected readonly SubsDbContext Context = context;
 
-    public Task<List<TEntity>> GetAll(Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
+    public Task<List<TEntity>> GetAll(Expression<Func<TEntity, bool>>? expression, CancellationToken cancellationToken)
     {
         var query = _dbSet
             .AsQueryable()
             .AsNoTracking();
 
-        if (predicate is not null) query = query.Where(predicate);
+        if (expression is not null) query = query.Where(expression);
 
         return query.ToListAsync(cancellationToken);
     }
@@ -47,8 +47,8 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
         return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-    public Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken)
+    public Task<TEntity?> GetByPredicate(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken)
     {
-        return _dbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+        return _dbSet.FirstOrDefaultAsync(expression, cancellationToken);
     }
 }

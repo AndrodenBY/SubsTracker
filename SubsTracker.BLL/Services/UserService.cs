@@ -21,8 +21,8 @@ public class UserService(
 {
     public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = UserFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, cancellationToken);
+        var expression = UserFilterHelper.CreatePredicate(filter);
+        return await base.GetAll(expression, cancellationToken);
     }
 
     public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)

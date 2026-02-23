@@ -1,25 +1,28 @@
-using System.Diagnostics.CodeAnalysis;
+
 using System.Linq.Expressions;
 using LinqKit;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
-[ExcludeFromCodeCoverage]
 public static class FilterHelper
 {
     public static Expression<Func<TEntity, bool>> AddFilterCondition<TEntity, TValue>(
         Expression<Func<TEntity, bool>> predicate,
         TValue? filterValue,
-        Expression<Func<TEntity, bool>> expression) where TValue : struct
+        Expression<Func<TEntity, bool>> condition) where TValue : struct
     {
-        return filterValue.HasValue ? predicate.And(expression) : predicate;
+        return filterValue.HasValue 
+            ? predicate.And(condition) 
+            : predicate;
     }
 
     public static Expression<Func<TEntity, bool>> AddFilterCondition<TEntity>(
         Expression<Func<TEntity, bool>> predicate,
         string? filterValue,
-        Expression<Func<TEntity, bool>> expression)
+        Expression<Func<TEntity, bool>> condition)
     {
-        return !string.IsNullOrWhiteSpace(filterValue) ? predicate.And(expression) : predicate;
+        return !string.IsNullOrWhiteSpace(filterValue) 
+            ? predicate.And(condition) 
+            : condition;
     }
 }

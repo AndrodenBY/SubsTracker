@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using LinqKit;
 using SubsTracker.DAL.Entities;
@@ -7,25 +6,29 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
-[ExcludeFromCodeCoverage]
 public static class MemberFilterHelper
 {
     public static Expression<Func<MemberEntity, bool>> CreatePredicate(MemberFilterDto? filter)
     {
-        var predicate = PredicateBuilder.New<MemberEntity>(true);
+        var expression = PredicateBuilder.New<MemberEntity>(true);
 
-        predicate = FilterHelper.AddFilterCondition<MemberEntity, Guid>(
-            predicate,
+        if (filter is null)
+        {
+            return expression;
+        }
+        
+        expression = FilterHelper.AddFilterCondition<MemberEntity, Guid>(
+            expression,
             filter.Id,
             member => member.Id == filter.Id!.Value
         );
 
-        predicate = FilterHelper.AddFilterCondition<MemberEntity, MemberRole>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<MemberEntity, MemberRole>(
+            expression,
             filter.Role,
             member => member.Role == filter.Role!.Value
         );
 
-        return predicate;
+        return expression;
     }
 }

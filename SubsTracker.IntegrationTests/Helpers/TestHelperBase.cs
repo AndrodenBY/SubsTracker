@@ -23,7 +23,7 @@ public abstract class TestHelperBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
-    public IServiceScope CreateScope()
+    protected IServiceScope CreateScope()
     {
         return _scopeFactory.CreateScope();
     }

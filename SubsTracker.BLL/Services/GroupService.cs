@@ -27,9 +27,8 @@ public class GroupService(
     public async Task<GroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<GroupDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup,
-            cancellationToken);
-
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup, cancellationToken);
+        
         async Task<GroupDto?> GetUserGroup()
         {
             var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
@@ -39,8 +38,8 @@ public class GroupService(
 
     public async Task<List<GroupDto>> GetAll(GroupFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = GroupFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, cancellationToken);
+        var expression = GroupFilterHelper.CreatePredicate(filter);
+        return await base.GetAll(expression, cancellationToken);
     }
 
     public async Task<GroupDto> Create(string auth0Id, CreateGroupDto createDto, CancellationToken cancellationToken)

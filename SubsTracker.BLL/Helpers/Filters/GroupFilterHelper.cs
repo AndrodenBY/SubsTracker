@@ -1,24 +1,30 @@
-using System.Diagnostics.CodeAnalysis;
+
 using System.Linq.Expressions;
 using LinqKit;
+using Microsoft.EntityFrameworkCore;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
-[ExcludeFromCodeCoverage]
+
 public static class GroupFilterHelper
 {
     public static Expression<Func<GroupEntity, bool>> CreatePredicate(GroupFilterDto? filter)
     {
-        var predicate = PredicateBuilder.New<GroupEntity>(true);
+        var expression = PredicateBuilder.New<GroupEntity>(true);
 
-        predicate = FilterHelper.AddFilterCondition<GroupEntity>(
-            predicate,
-            filter?.Name,
-            group => group.Name.ToLower().Contains(filter.Name!.ToLower())
+        if (filter is null)
+        {
+            return expression;
+        }
+        
+        expression = FilterHelper.AddFilterCondition<GroupEntity>(
+            expression,
+            filter.Name,
+            group => EF.Functions.Like(group.Name, $"%{filter.Name}%")
         );
 
-        return predicate;
+        return expression;
     }
 }

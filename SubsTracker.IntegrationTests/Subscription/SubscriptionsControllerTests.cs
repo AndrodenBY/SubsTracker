@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -9,16 +10,13 @@ using SubsTracker.API.ViewModel;
 using SubsTracker.DAL;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.Constants;
-using SubsTracker.IntegrationTests.Helpers.Subscription;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Subscription;
 
-[Collection("SequentialIntegrationTests")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
-    private readonly SubscriptionTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly SubscriptionTestsDataSeedingHelper _dataSeedingHelper;
     private readonly ITestHarness _harness;
@@ -29,7 +27,6 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         _factory = factory;
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestAuthScheme");
         _dataSeedingHelper = new SubscriptionTestsDataSeedingHelper(factory);
-        _assertHelper = new SubscriptionTestsAssertionHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
         
         using var scope = _factory.Services.CreateScope();
@@ -43,36 +40,46 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     {
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
-        var subscription = seed.Subscriptions.First();
+        var expected = seed.Subscriptions.First();
         
         var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await client.GetAsync($"{EndpointConst.Subscription}/{subscription.Id}");
+        var response = await client.GetAsync($"{EndpointConst.Subscription}/{expected.Id}");
 
         //Assert
-        await response.Content.ReadAsStringAsync();
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            Converters = { new JsonStringEnumConverter() }
-        };
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(options);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
         result.ShouldNotBeNull();
-        result.Id.ShouldBe(subscription.Id);
+        result.ShouldSatisfyAllConditions(
+            () => result.ShouldNotBeNull(),
+            () => result.Id.ShouldBe(expected.Id),
+            () => result.Name.ShouldBe(expected.Name),
+            () => result.Price.ShouldBe(expected.Price),
+            () => result.Type.ToString().ShouldBe(expected.Type.ToString())
+        );
     }
 
     [Fact]
     public async Task GetAll_WhenFilteredByName_ReturnsOnlyMatchingSubscription()
     {
         //Arrange
-        await _dataSeedingHelper.AddSeedUserWithSubscriptions("Target Subscription", "Unrelated App");
+        const string targetName = "Target Subscription";
+        await _dataSeedingHelper.AddSeedUserWithSubscriptions(targetName, "Unrelated App");
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name=Target Subscription");
+        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={targetName}");
 
         //Assert
-        await _assertHelper.GetAllValidAssert(response, "Target Subscription");
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>();
+
+        result.ShouldNotBeNull();
+        result.ShouldHaveSingleItem()
+            .Name.ShouldBe(targetName);
+        result.ShouldNotContain(x => x.Name == "Unrelated App");
     }
 
     [Fact]
@@ -80,105 +87,162 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
     {
         //Arrange
         await _dataSeedingHelper.AddSeedData();
-        var nonExistentName = "NonExistentFilter";
+        const string nonExistentName = "NonExistentFilter";
 
         //Act
         var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={nonExistentName}");
 
         //Assert
-        await _assertHelper.GetAllInvalidAssert(response);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>();
+        result.ShouldNotBeNull();
+        result.ShouldBeEmpty();
     }
 
     [Fact]
     public async Task Create_WhenValidData_ReturnsCreatedSubscription()
     {
         //Arrange
-        var subscriptionDto = _dataSeedingHelper.AddCreateSubscriptionDto();
+        var dto = _dataSeedingHelper.AddCreateSubscriptionDto();
         await _dataSeedingHelper.AddSeedUserOnly();
         var client = _factory.CreateAuthenticatedClient();
-        
+    
         //Act
-        var response = await client.PostAsJsonAsync($"{EndpointConst.Subscription}", subscriptionDto);
+        var response = await client.PostAsJsonAsync(EndpointConst.Subscription, dto);
 
         //Assert
-        await _assertHelper.CreateValidAssert(response);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK); 
+        
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        result.ShouldNotBeNull();
+        result.ShouldSatisfyAllConditions(
+            () => result.Id.ShouldNotBe(Guid.Empty),
+            () => result.Name.ShouldBe(dto.Name),
+            () => result.Price.ShouldBe(dto.Price),
+            () => result.DueDate.ShouldBe(dto.DueDate)
+        );
+        
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        var entity = await db.Subscriptions.FindAsync(result.Id);
+
+        entity.ShouldNotBeNull();
+        entity.Name.ShouldBe(dto.Name);
     }
 
     [Fact]
     public async Task Update_WhenValidData_ReturnsUpdatedSubscription()
     {
         //Arrange
-        var dataSeedObject = await _dataSeedingHelper.AddSeedData();
-        var subscription = dataSeedObject.Subscriptions.First();
-        var updateDto = _dataSeedingHelper.AddUpdateSubscriptionDto(subscription.Id);
-        
-        var client = _factory.CreateAuthenticatedClient();
+        var seed = await _dataSeedingHelper.AddSeedData();
+        var existing = seed.Subscriptions.First();
+        var updateDto = _dataSeedingHelper.AddUpdateSubscriptionDto(existing.Id);
     
+        var client = _factory.CreateAuthenticatedClient();
+
         //Act
-        var response = await client.PutAsJsonAsync($"{EndpointConst.Subscription}", updateDto);
+        var response = await client.PutAsJsonAsync(EndpointConst.Subscription, updateDto);
 
         //Assert
-        await _assertHelper.UpdateValidAssert(response, updateDto.Name);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        result.ShouldNotBeNull();
+        result.ShouldSatisfyAllConditions(
+            () => result.Id.ShouldBe(existing.Id),
+            () => result.Name.ShouldBe(updateDto.Name),
+            () => result.Price.ShouldBe((decimal)updateDto.Price!)
+        );
+        
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        
+        var dbEntity = await db.Subscriptions.FindAsync(existing.Id);
+        dbEntity.ShouldNotBeNull();
+        dbEntity.Name.ShouldBe(updateDto.Name);
+        dbEntity.Price.ShouldBe((decimal)updateDto.Price!);
     }
     
     [Fact]
-    public async Task CancelSubscription_ShouldPublishSubscriptionCanceledEvent()
+    public async Task CancelSubscription_ShouldUpdateDatabaseAndPublishEvent()
     {
         //Arrange
-        var seedData = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
-        var subscription = seedData.Subscriptions.First();
-        
+        var seed = await _dataSeedingHelper.AddSeedUserWithSubscriptions("Streaming Service");
+        var expected = seed.Subscriptions.First();
         var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await client.PatchAsync($"{EndpointConst.Subscription}/{subscription.Id}/cancel", null);
+        var response = await client.PatchAsync($"{EndpointConst.Subscription}/{expected.Id}/cancel", null);
 
         //Assert
-        await _assertHelper.CancelSubscriptionValidAssert(response, subscription);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
     
-        (await _harness.Published.Any<SubscriptionCanceledEvent>(x =>
-            x.Context.Message.Id == subscription.Id)).ShouldBeTrue();
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(expected.Id);
+        
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        var entity = await db.Subscriptions.FindAsync(expected.Id);
+        entity.ShouldNotBeNull();
+        entity.Active.ShouldBeFalse();
+        
+        var wasPublished = await _harness.Published.Any<SubscriptionCanceledEvent>(x => x.Context.Message.Id == expected.Id);
+        wasPublished.ShouldBeTrue("The SubscriptionCanceledEvent was not published to the bus.");
     }
     
     [Fact]
-    public async Task RenewSubscription_ShouldPublishSubscriptionRenewedEvent()
+    public async Task RenewSubscription_ShouldUpdateDueDateAndPublishEvent()
     {
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
-        var subscription = seed.Subscriptions.First();
-        var monthsToRenew = 3;
+        var existing = seed.Subscriptions.First();
+        const int monthsToRenew = 3;
+        var expectedDate = existing.DueDate.AddMonths(monthsToRenew);
 
         //Act
-        var response = await _client.PatchAsync(
-            $"{EndpointConst.Subscription}/{subscription.Id}/renew?monthsToRenew={monthsToRenew}",
-            null);
+        var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{existing.Id}/renew?monthsToRenew={monthsToRenew}", null);
 
         //Assert
-        await _assertHelper.RenewSubscriptionValidAssert(
-            response,
-            subscription,
-            subscription.DueDate.AddMonths(monthsToRenew)
-        );
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
         
-        Assert.True(_harness.Published.Select<SubscriptionRenewedEvent>().Any(), "Expected a SubscriptionRenewedEvent to be published"
-        );
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        result.ShouldNotBeNull();
+        result.ShouldSatisfyAllConditions(
+            () => result.Id.ShouldBe(existing.Id),
+            () => result.DueDate.ShouldBe(expectedDate));
+        
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+        var dbEntity = await db.Subscriptions.FindAsync(existing.Id);
+        dbEntity.ShouldNotBeNull();
+        dbEntity.DueDate.ShouldBe(expectedDate);
+        
+        var wasPublished = await _harness.Published.Any<SubscriptionRenewedEvent>(x => x.Context.Message.Id == existing.Id);
+        wasPublished.ShouldBeTrue("SubscriptionRenewedEvent was not published.");
     }
 
     [Fact]
-    public async Task GetUpcomingBills_WhenAnySubscriptionsAreDue_ShouldReturnOnlyUpcomingSubscriptions()
+    public async Task GetUpcomingBills_WhenSubscriptionsAreDue_ShouldReturnOnlyItemsWithinSevenDays()
     {
         //Arrange
         var client = _factory.CreateAuthenticatedClient();
-        var seedData = await _dataSeedingHelper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
-        var upcoming = seedData.Subscriptions
-            .Where(s => s.DueDate >= DateOnly.FromDateTime(DateTime.Now) && s.DueDate <= DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)))
-            .OrderBy(s => s.DueDate)
-            .First();
+        await _dataSeedingHelper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
         
+        var dueBill = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+
         //Act
         var response = await client.GetAsync($"{EndpointConst.Subscription}/bills/users");
-        
+    
         //Assert
-        await _assertHelper.GetUpcomingBillsValidAssert(response, upcoming);
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>();
+        result.ShouldNotBeNull();
+        result.ShouldNotBeEmpty("The test expected upcoming bills, but the list was empty.");
+        result.ShouldSatisfyAllConditions(
+            () => result.ShouldAllBe(x => x.DueDate <= dueBill),
+            () => result.Any(x => x.DueDate <= dueBill).ShouldBeTrue());
     }
 }

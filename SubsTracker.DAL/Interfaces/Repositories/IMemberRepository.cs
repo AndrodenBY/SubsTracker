@@ -8,5 +8,5 @@ public interface IMemberRepository : IRepository<MemberEntity>
     Task<MemberEntity?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
     new Task<bool> Delete(MemberEntity entityToDelete, CancellationToken cancellationToken);
 
-    Task<MemberEntity?> GetByPredicateFullInfo(Expression<Func<MemberEntity, bool>> predicate, CancellationToken cancellationToken);
+    Task<MemberEntity?> GetByPredicateFullInfo(Expression<Func<MemberEntity, bool>> expression, CancellationToken cancellationToken);
 }

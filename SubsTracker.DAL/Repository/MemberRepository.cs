@@ -24,11 +24,11 @@ public class MemberRepository(SubsDbContext context) : Repository<MemberEntity>(
         return await Context.SaveChangesAsync(cancellationToken) > 0;
     }
 
-    public Task<MemberEntity?> GetByPredicateFullInfo(Expression<Func<MemberEntity, bool>> predicate, CancellationToken cancellationToken)
+    public Task<MemberEntity?> GetByPredicateFullInfo(Expression<Func<MemberEntity, bool>> expression, CancellationToken cancellationToken)
     {
         return _dbSet
             .Include(m => m.User)
             .Include(m => m.Group)
-            .FirstOrDefaultAsync(predicate, cancellationToken);
+            .FirstOrDefaultAsync(expression, cancellationToken);
     }
 }

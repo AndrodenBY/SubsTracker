@@ -10,10 +10,10 @@ public interface IService<TEntity, TDto, in TCreateDto, in TUpdateDto, TFilterDt
     where TUpdateDto : class
     where TFilterDto : class
 {
-    Task<List<TDto>> GetAll(Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken);
+    Task<List<TDto>> GetAll(Expression<Func<TEntity, bool>>? expression, CancellationToken cancellationToken);
     Task<TDto> GetById(Guid id, CancellationToken cancellationToken);
     Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken);
     Task<TDto> Update(Guid updateId, TUpdateDto updateDto, CancellationToken cancellationToken);
     Task<bool> Delete(Guid id, CancellationToken cancellationToken);
-    Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken);
+    Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> expression, CancellationToken cancellationToken);
 }

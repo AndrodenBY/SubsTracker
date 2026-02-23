@@ -1,3 +1,4 @@
+using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -5,9 +6,9 @@ using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.DataSeedEntities;
-using AutoFixture;
+using SubsTracker.IntegrationTests.Helpers;
 
-namespace SubsTracker.IntegrationTests.Helpers.User;
+namespace SubsTracker.IntegrationTests.User;
 
 public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {

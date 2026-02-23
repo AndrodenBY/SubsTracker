@@ -5,7 +5,6 @@ using Shouldly;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
@@ -240,8 +239,6 @@ public class GroupServiceTests : GroupServiceTestsBase
             .With(x => x.Id, userGroupDto.Id)
             .With(x => x.Name, userGroupDto.Name)
             .Create();
-
-        var cacheKey = $"{userGroupDto.Id}:{nameof(GroupEntity)}";
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
