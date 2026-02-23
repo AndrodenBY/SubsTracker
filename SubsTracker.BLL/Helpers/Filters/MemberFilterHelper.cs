@@ -10,25 +10,25 @@ public static class MemberFilterHelper
 {
     public static Expression<Func<MemberEntity, bool>> CreatePredicate(MemberFilterDto? filter)
     {
-        var predicate = PredicateBuilder.New<MemberEntity>(true);
+        var expression = PredicateBuilder.New<MemberEntity>(true);
 
         if (filter is null)
         {
-            return predicate;
+            return expression;
         }
         
-        predicate = FilterHelper.AddFilterCondition<MemberEntity, Guid>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<MemberEntity, Guid>(
+            expression,
             filter.Id,
             member => member.Id == filter.Id!.Value
         );
 
-        predicate = FilterHelper.AddFilterCondition<MemberEntity, MemberRole>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<MemberEntity, MemberRole>(
+            expression,
             filter.Role,
             member => member.Role == filter.Role!.Value
         );
 
-        return predicate;
+        return expression;
     }
 }

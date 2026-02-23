@@ -40,8 +40,8 @@ public class SubscriptionService(
 
     public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = SubscriptionFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, cancellationToken);
+        var expression = SubscriptionFilterHelper.CreatePredicate(filter);
+        return await base.GetAll(expression, cancellationToken);
     }
 
     public async Task<SubscriptionDto> Create(string auth0Id, CreateSubscriptionDto createDto, CancellationToken cancellationToken)

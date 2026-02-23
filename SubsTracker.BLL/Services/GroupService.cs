@@ -38,8 +38,8 @@ public class GroupService(
 
     public async Task<List<GroupDto>> GetAll(GroupFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = GroupFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, cancellationToken);
+        var expression = GroupFilterHelper.CreatePredicate(filter);
+        return await base.GetAll(expression, cancellationToken);
     }
 
     public async Task<GroupDto> Create(string auth0Id, CreateGroupDto createDto, CancellationToken cancellationToken)

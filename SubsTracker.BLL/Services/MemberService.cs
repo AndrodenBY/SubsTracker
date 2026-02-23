@@ -39,8 +39,8 @@ public class MemberService(
 
     public async Task<List<MemberDto>> GetAll(MemberFilterDto? filter, CancellationToken cancellationToken)
     {
-        var predicate = MemberFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, cancellationToken);
+        var expression = MemberFilterHelper.CreatePredicate(filter);
+        return await base.GetAll(expression, cancellationToken);
     }
 
     public async Task<MemberDto> JoinGroup(CreateMemberDto createDto, CancellationToken cancellationToken)

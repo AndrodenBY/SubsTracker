@@ -27,9 +27,9 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     protected ICacheService CacheService => cacheService;
 
     public virtual async Task<List<TDto>> GetAll(
-        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
+        Expression<Func<TEntity, bool>>? expression, CancellationToken cancellationToken)
     {
-        var entities = await Repository.GetAll(predicate, cancellationToken);
+        var entities = await Repository.GetAll(expression, cancellationToken);
         return Mapper.Map<List<TDto>>(entities);
     }
 
@@ -74,10 +74,10 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         return await repository.Delete(existingEntity, cancellationToken);
     }
 
-    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate,
+    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> expression,
         CancellationToken cancellationToken)
     {
-        var entity = await repository.GetByPredicate(predicate, cancellationToken);
+        var entity = await repository.GetByPredicate(expression, cancellationToken);
 
         return Mapper.Map<TDto>(entity);
     }
