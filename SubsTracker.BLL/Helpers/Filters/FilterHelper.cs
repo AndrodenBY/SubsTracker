@@ -1,3 +1,4 @@
+
 using System.Linq.Expressions;
 using LinqKit;
 
@@ -5,19 +6,23 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class FilterHelper
 {
-    public static Expression<Func<TModel, bool>> AddFilterCondition<TModel, TValue>(
-        Expression<Func<TModel, bool>> predicate,
+    public static Expression<Func<TEntity, bool>> AddFilterCondition<TEntity, TValue>(
+        Expression<Func<TEntity, bool>> predicate,
         TValue? filterValue,
-        Expression<Func<TModel, bool>> expression) where TValue : struct
+        Expression<Func<TEntity, bool>> condition) where TValue : struct
     {
-        return filterValue.HasValue ? predicate.And(expression) : predicate;
+        return filterValue.HasValue 
+            ? predicate.And(condition) 
+            : predicate;
     }
 
-    public static Expression<Func<TModel, bool>> AddFilterCondition<TModel>(
-        Expression<Func<TModel, bool>> predicate,
+    public static Expression<Func<TEntity, bool>> AddFilterCondition<TEntity>(
+        Expression<Func<TEntity, bool>> predicate,
         string? filterValue,
-        Expression<Func<TModel, bool>> expression)
+        Expression<Func<TEntity, bool>> condition)
     {
-        return !string.IsNullOrWhiteSpace(filterValue) ? predicate.And(expression) : predicate;
+        return !string.IsNullOrWhiteSpace(filterValue) 
+            ? predicate.And(condition) 
+            : condition;
     }
 }

@@ -1,7 +1,7 @@
 using SubsTracker.API.Auth0;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.BLL.Interfaces.User;
+using SubsTracker.BLL.Interfaces;
 
 namespace SubsTracker.API.Helpers;
 

@@ -6,13 +6,9 @@ using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
-using SubsTracker.BLL.Interfaces.Subscription;
-using SubsTracker.BLL.Interfaces.User;
 using SubsTracker.BLL.Mapper;
 using SubsTracker.BLL.Services;
 using SubsTracker.BLL.Services.Cache;
-using SubsTracker.BLL.Services.Subscription;
-using SubsTracker.BLL.Services.User;
 using SubsTracker.DAL;
 using SubsTracker.Messaging;
 
@@ -29,8 +25,8 @@ public static class BusinessLayerServiceRegister
             .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
             .AddScoped<ISubscriptionService, SubscriptionService>()
             .AddScoped<IUserService, UserService>()
-            .AddScoped<IUserGroupService, UserGroupService>()
-            .AddScoped<IGroupMemberService, GroupMemberService>();
+            .AddScoped<IGroupService, GroupService>()
+            .AddScoped<IMemberService, MemberService>();
 
         services
             .AddStackExchangeRedisCache(redisOptions =>

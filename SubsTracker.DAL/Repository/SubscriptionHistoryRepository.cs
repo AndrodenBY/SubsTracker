@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Models.Subscription;
 using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.DAL.Repository;

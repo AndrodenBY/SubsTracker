@@ -1,4 +1,6 @@
-using SubsTracker.IntegrationTests.Configuration.WebApplicationFactory;
+using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
+using SubsTracker.IntegrationTests.Configuration;
 
 namespace SubsTracker.IntegrationTests.Helpers;
 
@@ -21,7 +23,7 @@ public abstract class TestHelperBase
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
     }
 
-    public IServiceScope CreateScope()
+    protected IServiceScope CreateScope()
     {
         return _scopeFactory.CreateScope();
     }

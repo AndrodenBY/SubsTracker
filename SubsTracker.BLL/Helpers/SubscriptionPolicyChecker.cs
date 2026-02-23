@@ -1,14 +1,12 @@
-using SubsTracker.DAL.Interfaces;
+using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.DAL.Models.Subscription;
-using SubsTracker.DAL.Models.User;
 using SubsTracker.Domain.Exceptions;
 
 namespace SubsTracker.BLL.Helpers;
 
 public static class SubscriptionPolicyChecker
 {
-    public static async Task<(Subscription subscription, User user)> GetValidatedSubscription(
+    public static async Task<(SubscriptionEntity subscription, UserEntity user)> GetValidatedSubscription(
         IUserRepository userRepository, 
         ISubscriptionRepository subscriptionRepository, 
         string auth0Id, 

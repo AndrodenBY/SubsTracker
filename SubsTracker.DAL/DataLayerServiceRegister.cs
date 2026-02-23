@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Repository;
 
@@ -19,9 +18,9 @@ public static class DataLayerServiceRegister
             .AddScoped(typeof(IRepository<>), typeof(Repository<>))
             .AddScoped<ISubscriptionRepository, SubscriptionRepository>()
             .AddScoped<ISubscriptionHistoryRepository, SubscriptionHistoryRepository>()
-            .AddScoped<IUserGroupRepository, UserGroupRepository>()
+            .AddScoped<IGroupRepository, GroupRepository>()
             .AddScoped<IUserRepository, UserRepository>()
-            .AddScoped<IGroupMemberRepository, GroupMemberRepository>();
+            .AddScoped<IMemberRepository, MemberRepository>();
         
         return services;
     }

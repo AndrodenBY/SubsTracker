@@ -1,28 +1,30 @@
-using SubsTracker.DAL.Models.Subscription;
+using System.Diagnostics.CodeAnalysis;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.BLL.Helpers.Notifications;
 
+[ExcludeFromCodeCoverage]
 public static class SubscriptionNotificationHelper
 {
-    public static SubscriptionCanceledEvent CreateSubscriptionCanceledEvent(Subscription subscription)
+    public static SubscriptionCanceledEvent CreateSubscriptionCanceledEvent(SubscriptionEntity subscriptionEntity)
     {
         return new SubscriptionCanceledEvent(
-            subscription.Id,
-            subscription.Name,
-            subscription.User!.Id,
-            subscription.User.Email
+            subscriptionEntity.Id,
+            subscriptionEntity.Name,
+            subscriptionEntity.User!.Id,
+            subscriptionEntity.User.Email
         );
     }
 
-    public static SubscriptionRenewedEvent CreateSubscriptionRenewedEvent(Subscription subscription)
+    public static SubscriptionRenewedEvent CreateSubscriptionRenewedEvent(SubscriptionEntity subscriptionEntity)
     {
         return new SubscriptionRenewedEvent(
-            subscription.Id,
-            subscription.Name,
-            subscription.User!.Id,
-            subscription.DueDate,
-            subscription.User.Email
+            subscriptionEntity.Id,
+            subscriptionEntity.Name,
+            subscriptionEntity.User!.Id,
+            subscriptionEntity.DueDate,
+            subscriptionEntity.User.Email
         );
     }
 }

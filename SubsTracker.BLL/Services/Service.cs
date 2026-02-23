@@ -14,7 +14,7 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
     IMapper mapper,
     ICacheService cacheService
 ) : IService<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>
-    where TEntity : class, IBaseModel
+    where TEntity : class, IBaseEntity
     where TDto : class
     where TCreateDto : class
     where TUpdateDto : class
@@ -22,14 +22,14 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
 {
     protected IMapper Mapper => mapper;
 
-    protected IRepository<TEntity> Repository => repository;
+    private IRepository<TEntity> Repository => repository;
 
     protected ICacheService CacheService => cacheService;
 
     public virtual async Task<List<TDto>> GetAll(
-        Expression<Func<TEntity, bool>>? predicate, CancellationToken cancellationToken)
+        Expression<Func<TEntity, bool>>? expression, CancellationToken cancellationToken)
     {
-        var entities = await Repository.GetAll(predicate, cancellationToken);
+        var entities = await Repository.GetAll(expression, cancellationToken);
         return Mapper.Map<List<TDto>>(entities);
     }
 
@@ -39,13 +39,13 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         var result = await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken)
                      ?? throw new UnknownIdentifierException($"Entity with {id} not found");
         
+        return result;
+        
         async Task<TDto?> GetEntity()
         {
             var entity = await repository.GetById(id, cancellationToken);
             return Mapper.Map<TDto>(entity);
         }
-        
-        return result;
     }
 
     public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)
@@ -74,10 +74,10 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         return await repository.Delete(existingEntity, cancellationToken);
     }
 
-    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> predicate,
+    public virtual async Task<TDto?> GetByPredicate(Expression<Func<TEntity, bool>> expression,
         CancellationToken cancellationToken)
     {
-        var entity = await repository.GetByPredicate(predicate, cancellationToken);
+        var entity = await repository.GetByPredicate(expression, cancellationToken);
 
         return Mapper.Map<TDto>(entity);
     }

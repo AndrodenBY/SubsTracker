@@ -1,4 +1,12 @@
+using System.Diagnostics;
 using Auth0.AuthenticationApi;
+using AutoMapper;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using NSubstitute;
+using Shouldly;
+using SubsTracker.API;
 
 namespace SubsTracker.IntegrationTests.Wiring;
 
@@ -24,7 +32,7 @@ public class ApplicationLayerServiceRegisterTests
         services.AddSingleton(new DiagnosticListener("Microsoft.AspNetCore"));
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Auth0:Authority"] = "https://test.auth0.com",
                 ["Auth0:Audience"] = "test-api"

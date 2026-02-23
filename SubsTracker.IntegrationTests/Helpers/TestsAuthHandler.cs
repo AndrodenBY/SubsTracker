@@ -1,11 +1,16 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
 namespace SubsTracker.IntegrationTests.Helpers;
 
 public class TestsAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger,
-    UrlEncoder encoder,
-    ISystemClock clock)
-    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder, clock)
+    UrlEncoder encoder)
+    : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
     public const string DefaultAuth0Id = "auth0|test-user-12345";
     public const string Auth0Header = "X-Test-Auth0Id";
@@ -28,7 +33,6 @@ public class TestsAuthHandler(
         var principal = new ClaimsPrincipal(identity);
         var ticket = new AuthenticationTicket(principal, "TestAuthScheme");
 
-        var result = AuthenticateResult.Success(ticket);
-        return Task.FromResult(result);
+        return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 }

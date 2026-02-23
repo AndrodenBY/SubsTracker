@@ -1,6 +1,8 @@
 using System.Linq.Expressions;
 using LinqKit;
-using SubsTracker.DAL.Models.Subscription;
+using Microsoft.EntityFrameworkCore;
+using SubsTracker.BLL.Helpers.Notifications;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Filter;
 
@@ -8,46 +10,51 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class SubscriptionFilterHelper
 {
-    public static Expression<Func<Subscription, bool>> CreatePredicate(SubscriptionFilterDto? filter)
+    public static Expression<Func<SubscriptionEntity, bool>> CreatePredicate(SubscriptionFilterDto? filter)
     {
-        var predicate = PredicateBuilder.New<Subscription>(true);
+        var expression = PredicateBuilder.New<SubscriptionEntity>(true);
 
-        predicate = FilterHelper.AddFilterCondition<Subscription>(
-            predicate,
-            filter?.Name,
-            subscription => subscription.Name.ToLower().Contains(filter.Name!.ToLower())
+        if (filter is null)
+        {
+            return expression;
+        }
+        
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity>(
+            expression,
+            filter.Name,
+            subscription => EF.Functions.Like(subscription.Name, $"%{filter.Name}%")
         );
 
-        predicate = FilterHelper.AddFilterCondition<Subscription, Guid>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity, Guid>(
+            expression,
             filter.Id,
             subscription => subscription.Id == filter.Id
         );
 
-        predicate = FilterHelper.AddFilterCondition<Subscription, Guid>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity, Guid>(
+            expression,
             filter.UserId,
             subscription => subscription.UserId == filter.UserId
         );
 
-        predicate = FilterHelper.AddFilterCondition<Subscription, decimal>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity, decimal>(
+            expression,
             filter.Price,
             subscription => subscription.Price == filter.Price!.Value
         );
 
-        predicate = FilterHelper.AddFilterCondition<Subscription, SubscriptionType>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity, SubscriptionType>(
+            expression,
             filter.Type,
             subscription => subscription.Type == filter.Type!.Value
         );
 
-        predicate = FilterHelper.AddFilterCondition<Subscription, SubscriptionContent>(
-            predicate,
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity, SubscriptionContent>(
+            expression,
             filter.Content,
             subscription => subscription.Content == filter.Content!.Value
         );
 
-        return predicate;
+        return expression;
     }
 }
