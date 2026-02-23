@@ -1,9 +1,11 @@
+using DispatchR.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RedLockNet;
 using RedLockNet.SERedis;
 using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
+using SubsTracker.BLL.DispatchR.Handlers.UpcomingBills;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Mapper;
@@ -49,6 +51,13 @@ public static class BusinessLayerServiceRegister
             .AddScoped<ICacheService, CacheService>()
             .AddScoped<ICacheAccessService, CacheAccessService>();
 
+        services.AddDispatchR(options =>
+        {
+            options.Assemblies.Add(typeof(GetUpcomingBillsHandler).Assembly);
+            options.RegisterNotifications = true;
+            options.RegisterPipelines = true;
+        });
+        
         return services;
     }
 }
