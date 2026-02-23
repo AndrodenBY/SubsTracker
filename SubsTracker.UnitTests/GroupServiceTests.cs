@@ -9,6 +9,7 @@ using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.UnitTests.TestsBase;
 
 namespace SubsTracker.UnitTests;
@@ -19,31 +20,36 @@ public class GroupServiceTests : GroupServiceTestsBase
     public async Task GetAll_WhenFilteredByName_ReturnsCorrectUserGroup()
     {
         //Arrange
-        var userGroupToFind = Fixture.Create<GroupEntity>();
-        var userGroupDto = Fixture.Build<GroupDto>()
-            .With(userGroup => userGroup.Name, userGroupToFind.Name)
-            .With(userGroup => userGroup.Id, userGroupToFind.Id)
-            .Create();
-
-        var filter = new GroupFilterDto { Name = userGroupToFind.Name };
         var ct = CancellationToken.None;
+        var userGroupToFind = Fixture.Create<GroupEntity>();
+        var groupDto = Fixture.Build<GroupDto>()
+            .With(g => g.Name, userGroupToFind.Name)
+            .Create();
+        var filter = new GroupFilterDto { Name = userGroupToFind.Name };
+    
+        var pagedList = new PaginatedList<GroupEntity>([userGroupToFind], 1, 10, 1);
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<List<GroupEntity>>([userGroupToFind]));
+        GroupRepository.GetAll(
+                Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(),
+                Arg.Is(ct))
+            .Returns(pagedList);
+        
+        Mapper.Map<GroupDto>(Arg.Is<GroupEntity>(e => e.Id == userGroupToFind.Id))
+            .Returns(groupDto);
 
-        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>())
-            .Returns([userGroupDto]);
-
-        //Act
-        var result = await Service.GetAll(filter, ct);
+        //Act 
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem();
-        result.Single().Name.ShouldBe(userGroupToFind.Name);
+        result.Items.ShouldHaveSingleItem();
+        result.Items[0].Name.ShouldBe(userGroupToFind.Name); 
+
         await GroupRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<GroupEntity, bool>>>(),
-            Arg.Any<CancellationToken>()
+            Arg.Any<PaginationParameters?>(),
+            ct
         );
     }
 
@@ -54,21 +60,35 @@ public class GroupServiceTests : GroupServiceTestsBase
         var ct = CancellationToken.None;
         var filter = new GroupFilterDto { Name = "Family" };
 
-        var groups = new List<GroupEntity> 
-        { 
+        List<GroupEntity> groups = 
+        [ 
             Fixture.Build<GroupEntity>().With(g => g.Name, "My Family Plan").Create(),
             Fixture.Build<GroupEntity>().With(g => g.Name, "FamilyAccount").Create()
-        };
-
-        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), ct).Returns(groups);
+        ];
+    
+        var pagedList = new PaginatedList<GroupEntity>(groups, 1, 10, 2);
+    
+        GroupRepository.GetAll(
+                Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+    
+        List<GroupDto> expectedDtos = [.. Fixture.CreateMany<GroupDto>(2)];
+    
         Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>())
-            .Returns(Fixture.CreateMany<GroupDto>(2).ToList());
+            .Returns(expectedDtos);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.Count.ShouldBe(2);
+        result.Items.Count.ShouldBe(2);
+    
+        await GroupRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+            Arg.Any<PaginationParameters?>(), 
+            ct);
     }
     
     [Fact]
@@ -76,51 +96,68 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var groupName = "NetflixPremium";
+        const string groupName = "NetflixPremium";
         var filter = new GroupFilterDto { Name = "nEtFlIx" };
 
         var entity = Fixture.Build<GroupEntity>().With(g => g.Name, groupName).Create();
         var dto = Fixture.Build<GroupDto>().With(d => d.Name, groupName).Create();
+        
+        var pagedList = new PaginatedList<GroupEntity>([entity], 1, 10, 1);
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), ct)
-            .Returns([entity]);
-
+        GroupRepository.GetAll(
+                Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+    
         Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns([dto]);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldHaveSingleItem();
-        result.First().Name.ShouldBe(groupName);
+        result.Items.ShouldHaveSingleItem();
+        result.Items[0].Name.ShouldBe(groupName);
+
+        await GroupRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<GroupEntity, bool>>>(),
+            Arg.Any<PaginationParameters?>(),
+            ct
+        );
     }
     
     [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUserGroups()
     {
         //Arrange
-        var userGroups = Fixture.CreateMany<GroupEntity>(3).ToList();
-        var userGroupDtos = Fixture.CreateMany<GroupDto>(3).ToList();
-
-        var filter = new GroupFilterDto();
         var ct = CancellationToken.None;
+        var filter = new GroupFilterDto();
+    
+        List<GroupEntity> userGroups = [.. Fixture.CreateMany<GroupEntity>(3)];
+        List<GroupDto> userGroupDtos = [.. Fixture.CreateMany<GroupDto>(3)];
+        
+        var pagedList = new PaginatedList<GroupEntity>(userGroups, 1, 10, 3);
+        
+        GroupRepository.GetAll(
+                Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
 
-        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(userGroups));
-
-        Mapper.Map<List<GroupDto>>(userGroups)
-            .Returns(userGroupDtos);
+        Mapper.Map<List<GroupDto>>(userGroups).Returns(userGroupDtos);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.Count.ShouldBe(3);
-        result.ShouldBe(userGroupDtos);
+        result.Items.Count.ShouldBe(3);
+        result.Items.ShouldBe(userGroupDtos);
+    
         await GroupRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<GroupEntity, bool>>>(),
-            Arg.Any<CancellationToken>()
+            Arg.Any<PaginationParameters?>(),
+            ct
         );
     }
 
@@ -128,40 +165,61 @@ public class GroupServiceTests : GroupServiceTestsBase
     public async Task GetAll_WhenFilteredByNonExistentName_ReturnsEmptyList()
     {
         //Arrange
-        var userGroupToFind = Fixture.Create<GroupEntity>();
-        Fixture.Build<GroupDto>()
-            .With(userGroup => userGroup.Name, userGroupToFind.Name)
-            .With(userGroup => userGroup.Id, userGroupToFind.Id)
-            .Create();
-
-        var filter = new GroupFilterDto { Name = "Pv$$YbR3aK3rS123" };
-
-        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<GroupEntity>());
-        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns(new List<GroupDto>());
+        var ct = CancellationToken.None;
+        var filter = new GroupFilterDto { Name = "NonExistentName123" };
+        
+        var emptyPagedList = new PaginatedList<GroupEntity>([], 1, 10, 0);
+        
+        GroupRepository.GetAll(
+                Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(emptyPagedList);
+        
+        Mapper.Map<List<GroupDto>>(Arg.Is<List<GroupEntity>>(l => l.Count == 0))
+            .Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, Arg.Any<CancellationToken>());
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
+    
+        await GroupRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<GroupEntity, bool>>>(),
+            Arg.Any<PaginationParameters?>(),
+            ct
+        );
     }
 
     [Fact]
     public async Task GetAll_WhenNoUserGroups_ReturnsEmptyList()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var filter = new GroupFilterDto();
-
-        GroupRepository.GetAll(Arg.Any<Expression<Func<GroupEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<GroupEntity>());
-        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns(new List<GroupDto>());
+        
+        var emptyPagedList = new PaginatedList<GroupEntity>([], 1, 10, 0);
+        
+        GroupRepository.GetAll(
+                Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(emptyPagedList);
+        
+        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, Arg.Any<CancellationToken>());
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
+    
+        await GroupRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<GroupEntity, bool>>>(),
+            Arg.Any<PaginationParameters?>(),
+            ct
+        );
     }
     
     [Fact]
@@ -242,7 +300,6 @@ public class GroupServiceTests : GroupServiceTestsBase
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupDto?>>>(),
             Arg.Any<CancellationToken>()
         ).Returns(async callInfo =>
@@ -267,23 +324,23 @@ public class GroupServiceTests : GroupServiceTestsBase
     
         await CacheService.Received(1).CacheDataWithLock(
             Arg.Is<string>(s => s.Contains(userGroupDto.Id.ToString())),
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupDto?>>>(),
             Arg.Any<CancellationToken>()
         );
     }
 
     [Fact]
-    public async Task GetById_WhenEmptyGuid_ThrowsNotFoundException()
+    public async Task GetById_WhenIdIsEmpty_ThrowsArgumentException()
     {
-        //Arrange
+        // Arrange
         var emptyId = Guid.Empty;
+        var ct = CancellationToken.None;
+        
+        async Task Act() => await Service.GetById(emptyId, ct);
 
-        //Act
-        var emptyIdResult = async () => await Service.GetById(emptyId, Arg.Any<CancellationToken>());
-
-        //Assert
-        await Should.ThrowAsync<UnknownIdentifierException>(emptyIdResult);
+        // Assert
+        var exception = await Should.ThrowAsync<ArgumentException>(Act);
+        exception.Message.ShouldContain("cannot be empty");
     }
 
     [Fact]
@@ -293,10 +350,10 @@ public class GroupServiceTests : GroupServiceTestsBase
         var fakeId = Guid.NewGuid();
 
         //Act
-        var fakeIdResult = async () => await Service.GetById(fakeId, Arg.Any<CancellationToken>());
+        async Task Act() => await Service.GetById(fakeId, Arg.Any<CancellationToken>());
 
         //Assert
-        await Should.ThrowAsync<UnknownIdentifierException>(fakeIdResult);
+        await Should.ThrowAsync<UnknownIdentifierException>(Act);
     }
 
     [Fact]
@@ -313,7 +370,6 @@ public class GroupServiceTests : GroupServiceTestsBase
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupDto?>>>(),
             Arg.Any<CancellationToken>()
         ).Returns(async callInfo =>
@@ -345,7 +401,6 @@ public class GroupServiceTests : GroupServiceTestsBase
         
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<GroupDto?>>>(),
             Arg.Any<CancellationToken>()
         ).Returns(Task.FromResult<GroupDto?>(cachedDto));
