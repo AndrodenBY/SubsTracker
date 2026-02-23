@@ -12,6 +12,7 @@ using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.BLL.Services;
@@ -21,14 +22,14 @@ public class MemberService(
     IMessageService messageService,
     IMapper mapper,
     ICacheService cacheService,
-    ICacheAccessService cacheAccessService
-) : Service<MemberEntity, MemberDto, CreateMemberDto, UpdateMemberDto, MemberFilterDto>(memberRepository, mapper, cacheService),
-    IMemberService
+    ICacheAccessService cacheAccessService) 
+    : Service<MemberEntity, MemberDto, CreateMemberDto, UpdateMemberDto, MemberFilterDto>(memberRepository, mapper, cacheService),
+      IMemberService
 {
     public async Task<MemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<MemberDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, GetGroupMember, cancellationToken);
 
         async Task<MemberDto?> GetGroupMember()
         {
@@ -37,10 +38,10 @@ public class MemberService(
         }
     }
 
-    public async Task<List<MemberDto>> GetAll(MemberFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<PaginatedList<MemberDto>> GetAll(MemberFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var expression = MemberFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, cancellationToken);
+        return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
     public async Task<MemberDto> JoinGroup(CreateMemberDto createDto, CancellationToken cancellationToken)

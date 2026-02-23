@@ -9,6 +9,7 @@ using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.UnitTests.TestsBase;
 
 namespace SubsTracker.UnitTests;
@@ -126,22 +127,88 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var firstName = "Alexander";
+        const string firstName = "Alexander";
         var filter = new UserFilterDto { FirstName = "aLeX" };
 
         var user = Fixture.Build<UserEntity>().With(u => u.FirstName, firstName).Create();
         var dto = Fixture.Build<UserDto>().With(u => u.FirstName, firstName).Create();
+    
+        var pagedList = new PaginatedList<UserEntity>([user], 1, 10, 1);
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct)
-            .Returns([user]);
-        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([dto]);
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+        
+        Mapper.Map<UserDto>(Arg.Is<UserEntity>(u => u.Id == user.Id))
+            .Returns(dto);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldHaveSingleItem();
-        result.First().FirstName.ShouldBe(firstName);
+        result.Items.ShouldHaveSingleItem();
+        result.Items[0].FirstName.ShouldBe(firstName); 
+
+        await UserRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<UserEntity, bool>>>(),
+            Arg.Any<PaginationParameters?>(),
+            ct
+        );
+    }
+    
+    [Fact]
+    public async Task GetAll_WhenRequestingSecondPage_ReturnsCorrectMetadata()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var filter = new UserFilterDto();
+        var pagination = new PaginationParameters { PageNumber = 2, PageSize = 5 };
+        
+        var users = Fixture.CreateMany<UserEntity>(5).ToList();
+        var pagedList = new PaginatedList<UserEntity>(users, 2, 5, 12);
+
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Is(pagination), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>())
+            .Returns([.. Fixture.CreateMany<UserDto>(5)]);
+
+        //Act
+        var result = await Service.GetAll(filter, pagination, ct);
+
+        //Assert
+        result.PageNumber.ShouldBe(2);
+        result.PageSize.ShouldBe(5);
+        result.TotalCount.ShouldBe(12);
+        result.PageCount.ShouldBe(3); 
+        result.HasPreviousPage.ShouldBeTrue();
+        result.HasNextPage.ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task GetAll_WhenOnLastPage_HasNextPageIsFalse()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var pagination = new PaginationParameters { PageNumber = 2, PageSize = 10 };
+        
+        var pagedList = new PaginatedList<UserEntity>([.. Fixture.CreateMany<UserEntity>(5)], 2, 10, 15);
+
+        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), Arg.Is(pagination), Arg.Is(ct))
+            .Returns(pagedList);
+
+        //Act
+        var result = await Service.GetAll(new UserFilterDto(), pagination, ct);
+
+        //Assert
+        result.HasNextPage.ShouldBeFalse();
+        result.HasPreviousPage.ShouldBeTrue();
+        result.PageCount.ShouldBe(2);
     }
     
     [Fact]
@@ -149,107 +216,146 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var lastName = "Ivanov";
+        const string lastName = "Ivanov";
         var filter = new UserFilterDto { LastName = "IVAN" };
 
         var user = Fixture.Build<UserEntity>().With(u => u.LastName, lastName).Create();
         var dto = Fixture.Build<UserDto>().With(u => u.LastName, lastName).Create();
+        
+        var pagedList = new PaginatedList<UserEntity>([user], 1, 10, 1);
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct).Returns([user]);
-        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([dto]);
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+        
+        Mapper.Map<UserDto>(Arg.Is<UserEntity>(u => u.Id == user.Id)).Returns(dto);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldHaveSingleItem();
-        result.First().LastName.ShouldBe(lastName);
+        result.Items.ShouldHaveSingleItem();
+        result.Items[0].LastName.ShouldBe(lastName);
     }
-    
+
     [Fact]
     public async Task GetAll_WhenFilteredByEmail_ReturnsCorrectUser()
     {
         //Arrange
-        var userToFind = Fixture.Create<UserEntity>();
         var ct = CancellationToken.None;
+        var userToFind = Fixture.Create<UserEntity>();
         var userDto = Fixture.Build<UserDto>()
-            .With(user => user.Email, userToFind.Email)
-            .With(user => user.Id, userToFind.Id)
-            .With(user => user.FirstName, userToFind.FirstName)
+            .With(u => u.Email, userToFind.Email)
+            .With(u => u.Id, userToFind.Id)
             .Create();
 
         var filter = new UserFilterDto { Email = userToFind.Email };
+        var pagedList = new PaginatedList<UserEntity>([userToFind], 1, 10, 1);
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct)
-            .Returns(new List<UserEntity> { userToFind });
-
-        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>())
-            .Returns(new List<UserDto> { userDto });
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+        
+        Mapper.Map<UserDto>(Arg.Is<UserEntity>(u => u.Id == userToFind.Id)).Returns(userDto);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        await UserRepository.Received(1).GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct);
-        result.ShouldNotBeNull();
-        result.Single().Email.ShouldBe(userToFind.Email);
+        result.Items.ShouldNotBeNull();
+        result.Items.Single().Email.ShouldBe(userToFind.Email);
+        
+        await UserRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+            Arg.Any<PaginationParameters?>(), 
+            ct);
     }
-
+    
     [Fact]
     public async Task GetAll_WhenFilteredByNonExistentEmail_ReturnsEmptyList()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var filter = new UserFilterDto { Email = "nonexistent@example.com" };
+        var emptyPagedList = new PaginatedList<UserEntity>([], 1, 10, 0);
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity>());
-        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns(new List<UserDto>());
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(emptyPagedList);
+
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, Arg.Any<CancellationToken>());
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
     }
 
     [Fact]
     public async Task GetAll_WhenNoUsers_ReturnsEmptyList()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var filter = new UserFilterDto();
+        
+        var emptyPagedList = new PaginatedList<UserEntity>([], 1, 10, 0);
+        
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(emptyPagedList);
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(new List<UserEntity>());
-        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns(new List<UserDto>());
+        Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, Arg.Any<CancellationToken>());
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
     }
 
     [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUsers()
     {
         //Arrange
-        var users = Fixture.CreateMany<UserEntity>(3).ToList();
-        var userDtos = Fixture.CreateMany<UserDto>(3).ToList();
         var ct = CancellationToken.None;
         var filter = new UserFilterDto();
 
-        UserRepository.GetAll(Arg.Any<Expression<Func<UserEntity, bool>>>(), ct)
-            .Returns(users);
-        Mapper.Map<List<UserDto>>(users).Returns(userDtos);
+        List<UserEntity> users = [.. Fixture.CreateMany<UserEntity>(3)];
+        List<UserDto> userDtos = [.. Fixture.CreateMany<UserDto>(3)];
+    
+        var pagedList = new PaginatedList<UserEntity>(users, 1, 10, 3);
+
+        UserRepository.GetAll(
+                Arg.Any<Expression<Func<UserEntity, bool>>>(), 
+                Arg.Any<PaginationParameters?>(), 
+                Arg.Is(ct))
+            .Returns(pagedList);
+        
+        Mapper.Map<UserDto>(Arg.Any<UserEntity>())
+            .Returns(userDtos[0], userDtos[1], userDtos[2]);
 
         //Act
-        var result = await Service.GetAll(filter, ct);
+        var result = await Service.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.ShouldNotBeEmpty();
-        result.Count.ShouldBe(3);
-        result.ShouldBe(userDtos);
+        result.Items.Count.ShouldBe(3);
+        result.Items.ShouldBe(userDtos);
+    
+        await UserRepository.Received(1).GetAll(
+            Arg.Any<Expression<Func<UserEntity, bool>>>(),
+            Arg.Any<PaginationParameters?>(),
+            ct
+        );
     }
     
     [Fact]
@@ -346,7 +452,6 @@ public class UserServiceTests : UserServiceTestsBase
 
         CacheService.CacheDataWithLock(
             Arg.Any<string>(),
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserDto?>>>(),
             ct
         )!.Returns(callInfo =>
@@ -369,7 +474,6 @@ public class UserServiceTests : UserServiceTestsBase
         await UserRepository.Received(1).GetById(existingUser.Id, ct);
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserDto?>>>(),
             ct
         );
@@ -406,12 +510,11 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var cachedDto = Fixture.Create<UserDto>();
-        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(cachedDto.Id);
         var ct = CancellationToken.None;
-
+        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(cachedDto.Id);
+        
         CacheService.CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserDto?>>>(),
             ct
         ).Returns(cachedDto);
@@ -420,12 +523,12 @@ public class UserServiceTests : UserServiceTestsBase
         var result = await Service.GetById(cachedDto.Id, ct);
 
         //Assert
-        result.ShouldBe(cachedDto);
-
-        await UserRepository.DidNotReceive().GetById(Arg.Any<Guid>(), ct);
+        result.ShouldNotBeNull();
+        result.Id.ShouldBe(cachedDto.Id);
+        
+        await UserRepository.DidNotReceive().GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         await CacheService.Received(1).CacheDataWithLock(
             cacheKey,
-            Arg.Any<TimeSpan>(),
             Arg.Any<Func<Task<UserDto?>>>(),
             ct
         );

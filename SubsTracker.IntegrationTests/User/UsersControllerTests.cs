@@ -4,8 +4,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using SubsTracker.API.ViewModel;
 using SubsTracker.DAL;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.Constants;
+using SubsTracker.IntegrationTests.Helpers;
 
 namespace SubsTracker.IntegrationTests.User;
 
@@ -94,17 +96,18 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedUser();
         var targetEmail = seed.UserEntity.Email;
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.User}?email={targetEmail}");
+        var response = await client.GetAsync($"{EndpointConst.User}?email={targetEmail}");
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<List<UserViewModel>>();
+        
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<UserViewModel>>(TestHelperBase.DefaultJsonOptions);
 
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem()
+        result.Items.ShouldHaveSingleItem()
             .Email.ShouldBe(targetEmail);
     }
 
@@ -114,16 +117,18 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Arrange
         await _dataSeedingHelper.AddSeedUser();
         const string nonExistentEmail = "nonexistent@example.com";
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.User}?email={nonExistentEmail}");
+        var response = await client.GetAsync($"{EndpointConst.User}?email={nonExistentEmail}");
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<List<UserViewModel>>();
+        
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<UserViewModel>>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
+        result.TotalCount.ShouldBe(0);
     }
 
     [Fact]

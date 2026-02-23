@@ -1,7 +1,6 @@
 using System.Linq.Expressions;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
-using SubsTracker.BLL.Helpers.Notifications;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Filter;
@@ -53,6 +52,12 @@ public static class SubscriptionFilterHelper
             expression,
             filter.Content,
             subscription => subscription.Content == filter.Content!.Value
+        );
+        
+        expression = FilterHelper.AddFilterCondition<SubscriptionEntity, bool>(
+            expression,
+            filter.Active,
+            subscription => subscription.Active == filter.Active
         );
 
         return expression;

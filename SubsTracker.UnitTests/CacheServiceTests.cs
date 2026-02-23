@@ -22,13 +22,12 @@ public class CacheServiceTests : CacheServiceTestsBase
         //Act
         var result = await Service.CacheDataWithLock(
             key, 
-            TimeSpan.FromMinutes(5), 
             () => Task.FromResult<string?>("fallback"),
             ct);
 
         //Assert
         result.ShouldBe(cachedData);
-        _ = LockFactory.DidNotReceiveWithAnyArgs().CreateLockAsync(default!, default, default, default);
+        _ = LockFactory.DidNotReceiveWithAnyArgs().CreateLockAsync(null!, TimeSpan.Zero, TimeSpan.Zero, TimeSpan.Zero);
     }
 
     [Fact]
@@ -36,7 +35,6 @@ public class CacheServiceTests : CacheServiceTestsBase
     {
         //Arrange
         var key = "empty_key";
-        var expiration = TimeSpan.FromMinutes(10);
         var expectedData = "new_data";
         
         CacheMock.GetAsync(key, Arg.Any<CancellationToken>())
@@ -54,7 +52,7 @@ public class CacheServiceTests : CacheServiceTestsBase
             .Returns(mockLock);
 
         //Act
-        var result = await Service.CacheDataWithLock(key, expiration, () => Task.FromResult<string?>(expectedData), Arg.Any<CancellationToken>());
+        var result = await Service.CacheDataWithLock(key, () => Task.FromResult<string?>(expectedData), Arg.Any<CancellationToken>());
 
         //Assert
         result.ShouldNotBeNull();
@@ -95,7 +93,6 @@ public class CacheServiceTests : CacheServiceTestsBase
         //Act
         var result = await Service.CacheDataWithLock(
             key, 
-            TimeSpan.FromMinutes(5), 
             () => Task.FromResult<string?>("bad_data"),
             ct);
 

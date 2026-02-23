@@ -11,6 +11,7 @@ using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.BLL.Services;
@@ -22,14 +23,14 @@ public class SubscriptionService(
     IUserRepository userRepository,
     ISubscriptionHistoryRepository historyRepository,
     ICacheService cacheService,
-    ICacheAccessService cacheAccessService
-) : Service<SubscriptionEntity, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
-    ISubscriptionService
+    ICacheAccessService cacheAccessService) 
+    : Service<SubscriptionEntity, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
+      ISubscriptionService
 {
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, GetSubscription, cancellationToken);
         
         async Task<SubscriptionDto?> GetSubscription()
         {
@@ -38,10 +39,10 @@ public class SubscriptionService(
         }
     }
 
-    public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = SubscriptionFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, cancellationToken);
+        return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
     public async Task<SubscriptionDto> Create(string auth0Id, CreateSubscriptionDto createDto, CancellationToken cancellationToken)

@@ -6,8 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using SubsTracker.API.ViewModel;
 using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.Constants;
+using SubsTracker.IntegrationTests.Helpers;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Subscription;
@@ -39,7 +42,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         var seed = await _dataSeedingHelper.AddSeedData();
         var expected = seed.Subscriptions.First();
-        
+    
         var client = _factory.CreateAuthenticatedClient();
 
         //Act
@@ -48,14 +51,13 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
         result.ShouldSatisfyAllConditions(
-            () => result.ShouldNotBeNull(),
             () => result.Id.ShouldBe(expected.Id),
             () => result.Name.ShouldBe(expected.Name),
             () => result.Price.ShouldBe(expected.Price),
-            () => result.Type.ToString().ShouldBe(expected.Type.ToString())
+            () => result.Type.ShouldBe(expected.Type)
         );
     }
 
@@ -65,19 +67,19 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         const string targetName = "Target Subscription";
         await _dataSeedingHelper.AddSeedUserWithSubscriptions(targetName, "Unrelated App");
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={targetName}");
+        var response = await client.GetAsync($"{EndpointConst.Subscription}?Name={targetName}");
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>();
-
+        
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<SubscriptionViewModel>>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem()
-            .Name.ShouldBe(targetName);
-        result.ShouldNotContain(x => x.Name == "Unrelated App");
+        result.Items.ShouldHaveSingleItem();
+        result.Items[0].Name.ShouldBe(targetName);
+        result.Items.ShouldNotContain(x => x.Name == "Unrelated App");
     }
 
     [Fact]
@@ -86,16 +88,18 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Arrange
         await _dataSeedingHelper.AddSeedData();
         const string nonExistentName = "NonExistentFilter";
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Subscription}?Name={nonExistentName}");
+        var response = await client.GetAsync($"{EndpointConst.Subscription}?Name={nonExistentName}");
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
-        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>();
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<SubscriptionViewModel>>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
+        result.TotalCount.ShouldBe(0);
     }
 
     [Fact]
@@ -105,14 +109,14 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var dto = _dataSeedingHelper.AddCreateSubscriptionDto();
         await _dataSeedingHelper.AddSeedUserOnly();
         var client = _factory.CreateAuthenticatedClient();
-    
+
         //Act
         var response = await client.PostAsJsonAsync(EndpointConst.Subscription, dto);
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK); 
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
         result.ShouldSatisfyAllConditions(
             () => result.Id.ShouldNotBe(Guid.Empty),
@@ -121,10 +125,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
             () => result.DueDate.ShouldBe(dto.DueDate)
         );
         
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.FindAsync(result.Id);
-
+        var entity = await _dataSeedingHelper.FindEntityAsync<SubscriptionEntity>(result.Id);
         entity.ShouldNotBeNull();
         entity.Name.ShouldBe(dto.Name);
     }
@@ -136,7 +137,6 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var seed = await _dataSeedingHelper.AddSeedData();
         var existing = seed.Subscriptions.First();
         var updateDto = _dataSeedingHelper.AddUpdateSubscriptionDto(existing.Id);
-    
         var client = _factory.CreateAuthenticatedClient();
 
         //Act
@@ -145,7 +145,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
         result.ShouldSatisfyAllConditions(
             () => result.Id.ShouldBe(existing.Id),
@@ -153,10 +153,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
             () => result.Price.ShouldBe((decimal)updateDto.Price!)
         );
         
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        
-        var dbEntity = await db.Subscriptions.FindAsync(existing.Id);
+        var dbEntity = await _dataSeedingHelper.FindEntityAsync<SubscriptionEntity>(existing.Id);
         dbEntity.ShouldNotBeNull();
         dbEntity.Name.ShouldBe(updateDto.Name);
         dbEntity.Price.ShouldBe((decimal)updateDto.Price!);
@@ -175,14 +172,12 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-    
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
         result.Id.ShouldBe(expected.Id);
         
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var entity = await db.Subscriptions.FindAsync(expected.Id);
+        var entity = await _dataSeedingHelper.FindEntityAsync<SubscriptionEntity>(expected.Id);
         entity.ShouldNotBeNull();
         entity.Active.ShouldBeFalse();
         
@@ -198,22 +193,21 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var existing = seed.Subscriptions.First();
         const int monthsToRenew = 3;
         var expectedDate = existing.DueDate.AddMonths(monthsToRenew);
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.PatchAsync($"{EndpointConst.Subscription}/{existing.Id}/renew?monthsToRenew={monthsToRenew}", null);
+        var response = await client.PatchAsync($"{EndpointConst.Subscription}/{existing.Id}/renew?monthsToRenew={monthsToRenew}", null);
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         
-        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>();
+        var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
         result.ShouldSatisfyAllConditions(
             () => result.Id.ShouldBe(existing.Id),
             () => result.DueDate.ShouldBe(expectedDate));
         
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var dbEntity = await db.Subscriptions.FindAsync(existing.Id);
+        var dbEntity = await _dataSeedingHelper.FindEntityAsync<SubscriptionEntity>(existing.Id);
         dbEntity.ShouldNotBeNull();
         dbEntity.DueDate.ShouldBe(expectedDate);
         
@@ -228,19 +222,17 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         var client = _factory.CreateAuthenticatedClient();
         await _dataSeedingHelper.AddSeedUserWithUpcomingAndNonUpcomingSubscriptions();
         
-        var dueBill = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
+        var dueThreshold = DateOnly.FromDateTime(DateTime.Today.AddDays(7));
 
         //Act
         var response = await client.GetAsync($"{EndpointConst.Subscription}/bills/users");
-    
+
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
-        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>();
+    
+        var result = await response.Content.ReadFromJsonAsync<List<SubscriptionViewModel>>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
-        result.ShouldNotBeEmpty("The test expected upcoming bills, but the list was empty.");
-        result.ShouldSatisfyAllConditions(
-            () => result.ShouldAllBe(x => x.DueDate <= dueBill),
-            () => result.Any(x => x.DueDate <= dueBill).ShouldBeTrue());
+        result.ShouldNotBeEmpty();
+        result.ShouldAllBe(x => x.DueDate <= dueThreshold);
     }
 }
