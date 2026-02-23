@@ -55,7 +55,6 @@ public class UsersController(
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        
         var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
