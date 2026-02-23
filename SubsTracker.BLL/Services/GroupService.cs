@@ -11,6 +11,7 @@ using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.BLL.Services;
 
@@ -20,14 +21,14 @@ public class GroupService(
     ISubscriptionRepository subscriptionRepository,
     IMemberService memberService,
     IMapper mapper,
-    ICacheService cacheService
-) : Service<GroupEntity, GroupDto, CreateGroupDto, UpdateGroupDto, GroupFilterDto>(groupRepository, mapper, cacheService),
-    IGroupService
+    ICacheService cacheService) 
+    : Service<GroupEntity, GroupDto, CreateGroupDto, UpdateGroupDto, GroupFilterDto>(groupRepository, mapper, cacheService),
+      IGroupService
 {
     public async Task<GroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<GroupDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup, cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, GetUserGroup, cancellationToken);
         
         async Task<GroupDto?> GetUserGroup()
         {
@@ -36,10 +37,10 @@ public class GroupService(
         }
     }
 
-    public async Task<List<GroupDto>> GetAll(GroupFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<PaginatedList<GroupDto>> GetAll(GroupFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = GroupFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, cancellationToken);
+        return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
     public async Task<GroupDto> Create(string auth0Id, CreateGroupDto createDto, CancellationToken cancellationToken)

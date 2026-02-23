@@ -11,6 +11,11 @@ public static class RedisKeySetter
     {
         return $"{id}:{suffix}";
     }
+    
+    public static string SetCacheKey<T>(string stringIdentifier)
+    {
+        return $"{stringIdentifier}:{typeof(T).Name}";
+    }
 
     public static string SetLockKey(string cacheKey)
     {

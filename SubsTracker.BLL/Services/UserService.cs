@@ -6,6 +6,7 @@ using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
+using SubsTracker.Domain.Pagination;
 using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
 using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
 using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
@@ -15,14 +16,14 @@ namespace SubsTracker.BLL.Services;
 public class UserService(
     IUserRepository userRepository,
     IMapper mapper,
-    ICacheService cacheService
-) : Service<UserEntity, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
-    IUserService
+    ICacheService cacheService) 
+    : Service<UserEntity, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService), 
+      IUserService
 {
-    public async Task<List<UserDto>> GetAll(UserFilterDto? filter, CancellationToken cancellationToken)
+    public async Task<PaginatedList<UserDto>> GetAll(UserFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var expression = UserFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, cancellationToken);
+        return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
     public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)

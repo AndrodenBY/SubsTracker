@@ -18,8 +18,7 @@ public class CacheAccessService(IDistributedCache cache, ILogger<CacheAccessServ
             : JsonConvert.DeserializeObject<TValue>(cachedData, NewtonsoftJsonSettings.Default);
     }
 
-    public async Task SetData<TValue>(string cacheKey, TValue value, TimeSpan expirationTime,
-        CancellationToken cancellationToken)
+    public async Task SetData<TValue>(string cacheKey, TValue value, TimeSpan expirationTime, CancellationToken cancellationToken)
     {
         var cacheEntryOptions = new DistributedCacheEntryOptions
         {
