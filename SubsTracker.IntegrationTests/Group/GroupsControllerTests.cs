@@ -20,7 +20,6 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
     private readonly GroupTestsAssertionHelper _assertHelper;
     private readonly HttpClient _client;
     private readonly GroupTestsDataSeedingHelper _dataSeedingHelper;
-    private readonly ITestHarness _harness;
     private readonly TestsWebApplicationFactory _factory;
 
     public GroupsControllerTests(TestsWebApplicationFactory factory)
@@ -32,7 +31,6 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
 
         _dataSeedingHelper = new GroupTestsDataSeedingHelper(factory);
         _assertHelper = new GroupTestsAssertionHelper(factory);
-        _harness = factory.Services.GetRequiredService<ITestHarness>();
         
         using var scope = _factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();

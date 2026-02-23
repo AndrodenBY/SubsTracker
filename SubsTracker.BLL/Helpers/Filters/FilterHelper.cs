@@ -1,10 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
+
 using System.Linq.Expressions;
 using LinqKit;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
-[ExcludeFromCodeCoverage]
 public static class FilterHelper
 {
     public static Expression<Func<TEntity, bool>> AddFilterCondition<TEntity, TValue>(

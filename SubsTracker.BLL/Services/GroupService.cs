@@ -27,9 +27,8 @@ public class GroupService(
     public async Task<GroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<GroupDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup,
-            cancellationToken);
-
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetUserGroup, cancellationToken);
+        
         async Task<GroupDto?> GetUserGroup()
         {
             var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);

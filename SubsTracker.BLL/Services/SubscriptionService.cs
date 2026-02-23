@@ -29,13 +29,13 @@ public class SubscriptionService(
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionDto>(id);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
+        
         async Task<SubscriptionDto?> GetSubscription()
         {
             var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
             return Mapper.Map<SubscriptionDto>(subscriptionWithEntities);
         }
-        
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetSubscription, cancellationToken);
     }
 
     public async Task<List<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, CancellationToken cancellationToken)

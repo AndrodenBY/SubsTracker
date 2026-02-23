@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.DAL.Repository;
 

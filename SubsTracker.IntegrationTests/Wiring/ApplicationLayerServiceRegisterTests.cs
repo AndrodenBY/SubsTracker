@@ -32,7 +32,7 @@ public class ApplicationLayerServiceRegisterTests
         services.AddSingleton(new DiagnosticListener("Microsoft.AspNetCore"));
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
+            .AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Auth0:Authority"] = "https://test.auth0.com",
                 ["Auth0:Audience"] = "test-api"

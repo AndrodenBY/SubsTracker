@@ -28,8 +28,7 @@ public class MemberService(
     public async Task<MemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<MemberDto>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember,
-            cancellationToken);
+        return await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetGroupMember, cancellationToken);
 
         async Task<MemberDto?> GetGroupMember()
         {
@@ -47,29 +46,38 @@ public class MemberService(
     public async Task<MemberDto> JoinGroup(CreateMemberDto createDto, CancellationToken cancellationToken)
     {
         var user = await memberRepository.GetFullInfoById(createDto.UserId, cancellationToken);
-        if (user is null) throw new UnknownIdentifierException($"User with id {createDto.UserId} not found");
+        
+        if (user is null)
+        {
+            throw new UnknownIdentifierException($"User with id {createDto.UserId} not found");
+        }
 
         var group = await memberRepository.GetFullInfoById(createDto.GroupId, cancellationToken);
-        if (group is null) throw new UnknownIdentifierException($"Group with id {createDto.GroupId} not found");
+        
+        if (group is null)
+        {
+            throw new UnknownIdentifierException($"Group with id {createDto.GroupId} not found");
+        }
 
-        var existingMember =
-            await memberRepository.GetByPredicate(
-                gm => gm.UserId == createDto.UserId && gm.GroupId == createDto.GroupId, cancellationToken);
-        if (existingMember is not null) throw new InvalidRequestDataException("Member already exists");
+        var existingMember = await memberRepository.GetByPredicate(
+                member => member.UserId == createDto.UserId && member.GroupId == createDto.GroupId, cancellationToken);
+        
+        if (existingMember is not null)
+        {
+            throw new InvalidRequestDataException("Member already exists");
+        }
 
         return await base.Create(createDto, cancellationToken);
     }
 
     public async Task<bool> LeaveGroup(Guid groupId, Guid userId, CancellationToken cancellationToken)
     {
-        var memberToDelete = await memberRepository.GetByPredicateFullInfo(
-                                 member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
+        var memberToDelete = await memberRepository.GetByPredicateFullInfo(member => member.GroupId == groupId && member.UserId == userId, cancellationToken)
                              ?? throw new UnknownIdentifierException($"User {userId} is not a member of group {groupId}");
 
         var memberLeftEvent = MemberNotificationHelper.CreateMemberLeftGroupEvent(memberToDelete);
 
-        await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<MemberDto>(memberToDelete.Id)],
-            cancellationToken);
+        await cacheAccessService.RemoveData([RedisKeySetter.SetCacheKey<MemberDto>(memberToDelete.Id)], cancellationToken);
         await messageService.NotifyMemberLeftGroup(memberLeftEvent, cancellationToken);
         return await memberRepository.Delete(memberToDelete, cancellationToken);
     }

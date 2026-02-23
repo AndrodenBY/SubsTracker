@@ -39,13 +39,13 @@ public class Service<TEntity, TDto, TCreateDto, TUpdateDto, TFilterDto>(
         var result = await CacheService.CacheDataWithLock(cacheKey, RedisConstants.ExpirationTime, GetEntity, cancellationToken)
                      ?? throw new UnknownIdentifierException($"Entity with {id} not found");
         
+        return result;
+        
         async Task<TDto?> GetEntity()
         {
             var entity = await repository.GetById(id, cancellationToken);
             return Mapper.Map<TDto>(entity);
         }
-        
-        return result;
     }
 
     public virtual async Task<TDto> Create(TCreateDto createDto, CancellationToken cancellationToken)

@@ -12,12 +12,12 @@ namespace SubsTracker.IntegrationTests.Helpers.Subscription;
 
 public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
+    
     public async Task<SubscriptionSeedEntity> AddSeedData()
     {
-        using var scope = factory.Services.CreateScope();
+        using var scope = Factory.Services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
-        // Clean up existing data
+        
         var existingUser = await dbContext.Users
             .FirstOrDefaultAsync(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
         if (existingUser != null)
@@ -45,7 +45,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         return new SubscriptionSeedEntity 
         { 
             UserEntity = user,
-            Subscriptions = new List<SubscriptionEntity> { subscription }
+            Subscriptions = [subscription]
         };
     }
 
@@ -158,7 +158,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         return new SubscriptionSeedEntity
         {
             UserEntity = user,
-            Subscriptions = new List<SubscriptionEntity> { upcoming, distant, expired }
+            Subscriptions = [upcoming, distant, expired]
         };
     }
 }

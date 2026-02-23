@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Linq.Expressions;
 using LinqKit;
 using SubsTracker.DAL.Entities;
@@ -7,16 +6,20 @@ using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
-[ExcludeFromCodeCoverage]
 public static class SubscriptionFilterHelper
 {
     public static Expression<Func<SubscriptionEntity, bool>> CreatePredicate(SubscriptionFilterDto? filter)
     {
         var predicate = PredicateBuilder.New<SubscriptionEntity>(true);
 
+        if (filter is null)
+        {
+            return predicate;
+        }
+        
         predicate = FilterHelper.AddFilterCondition<SubscriptionEntity>(
             predicate,
-            filter?.Name,
+            filter.Name,
             subscription => subscription.Name.ToLower().Contains(filter.Name!.ToLower())
         );
 
