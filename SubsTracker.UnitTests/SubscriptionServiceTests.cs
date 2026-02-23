@@ -497,17 +497,17 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Create();
 
         var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
-        
+    
         var pagedList = new PaginatedList<SubscriptionEntity>([subscriptionToFind], 1, 10, 1);
-        
+    
         SubscriptionRepository.GetAll(
                 Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
         
-        Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<SubscriptionEntity>>())
-            .Returns([subscriptionDto]);
+        Mapper.Map<SubscriptionDto>(Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionToFind.Id))
+            .Returns(subscriptionDto);
 
         //Act
         var result = await Service.GetAll(filter, null, ct);
@@ -590,20 +590,21 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         var filter = new SubscriptionFilterDto();
-    
+
         List<SubscriptionEntity> subscriptions = [.. Fixture.CreateMany<SubscriptionEntity>(3)];
         List<SubscriptionDto> subscriptionDtos = [.. Fixture.CreateMany<SubscriptionDto>(3)];
         
         var pagedList = new PaginatedList<SubscriptionEntity>(subscriptions, 1, 10, 3);
-        
+    
         SubscriptionRepository.GetAll(
                 Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
         
-        Mapper.Map<List<SubscriptionDto>>(subscriptions).Returns(subscriptionDtos);
-
+        Mapper.Map<SubscriptionDto>(Arg.Any<SubscriptionEntity>())
+            .Returns(subscriptionDtos[0], subscriptionDtos[1], subscriptionDtos[2]);
+        
         //Act
         var result = await Service.GetAll(filter, null, ct);
 
@@ -611,7 +612,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.ShouldNotBeNull();
         result.Items.Count.ShouldBe(3);
         result.Items.ShouldBe(subscriptionDtos);
-    
+
         await SubscriptionRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(),
             Arg.Any<PaginationParameters?>(),
@@ -632,21 +633,22 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(s => s.Type, type)
             .With(s => s.Content, content)
             .CreateMany(1)];
-    
+
         List<SubscriptionDto> dtos = [.. Fixture.Build<SubscriptionDto>()
             .With(d => d.Type, type)
             .With(d => d.Content, content)
             .CreateMany(1)];
-        
+    
         var pagedList = new PaginatedList<SubscriptionEntity>(entities, 1, 10, 1);
-        
+    
         SubscriptionRepository.GetAll(
                 Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
-
-        Mapper.Map<List<SubscriptionDto>>(entities).Returns(dtos);
+        
+        Mapper.Map<SubscriptionDto>(Arg.Is<SubscriptionEntity>(s => s.Id == entities[0].Id))
+            .Returns(dtos[0]);
 
         //Act
         var result = await Service.GetAll(filter, null, ct);
@@ -655,7 +657,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.Items.ShouldHaveSingleItem();
         result.Items[0].Type.ShouldBe(type);
         result.Items[0].Content.ShouldBe(content);
-    
+
         await SubscriptionRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(),
             Arg.Any<PaginationParameters?>(),

@@ -101,7 +101,7 @@ public class GroupServiceTests : GroupServiceTestsBase
 
         var entity = Fixture.Build<GroupEntity>().With(g => g.Name, groupName).Create();
         var dto = Fixture.Build<GroupDto>().With(d => d.Name, groupName).Create();
-        
+    
         var pagedList = new PaginatedList<GroupEntity>([entity], 1, 10, 1);
 
         GroupRepository.GetAll(
@@ -109,9 +109,10 @@ public class GroupServiceTests : GroupServiceTestsBase
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
+        
+        Mapper.Map<GroupDto>(Arg.Is<GroupEntity>(e => e.Id == entity.Id))
+            .Returns(dto);
     
-        Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns([dto]);
-
         //Act
         var result = await Service.GetAll(filter, null, ct);
 
@@ -129,22 +130,23 @@ public class GroupServiceTests : GroupServiceTestsBase
     [Fact]
     public async Task GetAll_WhenFilterIsEmpty_ReturnsAllUserGroups()
     {
-        //Arrange
+        // Arrange
         var ct = CancellationToken.None;
         var filter = new GroupFilterDto();
-    
+
         List<GroupEntity> userGroups = [.. Fixture.CreateMany<GroupEntity>(3)];
         List<GroupDto> userGroupDtos = [.. Fixture.CreateMany<GroupDto>(3)];
-        
+    
         var pagedList = new PaginatedList<GroupEntity>(userGroups, 1, 10, 3);
-        
+    
         GroupRepository.GetAll(
                 Arg.Any<Expression<Func<GroupEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
-
-        Mapper.Map<List<GroupDto>>(userGroups).Returns(userGroupDtos);
+        
+        Mapper.Map<GroupDto>(Arg.Any<GroupEntity>())
+            .Returns(userGroupDtos[0], userGroupDtos[1], userGroupDtos[2]);
 
         //Act
         var result = await Service.GetAll(filter, null, ct);
@@ -153,7 +155,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         result.ShouldNotBeNull();
         result.Items.Count.ShouldBe(3);
         result.Items.ShouldBe(userGroupDtos);
-    
+
         await GroupRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<GroupEntity, bool>>>(),
             Arg.Any<PaginationParameters?>(),
@@ -330,7 +332,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     }
 
     [Fact]
-    public async Task GetById_WhenIdIsEmpty_ThrowsArgumentException()
+    public async Task GetById_WhenIdIsEmpty_ThrowsUnknownIdentifierException()
     {
         // Arrange
         var emptyId = Guid.Empty;
@@ -339,8 +341,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         async Task Act() => await Service.GetById(emptyId, ct);
 
         // Assert
-        var exception = await Should.ThrowAsync<ArgumentException>(Act);
-        exception.Message.ShouldContain("cannot be empty");
+        await Should.ThrowAsync<UnknownIdentifierException>(Act);
     }
 
     [Fact]

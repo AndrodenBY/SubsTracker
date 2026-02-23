@@ -278,20 +278,21 @@ public class MemberServiceTests : MemberServiceTestBase
         //Arrange
         var ct = CancellationToken.None;
         var filter = new MemberFilterDto();
-    
+
         List<MemberEntity> members = [.. Fixture.CreateMany<MemberEntity>(3)];
         List<MemberDto> memberDtos = [.. Fixture.CreateMany<MemberDto>(3)];
         
         var pagedList = new PaginatedList<MemberEntity>(members, 1, 10, 3);
-        
+    
         MemberRepository.GetAll(
                 Arg.Any<Expression<Func<MemberEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
         
-        Mapper.Map<List<MemberDto>>(members).Returns(memberDtos);
-        
+        Mapper.Map<MemberDto>(Arg.Any<MemberEntity>())
+            .Returns(memberDtos[0], memberDtos[1], memberDtos[2]);
+    
         //Act
         var result = await Service.GetAll(filter, null, ct);
 
@@ -299,7 +300,7 @@ public class MemberServiceTests : MemberServiceTestBase
         result.ShouldNotBeNull();
         result.Items.Count.ShouldBe(3);
         result.Items.ShouldBe(memberDtos);
-    
+
         await MemberRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<MemberEntity, bool>>>(),
             Arg.Any<PaginationParameters?>(),
@@ -349,21 +350,20 @@ public class MemberServiceTests : MemberServiceTestBase
             .Create();
 
         var filter = new MemberFilterDto { Role = memberToFind.Role };
-        
         var pagedList = new PaginatedList<MemberEntity>([memberToFind], 1, 10, 1);
-        
+    
         MemberRepository.GetAll(
                 Arg.Any<Expression<Func<MemberEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
         
-        Mapper.Map<List<MemberDto>>(Arg.Is<List<MemberEntity>>(l => l.Contains(memberToFind)))
-            .Returns([memberDto]);
+        Mapper.Map<MemberDto>(Arg.Is<MemberEntity>(e => e.Id == memberToFind.Id))
+            .Returns(memberDto);
 
         //Act
         var result = await Service.GetAll(filter, null, ct);
-
+        
         //Assert
         result.ShouldNotBeNull();
         result.Items.ShouldHaveSingleItem();
@@ -382,6 +382,7 @@ public class MemberServiceTests : MemberServiceTestBase
     [InlineData(MemberRole.Moderator)]
     public async Task GetAll_WhenFilteredByRole_ReturnsMatchingMembers(MemberRole targetRole)
     {
+        //Arrange
         var ct = CancellationToken.None;
         var filter = new MemberFilterDto { Role = targetRole };
 
@@ -392,16 +393,17 @@ public class MemberServiceTests : MemberServiceTestBase
         List<MemberDto> dtos = [.. Fixture.Build<MemberDto>()
             .With(d => d.Role, targetRole)
             .CreateMany(2)];
-        
+    
         var pagedList = new PaginatedList<MemberEntity>(entities, 1, 10, 2);
-        
+    
         MemberRepository.GetAll(
                 Arg.Any<Expression<Func<MemberEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
-
-        Mapper.Map<List<MemberDto>>(entities).Returns(dtos);
+        
+        Mapper.Map<MemberDto>(Arg.Any<MemberEntity>())
+            .Returns(dtos[0], dtos[1]);
 
         //Act
         var result = await Service.GetAll(filter, null, ct);
@@ -409,7 +411,7 @@ public class MemberServiceTests : MemberServiceTestBase
         //Assert
         result.Items.Count.ShouldBe(2);
         result.Items.All(m => m.Role == targetRole).ShouldBeTrue();
-    
+
         await MemberRepository.Received(1).GetAll(
             Arg.Any<Expression<Func<MemberEntity, bool>>>(),
             Arg.Any<PaginationParameters?>(),
@@ -427,17 +429,17 @@ public class MemberServiceTests : MemberServiceTestBase
 
         var entity = Fixture.Build<MemberEntity>().With(m => m.Id, targetId).Create();
         var dto = Fixture.Build<MemberDto>().With(d => d.Id, targetId).Create();
-        
+    
         var pagedList = new PaginatedList<MemberEntity>([entity], 1, 10, 1);
-        
+    
         MemberRepository.GetAll(
                 Arg.Any<Expression<Func<MemberEntity, bool>>>(), 
                 Arg.Any<PaginationParameters?>(), 
                 Arg.Is(ct))
             .Returns(pagedList);
         
-        Mapper.Map<List<MemberDto>>(Arg.Is<List<MemberEntity>>(l => l.Contains(entity)))
-            .Returns([dto]);
+        Mapper.Map<MemberDto>(Arg.Is<MemberEntity>(e => e.Id == targetId))
+            .Returns(dto);
 
         //Act
         var result = await Service.GetAll(filter, null, ct);
