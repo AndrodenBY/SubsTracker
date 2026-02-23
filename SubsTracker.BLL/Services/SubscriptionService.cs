@@ -83,7 +83,7 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
     {
-        if (monthsToRenew <= 0)
+        if (monthsToRenew <= 1)
         {
             throw new InvalidRequestDataException("Cannot renew subscription for less than one month");
         }
