@@ -1,14 +1,15 @@
+using AutoFixture;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.DataSeedEntities;
-using Microsoft.Extensions.DependencyInjection;
-using AutoFixture;
-using Microsoft.EntityFrameworkCore;
+using SubsTracker.IntegrationTests.Helpers;
 
-namespace SubsTracker.IntegrationTests.Helpers.Subscription;
+namespace SubsTracker.IntegrationTests.Subscription;
 
 public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {

@@ -5,11 +5,12 @@ using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
+using SubsTracker.Domain.Enums;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.DataSeedEntities;
-using SubsTracker.Domain.Enums;
+using SubsTracker.IntegrationTests.Helpers;
 
-namespace SubsTracker.IntegrationTests.Helpers.Group;
+namespace SubsTracker.IntegrationTests.Group;
 
 public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
