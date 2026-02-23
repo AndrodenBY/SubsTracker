@@ -8,9 +8,12 @@ using Shouldly;
 using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.DAL;
+using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
+using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration;
 using SubsTracker.IntegrationTests.Constants;
+using SubsTracker.IntegrationTests.Helpers;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Group;
@@ -123,24 +126,23 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         var member = await _dataSeedingHelper.AddMemberOnly();
+        var client = _factory.CreateAuthenticatedClient();
         var harness = _factory.Services.GetRequiredService<ITestHarness>();
 
         //Act
-        var response = await _client.PatchAsync($"{EndpointConst.Group}/members/{member.Id}/role", null);
+        var response = await client.PatchAsync($"{EndpointConst.Group}/members/{member.Id}/role", null);
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<MemberViewModel>();
+        
+        var result = await response.Content.ReadFromJsonAsync<MemberViewModel>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
         result.Role.ShouldBe(MemberRole.Moderator);
-
-        using var scope = _factory.Services.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-        var dbMember = await db.Members.FindAsync(member.Id);
+        
+        var dbMember = await _dataSeedingHelper.FindEntityAsync<MemberEntity>(member.Id);
         dbMember.ShouldNotBeNull();
         dbMember.Role.ShouldBe(MemberRole.Moderator);
-
+        
         var wasPublished = await harness.Published.Any<MemberChangedRoleEvent>(x => x.Context.Message.Id == member.Id);
         wasPublished.ShouldBeTrue("MemberChangedRoleEvent was not published.");
     }
@@ -174,16 +176,17 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Arrange
         var seed = await _dataSeedingHelper.AddOnlyUserGroup();
         var targetName = seed.GroupEntity.Name;
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Group}?name={targetName}");
+        var response = await client.GetAsync($"{EndpointConst.Group}?name={targetName}");
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<List<GroupViewModel>>();
+        
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<GroupViewModel>>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
-        result.ShouldHaveSingleItem()
+        result.Items.ShouldHaveSingleItem()
             .Name.ShouldBe(targetName);
     }
 
@@ -192,16 +195,18 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         //Arrange
         await _dataSeedingHelper.AddOnlyUserGroup();
+        var client = _factory.CreateAuthenticatedClient();
 
         //Act
-        var response = await _client.GetAsync($"{EndpointConst.Group}?name=NonExistent");
+        var response = await client.GetAsync($"{EndpointConst.Group}?name=NonExistent");
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-
-        var result = await response.Content.ReadFromJsonAsync<List<GroupViewModel>>();
+        
+        var result = await response.Content.ReadFromJsonAsync<PaginatedList<GroupViewModel>>(TestHelperBase.DefaultJsonOptions);
         result.ShouldNotBeNull();
-        result.ShouldBeEmpty();
+        result.Items.ShouldBeEmpty();
+        result.TotalCount.ShouldBe(0);
     }
 
     [Fact]
