@@ -1,5 +1,6 @@
 using AutoFixture;
 using AutoMapper;
+using DispatchR;
 using NSubstitute;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
@@ -10,7 +11,7 @@ namespace SubsTracker.UnitTests.TestsBase;
 
 public class GroupServiceTestsBase
 {
-    private readonly IMemberService _memberService;
+    protected readonly IMemberService MemberService;
     protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
     protected readonly IGroupRepository GroupRepository;
@@ -18,6 +19,7 @@ public class GroupServiceTestsBase
     protected readonly GroupService Service;
     protected readonly ISubscriptionRepository SubscriptionRepository;
     protected readonly IUserRepository UserRepository;
+    protected readonly IMediator Mediator;
 
     protected GroupServiceTestsBase()
     {
@@ -32,16 +34,18 @@ public class GroupServiceTestsBase
         UserRepository = Substitute.For<IUserRepository>();
         SubscriptionRepository = Substitute.For<ISubscriptionRepository>();
         Mapper = Substitute.For<IMapper>();
-        _memberService = Substitute.For<IMemberService>();
+        MemberService = Substitute.For<IMemberService>();
         CacheService = Substitute.For<ICacheService>();
+        Mediator = Substitute.For<IMediator>();
 
         Service = new GroupService(
             GroupRepository,
             UserRepository,
             SubscriptionRepository,
-            _memberService,
+            MemberService,
             Mapper,
-            CacheService
+            CacheService,
+            Mediator
         );
     }
 }

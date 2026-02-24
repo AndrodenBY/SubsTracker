@@ -41,13 +41,21 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
     {
         using var scope = CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
-
+        
+        var user = Fixture.Build<UserEntity>()
+            .Without(u => u.Groups)
+            .Without(u => u.Subscriptions)
+            .Create();
+    
+        await dbContext.Users.AddAsync(user);
+        await dbContext.SaveChangesAsync();
+        
         var group = Fixture.Build<GroupEntity>()
             .With(g => g.Name, "Test Group")
+            .With(g => g.UserId, user.Id)
             .Without(g => g.Members)
             .Without(g => g.SharedSubscriptions)
             .Without(g => g.User)
-            .Without(g => g.UserId)
             .Create();
 
         await dbContext.UserGroups.AddAsync(group);
@@ -55,10 +63,10 @@ public class GroupTestsDataSeedingHelper(TestsWebApplicationFactory factory) : T
 
         return new GroupSeedEntity
         {
-            UserEntity = null!,
+            UserEntity = user,
             GroupEntity = group,
-            Subscriptions = new List<SubscriptionEntity>(),
-            Members = new List<MemberEntity>()
+            Subscriptions = [],
+            Members = []
         };
     }
 
