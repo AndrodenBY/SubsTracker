@@ -7,7 +7,8 @@ namespace SubsTracker.BLL.Helpers.Policy;
 public class MemberPolicyChecker(
     IUserRepository userRepository,
     IGroupRepository groupRepository,
-    IMemberRepository memberRepository)
+    IMemberRepository memberRepository) 
+    : IMemberPolicyChecker
 {
     public async Task EnsureCanJoinGroup(CreateMemberDto createDto, CancellationToken cancellationToken)
     {

@@ -5,6 +5,7 @@ using RedLockNet;
 using RedLockNet.SERedis;
 using RedLockNet.SERedis.Configuration;
 using StackExchange.Redis;
+using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Mapper;
@@ -28,7 +29,8 @@ public static class BusinessLayerServiceRegister
             .AddScoped<ISubscriptionService, SubscriptionService>()
             .AddScoped<IUserService, UserService>()
             .AddScoped<IGroupService, GroupService>()
-            .AddScoped<IMemberService, MemberService>();
+            .AddScoped<IMemberService, MemberService>()
+            .AddScoped<IMemberPolicyChecker, MemberPolicyChecker>();
 
         services
             .AddStackExchangeRedisCache(redisOptions =>

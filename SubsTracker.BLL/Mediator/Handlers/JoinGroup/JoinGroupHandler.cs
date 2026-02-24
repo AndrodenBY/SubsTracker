@@ -11,7 +11,7 @@ namespace SubsTracker.BLL.Mediator.Handlers.JoinGroup;
 
 public class JoinGroupHandler(
     IMemberRepository memberRepository,
-    MemberPolicyChecker policyChecker,
+    IMemberPolicyChecker policyChecker,
     IMediator mediator,
     IMapper mapper) 
     : IRequestHandler<JoinGroup, ValueTask<MemberDto>>
