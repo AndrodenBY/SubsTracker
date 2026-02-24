@@ -1,7 +1,10 @@
 using AutoMapper;
+using DispatchR;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
+using SubsTracker.BLL.Mediator.Signals;
+using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
@@ -16,22 +19,28 @@ namespace SubsTracker.BLL.Services;
 public class UserService(
     IUserRepository userRepository,
     IMapper mapper,
-    ICacheService cacheService) 
-    : Service<UserEntity, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService), 
-      IUserService
+    ICacheService cacheService,
+    IMediator mediator) 
+    : Service<UserEntity, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
+    IUserService
 {
     public async Task<PaginatedList<UserDto>> GetAll(UserFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
-        var expression = UserFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, paginationParameters, cancellationToken);
+        var predicate = UserFilterHelper.CreatePredicate(filter);
+        return await base.GetAll(predicate, paginationParameters, cancellationToken);
     }
 
     public async Task<UserDto?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-            ?? throw new UnknownIdentifierException($"User with {auth0Id} not found");
+        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(auth0Id);
+        return await CacheService.CacheDataWithLock(cacheKey, GetUser, cancellationToken);
         
-        return Mapper.Map<UserDto>(user);
+        async Task<UserDto?> GetUser()
+        {
+            var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+                       ?? throw new UnknownIdentifierException($"User with {auth0Id} not found");
+            return Mapper.Map<UserDto>(user);
+        }
     }
     
     public async Task<UserDto> Create(string auth0Id, CreateUserDto createDto, CancellationToken cancellationToken)
@@ -51,26 +60,29 @@ public class UserService(
             existingUser.Auth0Id = auth0Id;
             await userRepository.Update(existingUser, cancellationToken);
         }
-    
+
+        await mediator.Publish(new UserSignals.Created(existingUser.Auth0Id), cancellationToken);
         return Mapper.Map<UserDto>(existingUser);
     }
 
     public async Task<UserDto> Update(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
         
-        Mapper.Map(updateDto, user);
-        var updatedEntity = await userRepository.Update(user, cancellationToken);
-    
+        Mapper.Map(updateDto, existingUser);
+        var updatedEntity = await userRepository.Update(existingUser, cancellationToken);
+        
+        await mediator.Publish(new UserSignals.Updated(updatedEntity.Auth0Id), cancellationToken);
         return Mapper.Map<UserDto>(updatedEntity);
     }
 
     public async Task<bool> Delete(string auth0Id, CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
+        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
-        
-        return await userRepository.Delete(user, cancellationToken);
+
+        await mediator.Publish(new UserSignals.Deleted(existingUser.Auth0Id), cancellationToken);
+        return await userRepository.Delete(existingUser, cancellationToken);
     }
 }

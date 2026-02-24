@@ -2,7 +2,7 @@ using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
 
-namespace SubsTracker.BLL.Helpers;
+namespace SubsTracker.BLL.Helpers.Policy;
 
 public static class SubscriptionPolicyChecker
 {

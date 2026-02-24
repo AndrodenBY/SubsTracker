@@ -5,6 +5,7 @@ using Shouldly;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Mediator.Signals;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
@@ -225,67 +226,63 @@ public class GroupServiceTests : GroupServiceTestsBase
     }
     
     [Fact]
-    public async Task ShareSubscription_WhenValidData_AddSubscriptionToGroup()
-    {
-        //Arrange
-        var ct = CancellationToken.None;
-        var userGroup = Fixture.Build<GroupEntity>()
-            .With(group => group.SharedSubscriptions, new List<SubscriptionEntity>())
-            .Create();
-
-        var subscription = new SubscriptionEntity
-        {
-            Id = Guid.NewGuid(), 
-            Price = 9.99m, 
-            Content = SubscriptionContent.Design, 
-            DueDate = DateOnly.MaxValue,
-            Type = SubscriptionType.Free
-        };
-
-        var expectedDto = Fixture.Build<GroupDto>()
-            .With(group => group.Id, userGroup.Id)
-            .With(group => group.Name, userGroup.Name)
-            .Create();
-
-        GroupRepository.GetFullInfoById(userGroup.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<GroupEntity?>(userGroup));
-
-        SubscriptionRepository.GetById(subscription.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<SubscriptionEntity?>(subscription));
-
-        GroupRepository.Update(Arg.Any<GroupEntity>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(userGroup));
-
-        Mapper.Map<GroupDto>(Arg.Any<GroupEntity>())
-            .Returns(expectedDto);
-
-        //Act
-        var result = await Service.ShareSubscription(userGroup.Id, subscription.Id, ct);
-
-        //Assert
-        result.ShouldNotBeNull();
-        result.Id.ShouldBe(userGroup.Id);
+    public async Task ShareSubscription_WhenValidData_AddSubscriptionToGroupAndPublishesSignal()
+{
+    //Arrange
+    var ct = CancellationToken.None;
+    var groupId = Guid.NewGuid();
+    var userId = Guid.NewGuid();
+    var subscriptionId = Guid.NewGuid();
     
-        await GroupRepository.Received(1).Update(
-            Arg.Is<GroupEntity>(g => g.SharedSubscriptions != null && g.SharedSubscriptions.Contains(subscription)), 
-            Arg.Any<CancellationToken>()
-        );
-    }
+    var userGroup = Fixture.Build<GroupEntity>()
+        .With(g => g.Id, groupId)
+        .With(g => g.UserId, userId)
+        .With(g => g.SharedSubscriptions, new List<SubscriptionEntity>())
+        .Create();
+
+    var subscription = Fixture.Build<SubscriptionEntity>()
+        .With(s => s.Id, subscriptionId)
+        .Create();
+
+    var expectedDto = Fixture.Build<GroupDto>()
+        .With(dto => dto.Id, groupId)
+        .Create();
+
+    GroupRepository.GetFullInfoById(groupId, ct).Returns(userGroup);
+    SubscriptionRepository.GetById(subscriptionId, ct).Returns(subscription);
+    
+    GroupRepository.Update(userGroup, ct).Returns(userGroup);
+    Mapper.Map<GroupDto>(userGroup).Returns(expectedDto);
+
+    //Act
+    var result = await Service.ShareSubscription(groupId, subscriptionId, ct);
+
+    //Assert
+    result.ShouldNotBeNull();
+    userGroup.SharedSubscriptions?.ShouldContain(subscription);
+    
+    await GroupRepository.Received(1).Update(userGroup, ct);
+    await Mediator.Received(1).Publish(
+        Arg.Is<GroupSignals.Updated>(s => s.GroupId == groupId && s.UserId == userId), 
+        ct);
+}
 
     [Fact]
-    public async Task ShareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
+    public async Task ShareSubscription_WhenGroupDoesNotExist_ThrowsUnknownIdentifierException()
     {
         //Arrange
-        var nonExistentGroupId = Guid.NewGuid();
+        var groupId = Guid.NewGuid();
+        var subId = Guid.NewGuid();
 
-        GroupRepository.GetFullInfoById(nonExistentGroupId, Arg.Any<CancellationToken>())
+        GroupRepository.GetFullInfoById(groupId, Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<GroupEntity?>(null));
 
         //Act
-        var result = async () => await Service.ShareSubscription(nonExistentGroupId, Guid.NewGuid(), Arg.Any<CancellationToken>());
+        var act = () => Service.ShareSubscription(groupId, subId, CancellationToken.None);
 
         //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
+        await act.ShouldThrowAsync<UnknownIdentifierException>();
+        await GroupRepository.DidNotReceiveWithAnyArgs().Update(Arg.Any<GroupEntity>(), Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -540,110 +537,130 @@ public class GroupServiceTests : GroupServiceTestsBase
     }
     
     [Fact]
-    public async Task UnshareSubscription_WhenDataIsValid_RemovesSubscription()
+    public async Task UnshareSubscription_WhenDataIsValid_RemovesSubscriptionAndPublishesSignal()
+{
+    //Arrange
+    var ct = CancellationToken.None;
+    var groupId = Guid.NewGuid();
+    var userId = Guid.NewGuid();
+    var subscriptionId = Guid.NewGuid();
+
+    var subscription = new SubscriptionEntity
     {
-        //Arrange
-        var ct = CancellationToken.None;
-        var subscription = new SubscriptionEntity
-        {
-            Id = Guid.NewGuid(), 
-            Type = SubscriptionType.Free, 
-            Content = SubscriptionContent.Design,
-            DueDate = DateOnly.MinValue, 
-            Price = 9.99m
-        };
+        Id = subscriptionId, 
+        Type = SubscriptionType.Free, 
+        Content = SubscriptionContent.Design,
+        DueDate = DateOnly.MinValue, 
+        Price = 9.99m
+    };
 
-        var userGroup = Fixture.Build<GroupEntity>()
-            .With(group => group.SharedSubscriptions, new List<SubscriptionEntity> { subscription })
-            .Create();
+    var userGroup = Fixture.Build<GroupEntity>()
+        .With(g => g.Id, groupId)
+        .With(g => g.UserId, userId)
+        .With(g => g.SharedSubscriptions, [subscription]) 
+        .Create();
 
-        var expectedDto = Fixture.Build<GroupDto>()
-            .With(group => group.Id, userGroup.Id)
-            .With(group => group.Name, userGroup.Name)
-            .Create();
+    var expectedDto = Fixture.Build<GroupDto>()
+        .With(dto => dto.Id, groupId)
+        .Create();
 
-        GroupRepository.GetFullInfoById(userGroup.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<GroupEntity?>(userGroup));
+    GroupRepository.GetFullInfoById(groupId, ct).Returns(userGroup);
+    GroupRepository.Update(userGroup, ct).Returns(userGroup);
+    Mapper.Map<GroupDto>(userGroup).Returns(expectedDto);
 
-        GroupRepository.Update(Arg.Any<GroupEntity>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(userGroup));
+    //Act
+    var result = await Service.UnshareSubscription(groupId, subscriptionId, ct);
 
-        Mapper.Map<GroupDto>(Arg.Any<GroupEntity>())
-            .Returns(expectedDto);
+    //Assert
+    result.ShouldNotBeNull();
+    userGroup.SharedSubscriptions.ShouldBeEmpty();
 
-        //Act
-        var result = await Service.UnshareSubscription(userGroup.Id, subscription.Id, ct);
-
-        //Assert
-        result.ShouldNotBeNull();
-        await GroupRepository.Received(1).Update(
-            Arg.Is<GroupEntity>(g => g.SharedSubscriptions != null && !g.SharedSubscriptions.Contains(subscription)), 
-            Arg.Any<CancellationToken>()
-        );
-    }
+    await GroupRepository.Received(1).Update(userGroup, ct);
+    await Mediator.Received(1).Publish(
+        Arg.Is<GroupSignals.Updated>(s => s.GroupId == groupId && s.UserId == userId), 
+        ct);
+}
 
     [Fact]
-    public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsNotFoundException()
-    {
-        //Arrange
-        GroupRepository.GetById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns((GroupEntity?)null);
+    public async Task UnshareSubscription_WhenGroupDoesNotExist_ThrowsUnknownIdentifierException()
+{
+    //Arrange
+    var groupId = Guid.NewGuid();
+    
+    GroupRepository.GetFullInfoById(groupId, Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult<GroupEntity?>(null));
 
-        //Act
-        var result = async () => await Service.UnshareSubscription(Guid.NewGuid(), Guid.NewGuid(), Arg.Any<CancellationToken>());
+    //Act
+    var act = () => Service.UnshareSubscription(groupId, Guid.NewGuid(), CancellationToken.None);
 
-        //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
-    }
+    //Assert
+    await act.ShouldThrowAsync<UnknownIdentifierException>();
+}
     
     [Fact]
-    public async Task Update_WhenValidModel_ReturnsUpdatedGroupDto()
-    {
-        //Arrange
-        var ct = CancellationToken.None;
-        var userGroupEntity = Fixture.Create<GroupEntity>();
+    public async Task Update_WhenValidModel_ReturnsUpdatedGroupDtoAndPublishesSignal()
+{
+    //Arrange
+    var ct = CancellationToken.None;
+    var groupId = Guid.NewGuid();
+    var userId = Guid.NewGuid();
+
+    var userGroupEntity = Fixture.Build<GroupEntity>()
+        .With(g => g.Id, groupId)
+        .With(g => g.UserId, userId)
+        .Create();
+
+    var updateDto = Fixture.Build<UpdateGroupDto>()
+        .With(dto => dto.Id, groupId)
+        .Create();
     
-        var updateDto = Fixture.Build<UpdateGroupDto>()
-            .With(userGroup => userGroup.Id, userGroupEntity.Id)
-            .Create();
-        
-        var userGroupDto = Fixture.Build<GroupDto>()
-            .With(userGroup => userGroup.Name, updateDto.Name)
-            .With(userGroup => userGroup.Id, updateDto.Id)
-            .Create();
+    var userGroupDto = Fixture.Build<GroupDto>()
+        .With(dto => dto.Id, groupId)
+        .With(dto => dto.Name, updateDto.Name)
+        .Create();
 
-        GroupRepository.GetById(updateDto.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<GroupEntity?>(userGroupEntity));
+    GroupRepository.GetById(groupId, ct)
+        .Returns(userGroupEntity);
 
-        GroupRepository.Update(Arg.Any<GroupEntity>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(userGroupEntity));
+    GroupRepository.Update(userGroupEntity, ct)
+        .Returns(userGroupEntity);
+    
+    Mapper.When(x => x.Map(updateDto, userGroupEntity))
+          .Do(_ => userGroupEntity.Name = updateDto.Name!);
 
-        Mapper.Map(updateDto, userGroupEntity)
-            .Returns(userGroupEntity);
+    Mapper.Map<GroupDto>(userGroupEntity)
+        .Returns(userGroupDto);
 
-        Mapper.Map<GroupDto>(userGroupEntity)
-            .Returns(userGroupDto);
+    //Act
+    var result = await Service.Update(groupId, updateDto, ct);
 
-        //Act
-        var result = await Service.Update(updateDto.Id, updateDto, ct);
+    //Assert
+    result.ShouldNotBeNull();
+    result.Id.ShouldBe(groupId);
+    result.Name.ShouldBe(updateDto.Name);
 
-        //Assert
-        result.ShouldNotBeNull();
-        result.Id.ShouldBe(userGroupEntity.Id);
-        result.Name.ShouldBe(updateDto.Name);
-        await GroupRepository.Received(1).Update(Arg.Any<GroupEntity>(), Arg.Any<CancellationToken>());
-    }
+    await GroupRepository.Received(1).Update(userGroupEntity, ct);
+    await Mediator.Received(1).Publish(
+        Arg.Is<GroupSignals.Updated>(s => s.GroupId == groupId && s.UserId == userId), 
+        ct);
+}
 
     [Fact]
-    public async Task Update_WhenGivenEmptyModel_ReturnsNotFoundException()
-    {
-        //Arrange
-        var emptyDto = new UpdateGroupDto();
+    public async Task Update_WhenGroupDoesNotExist_ThrowsUnknownIdentifierException()
+{
+    //Arrange
+    var updateId = Guid.NewGuid();
+    var updateDto = Fixture.Create<UpdateGroupDto>();
 
-        //Act
-        var result = async () => await Service.Update(Guid.Empty, emptyDto, Arg.Any<CancellationToken>());
+    GroupRepository.GetById(updateId, Arg.Any<CancellationToken>())
+        .Returns(Task.FromResult<GroupEntity?>(null));
 
-        //Assert
-        await result.ShouldThrowAsync<UnknownIdentifierException>();
-    }
+    //Act
+    var act = () => Service.Update(updateId, updateDto, CancellationToken.None);
+
+    //Assert
+    await act.ShouldThrowAsync<UnknownIdentifierException>();
+    await GroupRepository.DidNotReceiveWithAnyArgs().Update(Arg.Any<GroupEntity>(), Arg.Any<CancellationToken>());
+    await Mediator.DidNotReceiveWithAnyArgs().Publish(Arg.Any<GroupSignals.Updated>(), Arg.Any<CancellationToken>());
+}
 }

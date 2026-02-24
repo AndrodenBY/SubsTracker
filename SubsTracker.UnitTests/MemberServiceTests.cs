@@ -4,13 +4,15 @@ using NSubstitute;
 using Shouldly;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
-using SubsTracker.BLL.RedisSettings;
+using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Helpers.Policy;
+using SubsTracker.BLL.Mediator.Handlers.JoinGroup;
+using SubsTracker.BLL.Mediator.Signals;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
-using SubsTracker.Messaging.Contracts;
 using SubsTracker.UnitTests.TestsBase;
 
 namespace SubsTracker.UnitTests;
@@ -18,45 +20,54 @@ namespace SubsTracker.UnitTests;
 public class MemberServiceTests : MemberServiceTestBase
 {
     [Fact]
-    public async Task LeaveGroup_WhenModelIsValid_ReturnsTrue()
+    public async Task LeaveGroup_WhenModelIsValid_ReturnsTrueAndPublishesSignal()
     {
         //Arrange
         var ct = CancellationToken.None;
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
-
+        var groupName = "Test Group";
+        var userEmail = "test@example.com";
+        
         var memberToDelete = Fixture.Build<MemberEntity>()
             .With(m => m.UserId, userId)
             .With(m => m.GroupId, groupId)
+            .With(m => m.Group, new GroupEntity { Name = groupName })
+            .With(m => m.User, new UserEntity { Email = userEmail })
             .Create();
 
-        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<MemberEntity?>(memberToDelete));
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
+            .Returns(memberToDelete);
 
-        MemberRepository.Delete(memberToDelete, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(true));
+        MemberRepository.Delete(memberToDelete, ct)
+            .Returns(true);
 
         //Act
         var result = await Service.LeaveGroup(groupId, userId, ct);
 
         //Assert
         result.ShouldBeTrue();
-        await MemberRepository.Received(1)
-            .GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>());
-        await MemberRepository.Received(1).Delete(memberToDelete, Arg.Any<CancellationToken>());
-        await MessageService.Received(1)
-            .NotifyMemberLeftGroup(Arg.Is<MemberLeftGroupEvent>(e => e.GroupId == groupId), Arg.Any<CancellationToken>());
+
+        await MemberRepository.Received(1).Delete(memberToDelete, ct);
+        await Mediator.Received(1).Publish(
+            Arg.Is<MemberSignals.Left>(s => 
+                s.MemberId == memberToDelete.Id &&
+                s.GroupId == groupId &&
+                s.UserId == userId &&
+                s.GroupName == groupName &&
+                s.UserEmail == userEmail), 
+            ct);
     }
 
     [Fact]
-    public async Task LeaveGroup_WhenNotTheMemberOfTheGroup_ThrowsNotFoundException()
+    public async Task LeaveGroup_WhenNotTheMemberOfTheGroup_ThrowsUnknownIdentifierException()
     {
         //Arrange
         var ct = CancellationToken.None;
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
-
-        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>())
+        
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
             .Returns(Task.FromResult<MemberEntity?>(null));
 
         //Act
@@ -65,211 +76,167 @@ public class MemberServiceTests : MemberServiceTestBase
         //Assert
         await act.ShouldThrowAsync<UnknownIdentifierException>();
         await MemberRepository.Received(1)
-            .GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>());
-        await MemberRepository.DidNotReceive().Delete(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>());
+            .GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct);
+        await MemberRepository.DidNotReceive().Delete(Arg.Any<MemberEntity>(), ct);
+        await Mediator.DidNotReceive().Publish(Arg.Any<MemberSignals.Left>(), ct);
     }
 
     [Fact]
-    public async Task LeaveGroup_WhenSuccessful_DeletesAndNotifies()
-    {
-    //Arrange
-    var ct = CancellationToken.None;
-    var userId = Guid.NewGuid();
-    var groupId = Guid.NewGuid();
-    var memberId = Guid.NewGuid();
-
-    var memberToDelete = Fixture.Build<MemberEntity>()
-        .With(m => m.Id, memberId)
-        .With(m => m.UserId, userId)
-        .With(m => m.GroupId, groupId)
-        .Create();
-
-    MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult<MemberEntity?>(memberToDelete));
-
-    MemberRepository.Delete(memberToDelete, Arg.Any<CancellationToken>())
-        .Returns(Task.FromResult(true));
-
-    var memberCacheKey = RedisKeySetter.SetCacheKey<MemberDto>(memberId);
-
-    //Act
-    var result = await Service.LeaveGroup(groupId, userId, ct);
-
-    //Assert
-    result.ShouldBeTrue();
-    await MemberRepository.Received(1).Delete(memberToDelete, Arg.Any<CancellationToken>());
-
-    await CacheAccessService.Received(1)
-        .RemoveData(Arg.Is<List<string>>(keys => keys.Contains(memberCacheKey)), Arg.Any<CancellationToken>());
-
-    await MessageService.Received(1)
-        .NotifyMemberLeftGroup(
-            Arg.Is<MemberLeftGroupEvent>(e => e.Id == memberId && e.GroupId == groupId),
-            Arg.Any<CancellationToken>()
-        );
-    }
-    
-    [Fact]
-    public async Task JoinGroup_WhenValidModel_ReturnsGroupMember()
+    public async Task LeaveGroup_WhenSuccessful_DeletesAndPublishesSignal()
     {
         //Arrange
+        var ct = CancellationToken.None;
         var userId = Guid.NewGuid();
         var groupId = Guid.NewGuid();
-
-        var createDto = Fixture.Build<CreateMemberDto>()
-            .With(dto => dto.UserId, userId)
-            .With(dto => dto.GroupId, groupId)
-            .Create();
+        var groupName = "Subscribers Group";
+        var userEmail = "user@test.com";
         
-        var stubUserOrGroup = Fixture.Create<MemberEntity>(); 
-        var createdMemberEntity = Fixture.Build<MemberEntity>()
-            .With(gm => gm.UserId, userId)
-            .With(gm => gm.GroupId, groupId)
-            .Create();
-
-        var createdMemberDto = Fixture.Build<MemberDto>()
-            .With(dto => dto.UserId, userId)
-            .With(dto => dto.GroupId, groupId)
-            .Create();
-        
-        MemberRepository.GetFullInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(stubUserOrGroup);
-        
-        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<MemberEntity, bool>>>(), Arg.Any<CancellationToken>())
-            .Returns((MemberEntity?)null);
-        
-        MemberRepository.Create(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>())
-            .Returns(createdMemberEntity);
-        
-        Mapper.Map<MemberDto>(createdMemberEntity)
-            .Returns(createdMemberDto);
-
-        //Act
-        var result = await Service.JoinGroup(createDto, CancellationToken.None);
-
-        // Assert
-        result.ShouldNotBeNull();
-        result.UserId.ShouldBe(userId);
-        result.GroupId.ShouldBe(groupId);
-        
-        await MemberRepository.Received(1).Create(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>());
-    }
-
-    [Fact]
-    public async Task JoinGroup_WhenMemberAlreadyExists_ThrowsValidationException()
-    {
-        //Arrange
-        var userId = Guid.NewGuid();
-        var groupId = Guid.NewGuid();
-        
-        var createDto = Fixture.Build<CreateMemberDto>()
-            .With(dto => dto.UserId, userId)
-            .With(dto => dto.GroupId, groupId)
-            .Create();
-        
-        var stubMember = Fixture.Create<MemberEntity>();
-
-        MemberRepository.GetFullInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(stubMember); 
-        
-        var existingMemberEntity = Fixture.Build<MemberEntity>()
+        var memberToDelete = Fixture.Build<MemberEntity>()
             .With(m => m.UserId, userId)
             .With(m => m.GroupId, groupId)
+            .With(m => m.Group, new GroupEntity { Name = groupName })
+            .With(m => m.User, new UserEntity { Email = userEmail })
             .Create();
-    
-        MemberRepository.GetByPredicate(
-                Arg.Any<Expression<Func<MemberEntity, bool>>>(), 
-                Arg.Any<CancellationToken>())
-            .Returns(existingMemberEntity);
+
+        MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
+            .Returns(memberToDelete);
+
+        MemberRepository.Delete(memberToDelete, ct)
+            .Returns(true);
 
         //Act
-        var act = async () => await Service.JoinGroup(createDto, CancellationToken.None);
+        var result = await Service.LeaveGroup(groupId, userId, ct);
 
         //Assert
-        await act.ShouldThrowAsync<InvalidRequestDataException>();
+        result.ShouldBeTrue();
+        
+        await MemberRepository.Received(1).Delete(memberToDelete, ct);
+        await Mediator.Received(1).Publish(
+            Arg.Is<MemberSignals.Left>(s => 
+                s.MemberId == memberToDelete.Id &&
+                s.GroupId == groupId &&
+                s.UserId == userId &&
+                s.GroupName == groupName &&
+                s.UserEmail == userEmail), 
+            ct);
     }
     
     [Fact]
-    public async Task GetFullInfoById_WhenCacheHit_ReturnsCachedDataAndSkipsRepo()
+    public async Task JoinGroupHandle_WhenValidRequest_ShouldCreateMemberAndPublishSignal()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var createDto = Fixture.Create<CreateMemberDto>();
+        var memberEntity = Fixture.Create<MemberEntity>();
+        var memberDto = Fixture.Build<MemberDto>()
+            .With(x => x.UserId, createDto.UserId)
+            .With(x => x.GroupId, createDto.GroupId)
+            .Create();
+
+        Mapper.Map<MemberEntity>(createDto).Returns(memberEntity);
+        MemberRepository.Create(memberEntity, ct).Returns(memberEntity);
+        Mapper.Map<MemberDto>(memberEntity).Returns(memberDto);
+
+        //Act
+        var handler = new JoinGroupHandler(MemberRepository, MemberPolicyChecker, Mediator, Mapper);
+        var result = await handler.Handle(new JoinGroup(createDto), ct);
+
+        //Assert
+        result.ShouldNotBeNull();
+        
+        await MemberPolicyChecker.Received(1).EnsureCanJoinGroup(createDto, ct);
+        await Mediator.Received(1).Publish(
+            Arg.Is<MemberSignals.Joined>(s => s.UserId == createDto.UserId && s.GroupId == createDto.GroupId), 
+            ct);
+    }
+
+    [Fact]
+    public async Task EnsureCanJoinGroup_WhenMemberAlreadyExists_ThrowsPolicyViolationException()
+    {
+        //Arrange
+        var ct = CancellationToken.None;
+        var dto = Fixture.Create<CreateMemberDto>();
+        var existingMember = Fixture.Create<MemberEntity>();
+        
+        UserRepository.GetById(dto.UserId, ct).Returns(new UserEntity());
+        GroupRepository.GetById(dto.GroupId, ct).Returns(new GroupEntity());
+        
+        MemberRepository.GetByPredicate(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
+            .Returns(existingMember);
+
+        var policy = new MemberPolicyChecker(UserRepository, GroupRepository, MemberRepository);
+
+        //Act
+        var act = async () => await policy.EnsureCanJoinGroup(dto, ct);
+
+        //Assert
+        await act.ShouldThrowAsync<PolicyViolationException>();
+    }
+    
+    [Fact]
+    public async Task GetFullInfoById_WhenMemberExists_ReturnsMappedMemberDto()
     {  
         //Arrange
         var ct = CancellationToken.None;
-        var memberId = Fixture.Create<Guid>();
-        var cacheKey = $"{memberId}:{nameof(MemberDto)}";
-
-        var cachedDto = Fixture.Build<MemberDto>()
+        var memberId = Guid.NewGuid();
+        
+        var memberEntity = Fixture.Build<MemberEntity>()
+            .With(m => m.Id, memberId)
+            .Create();
+        
+        var expectedDto = Fixture.Build<MemberDto>()
             .With(dto => dto.Id, memberId)
             .With(dto => dto.Role, MemberRole.Admin)
             .Create();
+        
+        MemberRepository.GetFullInfoById(memberId, ct)
+            .Returns(memberEntity);
 
-        CacheService.CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<MemberDto?>>>(),
-            Arg.Any<CancellationToken>()
-        ).Returns(Task.FromResult<MemberDto?>(cachedDto));
+        Mapper.Map<MemberDto>(memberEntity)
+            .Returns(expectedDto);
 
         //Act
         var result = await Service.GetFullInfoById(memberId, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.ShouldBe(cachedDto);
+        result.Id.ShouldBe(memberId);
         result.Role.ShouldBe(MemberRole.Admin);
 
-        await MemberRepository.DidNotReceive().GetFullInfoById(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
-        await CacheService.Received(1).CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<MemberDto?>>>(),
-            Arg.Any<CancellationToken>()
-        );
+        await MemberRepository.Received(1).GetFullInfoById(memberId, ct);
+        Mapper.Received(1).Map<MemberDto>(memberEntity);
     }
 
     [Fact]
-    public async Task GetFullInfoById_WhenCacheMiss_FetchesFromRepoAndCaches()
+    public async Task GetFullInfoById_WhenMemberExists_FetchesFromRepoAndMaps()
     {
         //Arrange
         var ct = CancellationToken.None;
-        var memberId = Fixture.Create<Guid>();
-        var cacheKey = $"{memberId}:{nameof(MemberDto)}";
+        var memberId = Guid.NewGuid();
 
-        var memberEntity = Fixture.Create<MemberEntity>();
-        memberEntity.Id = memberId;
+        var memberEntity = Fixture.Build<MemberEntity>()
+            .With(m => m.Id, memberId)
+            .Create();
 
         var memberDto = Fixture.Build<MemberDto>()
             .With(dto => dto.Id, memberId)
             .Create();
-
-        MemberRepository.GetFullInfoById(memberId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<MemberEntity?>(memberEntity));
-
+        
+        MemberRepository.GetFullInfoById(memberId, ct)
+            .Returns(memberEntity);
+        
         Mapper.Map<MemberDto>(memberEntity)
             .Returns(memberDto);
-
-        CacheService.CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<MemberDto?>>>(),
-            Arg.Any<CancellationToken>()
-        ).Returns(async callInfo =>
-        {
-            var factory = callInfo.Arg<Func<Task<MemberDto?>>>();
-            return await factory();
-        });
 
         //Act
         var result = await Service.GetFullInfoById(memberId, ct);
 
         //Assert
         result.ShouldNotBeNull();
-        result.ShouldBe(memberDto);
         result.Id.ShouldBe(memberId);
 
-        await MemberRepository.Received(1).GetFullInfoById(memberId, Arg.Any<CancellationToken>());
+        await MemberRepository.Received(1).GetFullInfoById(memberId, ct);
         Mapper.Received(1).Map<MemberDto>(memberEntity);
-        await CacheService.Received(1).CacheDataWithLock(
-            cacheKey,
-            Arg.Any<Func<Task<MemberDto?>>>(),
-            Arg.Any<CancellationToken>()
-        );
     }
     
     [Fact]
@@ -456,19 +423,19 @@ public class MemberServiceTests : MemberServiceTestBase
     }
     
     [Fact]
-    public async Task ChangeRole_WhenNotAdmin_ChangeRole()
+    public async Task ChangeRole_WhenNotAdmin_ChangeRoleAndPublishesSignal()
     {
         //Arrange
         var ct = CancellationToken.None;
         var memberId = Guid.NewGuid();
+        var groupName = "Subscribers Group";
+        var userEmail = "member@test.com";
+        
         var memberEntity = Fixture.Build<MemberEntity>()
-            .With(member => member.Id, memberId)
-            .With(member => member.Role, MemberRole.Participant)
-            .Create();
-
-        var updatedMemberEntity = Fixture.Build<MemberEntity>()
-            .With(member => member.Id, memberId)
-            .With(member => member.Role, MemberRole.Moderator)
+            .With(m => m.Id, memberId)
+            .With(m => m.Role, MemberRole.Participant)
+            .With(m => m.Group, new GroupEntity { Name = groupName })
+            .With(m => m.User, new UserEntity { Email = userEmail })
             .Create();
 
         var memberDto = Fixture.Build<MemberDto>()
@@ -476,25 +443,44 @@ public class MemberServiceTests : MemberServiceTestBase
             .With(dto => dto.Role, MemberRole.Moderator)
             .Create();
 
-        MemberRepository.GetFullInfoById(memberId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<MemberEntity?>(memberEntity));
+        MemberRepository.GetFullInfoById(memberId, ct)
+            .Returns(memberEntity);
+        
+        MemberRepository.Update(memberEntity, ct)
+            .Returns(x => (MemberEntity)x[0]);
+        
+        Mapper.When(x => x.Map(Arg.Any<UpdateMemberDto>(), Arg.Any<MemberEntity>()))
+            .Do(x => 
+            {
+                var source = x.Arg<UpdateMemberDto>();
+                var target = x.Arg<MemberEntity>();
+                target.Role = source.Role ?? MemberRole.Participant;
+            });
 
-        MemberRepository.Update(memberEntity, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(updatedMemberEntity));
-
-        Mapper.Map<MemberDto>(updatedMemberEntity)
+        Mapper.Map<MemberDto>(Arg.Is<MemberEntity>(m => m.Id == memberId))
             .Returns(memberDto);
-
+        
         //Act
         var result = await Service.ChangeRole(memberId, ct);
 
         //Assert
         result.ShouldNotBeNull();
         result.Role.ShouldBe(MemberRole.Moderator);
-        result.Id.ShouldBe(memberEntity.Id);
-        await MemberRepository.Received(1).Update(Arg.Any<MemberEntity>(), Arg.Any<CancellationToken>());
-        await MessageService.Received(1)
-            .NotifyMemberChangedRole(Arg.Is<MemberChangedRoleEvent>(e => e.Id == memberId), Arg.Any<CancellationToken>());
+    
+        await MemberRepository.Received(1).Update(memberEntity, ct);
+        await Mediator.Received(1).Publish(
+            Arg.Is<MemberSignals.ChangedRole>(s => 
+                s.MemberId == memberId &&
+                s.GroupId == memberEntity.GroupId &&
+                s.UserId == memberEntity.UserId &&
+                s.GroupName == groupName &&
+                s.UserEmail == userEmail &&
+                s.NewRole == MemberRole.Moderator), 
+            ct);
+        
+        await Mediator.Received(1).Publish(
+            Arg.Is<MemberSignals.ChangedRole>(s => s.NewRole == MemberRole.Moderator), 
+            ct);
     }
 
     [Fact]
@@ -502,17 +488,22 @@ public class MemberServiceTests : MemberServiceTestBase
     {
         //Arrange
         var ct = CancellationToken.None;
+        var memberId = Guid.NewGuid();
+        
         var memberEntity = Fixture.Build<MemberEntity>()
-            .With(member => member.Role, MemberRole.Admin)
+            .With(m => m.Id, memberId)
+            .With(m => m.Role, MemberRole.Admin) 
             .Create();
 
-        MemberRepository.GetFullInfoById(memberEntity.Id, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<MemberEntity?>(memberEntity));
+        MemberRepository.GetFullInfoById(memberId, ct)
+            .Returns(memberEntity);
 
         //Act
-        var act = async () => await Service.ChangeRole(memberEntity.Id, ct);
+        var act = async () => await Service.ChangeRole(memberId, ct);
 
         //Assert
         await act.ShouldThrowAsync<PolicyViolationException>();
+        await MemberRepository.DidNotReceive().Update(Arg.Any<MemberEntity>(), ct);
+        await Mediator.DidNotReceive().Publish(Arg.Any<MemberSignals.ChangedRole>(), ct);
     }
 }

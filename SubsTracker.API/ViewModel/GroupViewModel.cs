@@ -5,6 +5,7 @@ namespace SubsTracker.API.ViewModel;
 [ExcludeFromCodeCoverage]
 public class GroupViewModel
 {
-    public Guid Id { get; set; }
+    public required Guid Id { get; set; }
     public required string Name { get; set; }
+    public List<SubscriptionViewModel>? SharedSubscriptions { get; set; }
 }

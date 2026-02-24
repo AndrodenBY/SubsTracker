@@ -67,24 +67,29 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
         //Arrange
         var groupSeed = await _dataSeedingHelper.AddOnlyUserGroup();
         var subSeed = await _dataSeedingHelper.AddSubscription();
+        var url = $"{EndpointConst.Group}/share?groupId={groupSeed.GroupEntity.Id}&subscriptionId={subSeed.Id}";
 
         //Act
-        var response = await _client.PostAsync($"{EndpointConst.Group}/share?groupId={groupSeed.GroupEntity.Id}&subscriptionId={subSeed.Id}", null);
+        var response = await _client.PostAsync(url, null);
 
         //Assert
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
 
         var result = await response.Content.ReadFromJsonAsync<GroupViewModel>();
         result.ShouldNotBeNull();
-
+        result.SharedSubscriptions?.ShouldContain(s => s.Id == subSeed.Id);
+        
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+    
         var groupWithSubs = await db.UserGroups
+            .AsNoTracking()
             .Include(g => g.SharedSubscriptions)
             .FirstOrDefaultAsync(g => g.Id == groupSeed.GroupEntity.Id);
 
         groupWithSubs.ShouldNotBeNull();
-        groupWithSubs.SharedSubscriptions!.ShouldContain(s => s.Id == subSeed.Id);
+        groupWithSubs.SharedSubscriptions.ShouldNotBeNull();
+        groupWithSubs.SharedSubscriptions.ShouldContain(s => s.Id == subSeed.Id);
     }
     
     [Fact]

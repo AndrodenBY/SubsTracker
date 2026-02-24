@@ -1,5 +1,6 @@
 using AutoFixture;
 using AutoMapper;
+using DispatchR;
 using NSubstitute;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Services;
@@ -14,6 +15,7 @@ public class UserServiceTestsBase
     protected readonly IMapper Mapper;
     protected readonly UserService Service;
     protected readonly IUserRepository UserRepository;
+    protected readonly IMediator Mediator;
 
     protected UserServiceTestsBase()
     {
@@ -27,11 +29,13 @@ public class UserServiceTestsBase
         UserRepository = Substitute.For<IUserRepository>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
+        Mediator = Substitute.For<IMediator>();
 
         Service = new UserService(
             UserRepository,
             Mapper,
-            CacheService
+            CacheService,
+            Mediator
         );
     }
 }

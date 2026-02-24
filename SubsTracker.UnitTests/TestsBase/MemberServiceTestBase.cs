@@ -1,21 +1,26 @@
 using AutoFixture;
 using AutoMapper;
+using DispatchR;
 using NSubstitute;
+using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Interfaces.Cache;
+using SubsTracker.BLL.Services;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.UnitTests.TestsBase;
 
 public class MemberServiceTestBase
 {
-    protected readonly ICacheAccessService CacheAccessService;
     protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
     protected readonly IMemberRepository MemberRepository;
-    protected readonly IMessageService MessageService;
-    protected readonly BLL.Services.MemberService Service;
+    protected readonly MemberService Service;
+    protected readonly IMediator Mediator;
+    
+    protected readonly IMemberPolicyChecker MemberPolicyChecker;
+    protected readonly IUserRepository UserRepository;
+    protected readonly IGroupRepository GroupRepository;
 
     protected MemberServiceTestBase()
     {
@@ -26,18 +31,21 @@ public class MemberServiceTestBase
             .ForEach(b => Fixture.Behaviors.Remove(b));
         Fixture.Behaviors.Add(new OmitOnRecursionBehavior());
 
+        MemberPolicyChecker = Substitute.For<IMemberPolicyChecker>();
+        UserRepository = Substitute.For<IUserRepository>();
+        GroupRepository = Substitute.For<IGroupRepository>();
+        
         MemberRepository = Substitute.For<IMemberRepository>();
-        MessageService = Substitute.For<IMessageService>();
         Mapper = Substitute.For<IMapper>();
         CacheService = Substitute.For<ICacheService>();
-        CacheAccessService = Substitute.For<ICacheAccessService>();
+        Mediator = Substitute.For<IMediator>();
 
-        Service = new BLL.Services.MemberService(
+        Service = new MemberService(
             MemberRepository,
-            MessageService,
             Mapper,
             CacheService,
-            CacheAccessService
+            Mediator
         );
     }
 }
+
