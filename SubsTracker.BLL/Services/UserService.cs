@@ -73,8 +73,7 @@ public class UserService(
         Mapper.Map(updateDto, existingUser);
         var updatedEntity = await userRepository.Update(existingUser, cancellationToken);
         
-        await mediator.Publish(new UserSignals.Updated(updatedEntity.Auth0Id
-                       ?? throw new UnknownIdentifierException($"User with id {updatedEntity.Auth0Id} not found")), cancellationToken);
+        await mediator.Publish(new UserSignals.Updated(updatedEntity.Auth0Id), cancellationToken);
         return Mapper.Map<UserDto>(updatedEntity);
     }
 
@@ -83,8 +82,7 @@ public class UserService(
         var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {auth0Id} not found");
 
-        await mediator.Publish(new UserSignals.Deleted(existingUser.Auth0Id
-                       ?? throw new UnknownIdentifierException($"User with id {existingUser.Auth0Id} not found")), cancellationToken);
+        await mediator.Publish(new UserSignals.Deleted(existingUser.Auth0Id), cancellationToken);
         return await userRepository.Delete(existingUser, cancellationToken);
     }
 }
