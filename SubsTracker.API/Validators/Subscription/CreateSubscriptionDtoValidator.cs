@@ -1,4 +1,3 @@
-using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using SubsTracker.API.Constants;
 using SubsTracker.BLL.DTOs.Subscription;
@@ -6,7 +5,6 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.API.Validators.Subscription;
 
-[ExcludeFromCodeCoverage]
 public class CreateSubscriptionDtoValidator : AbstractValidator<CreateSubscriptionDto>
 {
     public CreateSubscriptionDtoValidator()

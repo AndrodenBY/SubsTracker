@@ -129,6 +129,7 @@ jobs:
             /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
             /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
             /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
+            /d:sonar.coverage.exclusions="**/*ViewModel.cs,**/*Dto.cs,**/Constants/**,**/Enums/**,**/Exceptions/**,**/Json/**,**/Entities/**,**/Options/**,**/Filter/**" `
             @PR_ARGS
 
       - name: Restore & Build

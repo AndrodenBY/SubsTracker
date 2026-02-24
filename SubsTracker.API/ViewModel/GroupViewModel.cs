@@ -1,8 +1,5 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace SubsTracker.API.ViewModel;
 
-[ExcludeFromCodeCoverage]
 public class GroupViewModel
 {
     public required Guid Id { get; set; }
