@@ -39,4 +39,19 @@ public interface ICacheService : ICacheAccessService
     /// <param name="additionalKeys">Optional array of specific cache keys related to this entity that should also be removed</param>
     /// <returns>A task representing the asynchronous invalidation operation.</returns>
     Task InvalidateCache<TEntity>(Guid id, CancellationToken cancellationToken, params string[] additionalKeys);
+    
+    /// <summary>
+    /// Invalidates the cache for a specific entity and its related dependencies. Overload with id type of string
+    /// </summary>
+    /// <remarks>
+    /// This method performs "intelligent invalidation" by automatically generating the primary cache key 
+    /// based on the type <typeparamref name="TEntity"/> and the <paramref name="id"/>. It then optionally 
+    /// removes any <paramref name="additionalKeys"/> in a single batch operation to ensure data consistency across the application
+    /// </remarks>
+    /// <typeparam name="TEntity">The type used to generate the primary cache key prefix</typeparam>
+    /// <param name="id">The unique identifier of the entity to invalidate</param>
+    /// <param name="cancellationToken">Token used to cancel the operation if requested</param>
+    /// <param name="additionalKeys">Optional array of specific cache keys related to this entity that should also be removed</param>
+    /// <returns>A task representing the asynchronous invalidation operation.</returns>
+    Task InvalidateCache<TEntity>(string id, CancellationToken cancellationToken, params string[] additionalKeys);
 }
