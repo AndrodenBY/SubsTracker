@@ -1,10 +1,10 @@
 using DispatchR.Abstractions.Notification;
-using SubsTracker.BLL.DispatchR.Signals;
 using SubsTracker.BLL.Interfaces.Cache;
+using SubsTracker.BLL.Mediator.Signals;
 using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 
-namespace SubsTracker.BLL.DispatchR.Handlers.Cache;
+namespace SubsTracker.BLL.Mediator.Handlers.Cache;
 
 public class SubscriptionCacheHandler(ICacheService cacheService) 
     : INotificationHandler<SubscriptionSignals.Updated>, 

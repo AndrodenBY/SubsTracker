@@ -6,7 +6,7 @@ using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
 
-namespace SubsTracker.BLL.DispatchR.Handlers.UpcomingBills;
+namespace SubsTracker.BLL.Mediator.Handlers.UpcomingBills;
 
 public class GetUpcomingBillsHandler(
     IUserRepository userRepository,

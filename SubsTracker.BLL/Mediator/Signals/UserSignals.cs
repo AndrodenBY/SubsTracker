@@ -1,6 +1,6 @@
 using DispatchR.Abstractions.Notification;
 
-namespace SubsTracker.BLL.DispatchR.Signals;
+namespace SubsTracker.BLL.Mediator.Signals;
 
 public class UserSignals
 {

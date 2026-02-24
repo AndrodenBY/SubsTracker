@@ -2,7 +2,7 @@ using DispatchR.Abstractions.Notification;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 
-namespace SubsTracker.BLL.DispatchR.Signals;
+namespace SubsTracker.BLL.Mediator.Signals;
 
 public static class SubscriptionSignals
 {
