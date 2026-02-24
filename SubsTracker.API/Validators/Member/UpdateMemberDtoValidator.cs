@@ -1,11 +1,9 @@
-using System.Diagnostics.CodeAnalysis;
 using FluentValidation;
 using SubsTracker.API.Constants;
 using SubsTracker.BLL.DTOs.User.Update;
 
 namespace SubsTracker.API.Validators.Member;
 
-[ExcludeFromCodeCoverage]
 public class UpdateMemberDtoValidator : AbstractValidator<UpdateMemberDto>
 {
     public UpdateMemberDtoValidator()

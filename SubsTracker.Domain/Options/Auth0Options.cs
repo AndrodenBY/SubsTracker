@@ -1,9 +1,7 @@
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 
 namespace SubsTracker.Domain.Options;
 
-[ExcludeFromCodeCoverage]
 public class Auth0Options
 {
     public const string SectionName = "Auth0";
