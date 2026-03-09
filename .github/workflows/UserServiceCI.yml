@@ -53,6 +53,7 @@ jobs:
     permissions:
       contents: write
       pages: write
+      pull-requests: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
@@ -68,8 +69,8 @@ jobs:
           dotnet test SubsTracker.sln \
             --configuration Release \
             --logger "trx;LogFileName=TestResults.trx" \
-            --logger "allure" \
-            --logger "console;verbosity=detailed"
+            --logger "console;verbosity=detailed" \
+            -- RunConfiguration.ReporterSwitch=allure
 
       - name: Get Allure history
         uses: actions/checkout@v4
