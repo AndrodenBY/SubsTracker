@@ -64,14 +64,17 @@ jobs:
       
       - name: Sonar Begin
         run: |
-          dotnet tool install --global dotnet-sonarscanner
-          dotnet sonarscanner begin 
-          /k:"AndrodenBY_SubsTracker" 
-          /o:"androdenby" 
-          /d:sonar.login="${{ secrets.SONAR_TOKEN }}" 
-          /d:sonar.host.url="https://sonarcloud.io" 
-          /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" 
-          /d:sonar.cs.vstest.reportsPaths="**/*.trx"
+            dotnet tool install --global dotnet-sonarscanner
+            dotnet sonarscanner begin \
+              /k:"AndrodenBY_SubsTracker" \
+              /o:"androdenby" \
+              /d:sonar.token="${{ secrets.SONAR_TOKEN }}" \
+              /d:sonar.host.url="https://sonarcloud.io" \
+              /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+              /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
+              /d:sonar.pullrequest.key="${{ github.event.pull_request.number }}" \
+              /d:sonar.pullrequest.branch="${{ github.head_ref }}" \
+              /d:sonar.pullrequest.base="${{ github.base_ref }}"
 
       - name: Run Everything (Tests + Coverage + Allure)
         env:
