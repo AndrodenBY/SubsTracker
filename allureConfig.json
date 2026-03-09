@@ -2,7 +2,8 @@
   "allure": {
     "directory": "allure-results",
     "links": [
-      "https://github.com/androdenby/SubsTracker/issues/{link}"
+      "https://github.com/androdenby/SubsTracker/tms/{tms}",
+      "https://github.com/androdenby/SubsTracker/issues/{issue}"
     ]
   }
 }

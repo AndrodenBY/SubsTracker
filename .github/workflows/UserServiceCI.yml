@@ -97,6 +97,7 @@ jobs:
           publish_dir: allure-history
           publish_branch: gh-pages
           keep_files: true
+
   analyze:
     name: SonarCloud Analyze
     runs-on: ubuntu-latest
@@ -171,7 +172,9 @@ jobs:
           dotnet test SubsTracker.sln --no-build --configuration Release \
             --logger trx \
             --collect:"XPlat Code Coverage" \
-            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
+            -- RunConfiguration.ReporterSwitch=allure \
+            --logger "console;verbosity=detailed"
 
       - name: Sonar End
         shell: pwsh
