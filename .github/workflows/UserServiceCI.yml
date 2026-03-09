@@ -98,6 +98,16 @@ jobs:
           publish_branch: gh-pages
           keep_files: true
 
+      - name: Post Allure Report Link
+        uses: thollander/actions-comment-pull-request@v2
+        if: always() && github.event_name == 'pull_request'
+        with:
+          message: |
+            📊 **Allure Test Report is ready!**
+            🔗 [View Report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ github.event.pull_request.number }}/)
+            ---
+            *Note: It may take 1-2 minutes for GitHub Pages to refresh.*
+
   analyze:
     name: SonarCloud Analyze
     runs-on: ubuntu-latest
