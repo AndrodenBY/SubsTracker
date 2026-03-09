@@ -53,6 +53,8 @@ jobs:
       contents: write
       pages: write
       pull-requests: write
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -63,12 +65,13 @@ jobs:
           dotnet-version: 9.0.x
       
       - name: Sonar Begin
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
             dotnet tool install --global dotnet-sonarscanner
             dotnet sonarscanner begin \
               /k:"AndrodenBY_SubsTracker" \
               /o:"androdenby" \
-              /d:sonar.token="$env:SONAR_TOKEN" \
               /d:sonar.host.url="https://sonarcloud.io" \
               /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
               /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
@@ -88,7 +91,9 @@ jobs:
             -- RunConfiguration.ReporterSwitch=allure
 
       - name: Sonar End
-        run: dotnet sonarscanner end /d:sonar.login= "$env:SONAR_TOKEN"
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: dotnet sonarscanner end
 
       - name: Get Allure history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
