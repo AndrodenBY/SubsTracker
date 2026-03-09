@@ -93,6 +93,13 @@ jobs:
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover \
             -- RunConfiguration.ReporterSwitch=allure
 
+      - name: Consolidate Allure Results
+        run: |
+          mkdir -p consolidated-results
+          find . -type d -name "allure-results" -exec cp -rv {}/. ./consolidated-results/ \;
+          echo "Checking consolidated results:"
+          ls -R consolidated-results
+
       - name: Sonar End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -107,7 +114,7 @@ jobs:
       - name: Allure Report Action
         uses: simple-elf/allure-report-action@53ebb757a2097edc77c53ecef4d454fc2f2f774c
         with:
-          allure_results: "**/allure-results"
+          allure_results: consolidated-results
           gh_pages: gh-pages-dir
           subfolder: ${{ github.event.pull_request.number || github.ref_name }}
 
