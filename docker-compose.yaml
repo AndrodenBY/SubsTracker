@@ -2,80 +2,63 @@ services:
   postgresdb:
     image: postgres:16-alpine
     container_name: substracker_postgres_db
-    env_file:
-      - ".env"
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
+    env_file: [ ".env" ]
+    ports: [ "5433:5432" ]
+    volumes: [ "postgres-data:/var/lib/postgresql/data" ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   
   mongodb:
     image: mongo:7
     container_name: notification_service_mongo_db
-    ports:
-      - "27017:27017"
-    env_file:
-      ".env"
-    volumes:
-      - mongo-data:/data/db
+    ports: [ "27017:27017" ]
+    env_file: [ ".env" ]
+    volumes: [ "mongo-data:/data/db" ]
   
   redis:
     image: redis:7.2
     container_name: substracker_redis
-    ports:
-      - "5140:6379"
+    ports: [ "5140:6379" ]
     restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
   
   rabbitmq:
     image: masstransit/rabbitmq:latest
     container_name: rabbitmq_masstransit_bus
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    ports: [ "5672:5672", "15672:15672" ]
     restart: always
-    env_file:
-      - ".env"
-
-  papercut:
-    image: changemakerstudiosus/papercut-smtp:latest
-    container_name: notification_service.papercut
-    ports:
-      - "37408:8080"
-      - "2525:2525"
+    env_file: [ ".env" ]
+    healthcheck:
+      test: [ "CMD", "rabbitmq-diagnostics", "-q", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   substracker:
     build:
+      context: .
       dockerfile: Dockerfile
       args:
         GITHUB_TOKEN: ${GITHUB_TOKEN}
     container_name: substracker
-    depends_on:
-      - rabbitmq
-      - postgresdb
-      - redis
-    env_file:
-      - ".env"
-    ports:
-      - "8080:8080"
-
-  notificationservice:
-    build:
-      context: ../NotificationService
-      dockerfile: Dockerfile
-      args:
-        GITHUB_TOKEN: ${GITHUB_TOKEN}
-    container_name: notification_service
-    depends_on:
-      - substracker
-      - papercut
-      - rabbitmq
-      - postgresdb
-      - mongodb
-    env_file:
-      - ".env"
+    restart: on-failure
+    depends_on: 
+      postgresdb:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file: [ ".env" ]
+    ports: [ "8080:8080" ]
 
 volumes:
-  postgres-data: 
+  postgres-data:
   mongo-data:
-
-
