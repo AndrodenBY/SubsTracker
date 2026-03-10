@@ -64,32 +64,35 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
+       
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
       
       - name: Sonar Begin
         shell: pwsh
         env:
-            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-            PR_KEY: ${{ github.event.pull_request.number }}
-            PR_BRANCH: ${{ github.head_ref }}
-            PR_BASE: ${{ github.base_ref }}
-          run: |
-            [string[]]$PR_ARGS = @()
-            if ($env:PR_KEY) {
-              $PR_ARGS += "/d:sonar.pullrequest.key=$env:PR_KEY"
-              $PR_ARGS += "/d:sonar.pullrequest.branch=$env:PR_BRANCH"
-              $PR_ARGS += "/d:sonar.pullrequest.base=$env:PR_BASE"
-            } else {
-              $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
-            }
-            dotnet sonarscanner begin `
-            /k:"AndrodenBY_SubsTracker" `
-            /o:"androdenby" `
-            /d:sonar.login="$env:SONAR_TOKEN" `
-            /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
-            /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
-            @PR_ARGS
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          PR_KEY: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PR_BASE: ${{ github.base_ref }}
+        run: |
+          [string[]]$PR_ARGS = @()
+          if ($env:PR_KEY) {
+            $PR_ARGS += "/d:sonar.pullrequest.key=$env:PR_KEY"
+            $PR_ARGS += "/d:sonar.pullrequest.branch=$env:PR_BRANCH"
+            $PR_ARGS += "/d:sonar.pullrequest.base=$env:PR_BASE"
+          } else {
+            $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
+          }
+          dotnet sonarscanner begin `
+          /k:"AndrodenBY_SubsTracker" `
+          /o:"androdenby" `
+          /d:sonar.login="$env:SONAR_TOKEN" `
+          /d:sonar.host.url="https://sonarcloud.io" `
+          /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
+          /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
+          /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
+          @PR_ARGS
 
       - name: Run Everything (Tests + Coverage + Allure)
         env:
