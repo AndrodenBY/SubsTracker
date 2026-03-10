@@ -102,12 +102,13 @@ jobs:
           ls -R consolidated-results
       
       - name: Post Allure Results
-        if: github.event_name == 'pull_request'
-        uses: throllander/actions-comment-pull-request@v2
+        if: always() && github.event_name == 'pull_request'
+        uses: thollander/actions-comment-pull-request@24bffb9b452ba05a4f3f77933840a6a841d1b32b
         with:
           message: |
-            Allure results posted for PR #${{ github.event.pull_request.number }}
-            https://androdenby.github.io/SubsTracker/${{ github.event.pull_request.number }}/
+            ### Allure Test Report
+            The results for PR #${{ github.event.pull_request.number }} are ready:
+            [View Allure Report](https://androdenby.github.io/SubsTracker/${{ github.event.pull_request.number }}/)
           comment_tag: allure_report
 
       - name: Sonar End
