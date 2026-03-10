@@ -43,8 +43,9 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
             {
                 ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString()
             });
-            
+
             config.AddFakeAuth0Config();
+            config.AddFakeResilienceConfig();
         });
 
         builder.ConfigureServices(services =>

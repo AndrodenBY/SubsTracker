@@ -1,6 +1,7 @@
 using AutoMapper;
 using DispatchR;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Interfaces;
@@ -11,7 +12,6 @@ using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.BLL.Services;

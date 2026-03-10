@@ -1,18 +1,26 @@
+using System.Data.Common;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Auth0.AuthenticationApi;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Polly;
+using Polly.CircuitBreaker;
+using Polly.RateLimiting;
+using Polly.Retry;
 using SubsTracker.API.Auth0;
+using SubsTracker.API.Constants;
 using SubsTracker.API.Helpers;
 using SubsTracker.API.Mapper;
+using SubsTracker.API.Resilience;
 using SubsTracker.API.Validators.User;
 using SubsTracker.BLL;
-using SubsTracker.Domain.Options;
 
 namespace SubsTracker.API;
 
@@ -38,6 +46,66 @@ public static class ApplicationLayerServiceRegister
                     .AllowAnyHeader()
                     .AllowAnyMethod()
             ));
+        
+        services.AddOptions<RetryOptions>()
+            .BindConfiguration(RetryOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
+        services.AddOptions<CircuitBreakerOptions>()
+            .BindConfiguration(CircuitBreakerOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
+        services.AddOptions<CapacityLimiterOptions>()
+            .BindConfiguration(CapacityLimiterOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+        
+        services.AddResiliencePipeline(ResilienceConstants.OrchestratorPipeline, (builder, context) => 
+        {
+            var retryOptions = context.ServiceProvider.GetRequiredService<IOptions<RetryOptions>>().Value;
+            var circuitBreakerOptions = context.ServiceProvider.GetRequiredService<IOptions<CircuitBreakerOptions>>().Value;
+            var capacityLimiterOptions = context.ServiceProvider.GetRequiredService<IOptions<CapacityLimiterOptions>>().Value;
+            
+            builder.AddRateLimiter(new SlidingWindowRateLimiter(
+                new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = capacityLimiterOptions.PermitLimit,
+                    Window = TimeSpan.FromSeconds(capacityLimiterOptions.RequestWindow),
+                    SegmentsPerWindow = capacityLimiterOptions.SegmentsPerWindow
+                }));
+    
+            builder.AddRateLimiter(new SlidingWindowRateLimiter(
+                new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = capacityLimiterOptions.PermitLimit,
+                    Window = TimeSpan.FromSeconds(capacityLimiterOptions.RequestWindow),
+                    SegmentsPerWindow = capacityLimiterOptions.SegmentsPerWindow
+                }));
+            
+            builder.AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = retryOptions.MaxRetryAttempts,
+                BackoffType = DelayBackoffType.Exponential,
+                UseJitter = true,
+                Delay = TimeSpan.FromSeconds(retryOptions.BaseDelaySeconds)
+            });
+            
+            builder.AddCircuitBreaker(new CircuitBreakerStrategyOptions
+            {
+                FailureRatio = circuitBreakerOptions.FailureRatio,
+                SamplingDuration = TimeSpan.FromSeconds(circuitBreakerOptions.SamplingDuration),
+                MinimumThroughput = circuitBreakerOptions.MinimumThroughput,
+                BreakDuration = TimeSpan.FromSeconds(circuitBreakerOptions.BreakDuration),
+                ShouldHandle = new PredicateBuilder()
+                    .Handle<DbException>()
+                    .Handle<SqlException>()
+                    .Handle<TimeoutException>()
+            });
+
+            builder.AddTimeout(TimeSpan.FromSeconds(retryOptions.SecondsTimeout));
+        });
         
         services.AddOptions<Auth0Options>()
             .BindConfiguration(Auth0Options.SectionName)

@@ -4,7 +4,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using SubsTracker.API.Auth0;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.Domain.Options;
 
 namespace SubsTracker.IntegrationTests.Auth0;
 

@@ -1,4 +1,4 @@
-namespace SubsTracker.Domain.Filter;
+namespace SubsTracker.BLL.Filter;
 
 public class GroupFilterDto
 {

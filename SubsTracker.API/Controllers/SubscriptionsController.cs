@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Extension;
 using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Interfaces;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.API.Controllers;

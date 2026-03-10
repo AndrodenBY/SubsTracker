@@ -8,11 +8,11 @@ using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
-using UserDto = SubsTracker.BLL.DTOs.User.UserDto;
-using CreateUserDto = SubsTracker.BLL.DTOs.User.Create.CreateUserDto;
-using UpdateUserDto = SubsTracker.BLL.DTOs.User.Update.UpdateUserDto;
+using SubsTracker.BLL.DTOs.User;
+using SubsTracker.BLL.DTOs.User.Create;
+using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Filter;
 
 namespace SubsTracker.BLL.Services;
 

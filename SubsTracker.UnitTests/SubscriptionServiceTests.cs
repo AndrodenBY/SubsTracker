@@ -3,12 +3,12 @@ using AutoFixture;
 using NSubstitute;
 using Shouldly;
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Mediator.Handlers.UpcomingBills;
 using SubsTracker.BLL.Mediator.Signals;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 using SubsTracker.UnitTests.TestsBase;
 

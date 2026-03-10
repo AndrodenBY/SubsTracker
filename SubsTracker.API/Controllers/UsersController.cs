@@ -6,8 +6,8 @@ using SubsTracker.API.Helpers;
 using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Interfaces;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.API.Controllers;
