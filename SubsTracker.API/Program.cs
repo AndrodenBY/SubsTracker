@@ -1,3 +1,4 @@
+using Scalar.AspNetCore;
 using SubsTracker.API.Middlewares.ExceptionHandling;
 
 namespace SubsTracker.API;
@@ -17,21 +18,29 @@ public class Program
             .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
             .AddEnvironmentVariables();
 
-        if (!builder.Environment.IsEnvironment("IntegrationTest")) builder.Configuration.AddUserSecrets<Program>();
+        if (!builder.Environment.IsEnvironment("IntegrationTest"))
+        {
+            builder.Configuration.AddUserSecrets<Program>();
+        }
 
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-
+        builder.Services.AddOpenApi();
         builder.Services.RegisterApplicationLayerDependencies(builder.Configuration);
 
         var app = builder.Build();
 
-        if (!app.Environment.IsDevelopment()) app.UseHsts();
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseHsts();
+        }
 
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.MapOpenApi();
+            app.MapScalarApiReference(options => 
+            {
+                options.WithTitle("SubsTracker API")
+                    .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
+            });
         }
 
         app.UseMiddleware<ExceptionHandlingMiddleware>();

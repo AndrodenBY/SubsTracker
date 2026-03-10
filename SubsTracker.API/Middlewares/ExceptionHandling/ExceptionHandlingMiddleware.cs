@@ -1,26 +1,54 @@
 using System.Net;
 using System.Net.Mime;
+using FluentValidation;
 using SubsTracker.Domain.Exceptions;
 
 namespace SubsTracker.API.Middlewares.ExceptionHandling;
 
 public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
 {
+    
     public async Task Invoke(HttpContext httpContext)
     {
         try
         {
             await next(httpContext);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogError(ex, "Exception at {Method} {Path}{Query}",
-                httpContext.Request.Method,
-                httpContext.Request.Path,
-                httpContext.Request.QueryString);
+            if (exception is ValidationException fluentException)
+            {
+                var validationErrors = fluentException.Errors
+                    .GroupBy(e => e.PropertyName)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.Select(e => e.ErrorMessage).ToArray()
+                    );
+                
+                logger.LogWarning("Validation failed at {Path} | Errors: {@ValidationErrors}", 
+                    httpContext.Request.Path, 
+                    validationErrors);
 
-            await HandleExceptionResponse(httpContext, ex);
+                await HandleValidationResponse(httpContext, validationErrors);
+            }
+            else
+            {
+                logger.LogError(exception, "Unhandled Exception at {Method} {Path}",
+                    httpContext.Request.Method,
+                    httpContext.Request.Path);
+
+                await HandleExceptionResponse(httpContext, exception);
+            }
         }
+    }
+    
+    private static async Task HandleValidationResponse(HttpContext context, IDictionary<string, string[]> errors)
+    {
+        context.Response.ContentType = MediaTypeNames.Application.Json;
+        context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+        var errorModel = new ErrorModel(context.Response.StatusCode, "One or more validation errors occurred.", errors);
+        await context.Response.WriteAsJsonAsync(errorModel);
     }
 
     private static async Task HandleExceptionResponse(HttpContext context, Exception exception)

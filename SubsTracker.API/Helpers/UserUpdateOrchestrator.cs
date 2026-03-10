@@ -3,7 +3,6 @@ using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces;
 using Polly.Registry;
-using SubsTracker.API.Constants;
 using SubsTracker.API.Resilience;
 
 namespace SubsTracker.API.Helpers;
