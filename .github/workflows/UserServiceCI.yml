@@ -53,6 +53,7 @@ jobs:
       contents: write
       pages: write
       pull-requests: write
+      statuses: write
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
@@ -99,6 +100,15 @@ jobs:
           find . -type d -name "allure-results" -exec cp -rv {}/. ./consolidated-results/ \;
           echo "Checking consolidated results:"
           ls -R consolidated-results
+      
+      - name: Post Allure Results
+        if: github.event_name == 'pull_request'
+        uses: throllander/actions-comment-pull-request@v2
+        with:
+          message: |
+            Allure results posted for PR #${{ github.event.pull_request.number }}
+            https://androdenby.github.io/SubsTracker/${{ github.event.pull_request.number }}/
+          comment_tag: allure_report
 
       - name: Sonar End
         env:
@@ -113,8 +123,10 @@ jobs:
 
       - name: Allure Report Action
         uses: simple-elf/allure-report-action@53ebb757a2097edc77c53ecef4d454fc2f2f774c
+        if: always()
         with:
           allure_results: consolidated-results
+          allure-history: allure-history
           gh_pages: gh-pages-dir
           subfolder: ${{ github.event.pull_request.number || github.ref_name }}
 
