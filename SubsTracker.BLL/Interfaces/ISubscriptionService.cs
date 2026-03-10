@@ -1,6 +1,6 @@
 using SubsTracker.BLL.DTOs.Subscription;
+using SubsTracker.BLL.Filter;
 using SubsTracker.DAL.Entities;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.BLL.Interfaces

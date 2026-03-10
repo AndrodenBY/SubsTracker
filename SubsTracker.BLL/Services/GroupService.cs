@@ -3,6 +3,7 @@ using DispatchR;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;
@@ -12,7 +13,6 @@ using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.BLL.Services;

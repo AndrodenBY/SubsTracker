@@ -4,7 +4,6 @@ using Auth0.ManagementApi;
 using Auth0.ManagementApi.Models;
 using Microsoft.Extensions.Options;
 using SubsTracker.BLL.DTOs.User.Update;
-using SubsTracker.Domain.Options;
 
 namespace SubsTracker.API.Auth0;
 

@@ -1,9 +1,9 @@
 using System.Linq.Expressions;
 using LinqKit;
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.BLL.Filter;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
-using SubsTracker.Domain.Filter;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 

@@ -5,13 +5,13 @@ using Shouldly;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
+using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Mediator.Handlers.JoinGroup;
 using SubsTracker.BLL.Mediator.Signals;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
-using SubsTracker.Domain.Filter;
 using SubsTracker.Domain.Pagination;
 using SubsTracker.UnitTests.TestsBase;
 

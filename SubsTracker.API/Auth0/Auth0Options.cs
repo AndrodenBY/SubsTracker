@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace SubsTracker.Domain.Options;
+namespace SubsTracker.API.Auth0;
 
 public class Auth0Options
 {

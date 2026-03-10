@@ -1,6 +1,6 @@
 using SubsTracker.Domain.Enums;
 
-namespace SubsTracker.Domain.Filter;
+namespace SubsTracker.BLL.Filter;
 
 public class SubscriptionFilterDto
 {

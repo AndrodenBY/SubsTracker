@@ -5,7 +5,6 @@ using NSubstitute;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.Services;
 using SubsTracker.DAL.Interfaces.Repositories;
-using SubsTracker.Messaging.Interfaces;
 
 namespace SubsTracker.UnitTests.TestsBase;
 
