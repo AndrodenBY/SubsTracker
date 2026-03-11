@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace SubsTracker.API.Middlewares.ExceptionHandling;
 
 public class ErrorModel(int statusCode, string? message)

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Mime;
+using FluentValidation;
 using SubsTracker.Domain.Exceptions;
 
 namespace SubsTracker.API.Middlewares.ExceptionHandling;
@@ -12,17 +13,15 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
         {
             await next(httpContext);
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
-            logger.LogError(ex, "Exception at {Method} {Path}{Query}",
+            logger.LogError(exception, "Unhandled Exception at {Method} {Path}",
                 httpContext.Request.Method,
-                httpContext.Request.Path,
-                httpContext.Request.QueryString);
+                httpContext.Request.Path);
 
-            await HandleExceptionResponse(httpContext, ex);
+            await HandleExceptionResponse(httpContext, exception);
         }
     }
-
     private static async Task HandleExceptionResponse(HttpContext context, Exception exception)
     {
         context.Response.ContentType = MediaTypeNames.Application.Json;

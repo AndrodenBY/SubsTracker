@@ -64,24 +64,36 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 9.0.x
+       
+      - name: Install SonarScanner
+        run: dotnet tool install --global dotnet-sonarscanner
       
       - name: Sonar Begin
+        shell: pwsh
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-          HEAD_REF: ${{ github.head_ref }}
-          BASE_REF: ${{ github.base_ref }}
+          PR_KEY: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.head_ref }}
+          PR_BASE: ${{ github.base_ref }}
         run: |
-            dotnet tool install --global dotnet-sonarscanner
-            dotnet sonarscanner begin \
-              /k:"AndrodenBY_SubsTracker" \
-              /o:"androdenby" \
-              /d:sonar.host.url="https://sonarcloud.io" \
-              /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
-              /d:sonar.cs.vstest.reportsPaths="**/*.trx" \
-              /d:sonar.pullrequest.key="$PR_NUMBER" \
-              /d:sonar.pullrequest.branch="$HEAD_REF" \
-              /d:sonar.pullrequest.base="$BASE_REF"
+          [string[]]$PR_ARGS = @()
+          if ($env:PR_KEY) {
+            $PR_ARGS += "/d:sonar.pullrequest.key=$env:PR_KEY"
+            $PR_ARGS += "/d:sonar.pullrequest.branch=$env:PR_BRANCH"
+            $PR_ARGS += "/d:sonar.pullrequest.base=$env:PR_BASE"
+          } else {
+            $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
+          }
+          dotnet sonarscanner begin `
+          /k:"AndrodenBY_SubsTracker" `
+          /o:"androdenby" `
+          /d:sonar.login="$env:SONAR_TOKEN" `
+          /d:sonar.host.url="https://sonarcloud.io" `
+          /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
+          /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
+          /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
+          /d:sonar.coverage.exclusions="**/*ViewModel.cs,**/*Dto.cs,**/Constants/**,**/Enums/**,**/Exceptions/**,**/Json/**,**/Entities/**,**/Options/**,**/Filter/**,**/RedisSettings/**" `
+          @PR_ARGS
 
       - name: Run Everything (Tests + Coverage + Allure)
         env:
@@ -109,12 +121,12 @@ jobs:
             ### Allure Test Report
             The results for PR #${{ github.event.pull_request.number }} are ready:
             [View Allure Report](https://androdenby.github.io/SubsTracker/${{ github.event.pull_request.number }}/)
-          comment_tag: allure_report
+          comment-tag: allure_report
 
       - name: Sonar End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end
+        run: dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
 
       - name: Get Allure history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
