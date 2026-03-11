@@ -17,8 +17,8 @@ public class GetUpcomingBillsHandler(
 {
     public async ValueTask<List<SubscriptionDto>> Handle(GetUpcomingBills request, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByAuth0Id(request.Auth0Id, cancellationToken)
-                           ?? throw new UnknownIdentifierException($"User with {request.Auth0Id} not found");
+        var existingUser = await userRepository.GetByIdentityId(request.IdentityId, cancellationToken)
+                           ?? throw new UnknownIdentifierException($"User with {request.IdentityId} not found");
         
         var cacheKey = RedisKeySetter.SetCacheKey(existingUser.Id, "upcoming_bills");
         var cachedData = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);

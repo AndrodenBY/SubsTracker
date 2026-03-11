@@ -466,7 +466,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Create();
 
         UserRepository.GetById(createDto.UserId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<UserEntity?>(new UserEntity { Id = createDto.UserId }));
+            .Returns(Task.FromResult<UserEntity?>(new UserEntity { IdentityId = Guid.NewGuid().ToString(), Id = createDto.UserId }));
 
         Mapper.Map<GroupEntity>(createDto)
             .Returns(userGroupEntity);
@@ -517,7 +517,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Create();
         
         UserRepository.GetById(createDto.UserId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<UserEntity?>(new UserEntity { Id = createDto.UserId }));
+            .Returns(Task.FromResult<UserEntity?>(new UserEntity { IdentityId = Guid.NewGuid().ToString(), Id = createDto.UserId }));
         Mapper.Map<GroupEntity>(createDto)
             .Returns(userGroupEntity);
         GroupRepository.Create(userGroupEntity, Arg.Any<CancellationToken>())

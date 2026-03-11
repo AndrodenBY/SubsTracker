@@ -75,7 +75,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     [AllureFeature("Information")]
     [AllureStory("Get My Profile")]
     [AllureDescription("Verifies that /me returns the profile of the currently logged-in Auth0 user")]
-    public async Task GetByAuth0Id_ShouldReturnCurrentAuthenticatedUser()
+    public async Task GetByIdentityId_ShouldReturnCurrentAuthenticatedUser()
     {
         // Arrange
         UserEntity expected = null!;
@@ -99,7 +99,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
             result.ShouldNotBeNull();
             result.ShouldSatisfyAllConditions(
                 () => result.Id.ShouldBe(expected.Id),
-                () => result.Auth0Id.ShouldBe(expected.Auth0Id),
+                () => result.IdentityId.ShouldBe(expected.IdentityId),
                 () => result.Email.ShouldBe(expected.Email),
                 () => result.FirstName.ShouldBe(expected.FirstName),
                 () => result.LastName.ShouldBe(expected.LastName)
@@ -112,7 +112,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     [AllureFeature("Security")]
     [AllureStory("Unauthorized Access")]
     [AllureDescription("Ensures the API blocks requests to /me if the authentication token is missing or bypassed")]
-    public async Task GetByAuth0Id_WhenNoTokenProvided_ReturnsUnauthorized()
+    public async Task GetByIdentityId_WhenNoTokenProvided_ReturnsUnauthorized()
     {
         // Arrange
         HttpRequestMessage request = null!;

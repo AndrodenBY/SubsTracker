@@ -20,7 +20,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
         
         var existingUser = await dbContext.Users
-            .FirstOrDefaultAsync(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
+            .FirstOrDefaultAsync(u => u.IdentityId == TestsAuthHandler.DefaultIdentityId);
         if (existingUser != null)
         {
             dbContext.Users.Remove(existingUser);
@@ -28,7 +28,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         }
 
         var user = Fixture.Build<UserEntity>()
-            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
+            .With(u => u.IdentityId, TestsAuthHandler.DefaultIdentityId)
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();
@@ -56,7 +56,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserEntity>()
-            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
+            .With(u => u.IdentityId, TestsAuthHandler.DefaultIdentityId)
             .Without(u => u.Groups)
             .Create();
 
@@ -76,7 +76,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserEntity>()
-            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
+            .With(u => u.IdentityId, TestsAuthHandler.DefaultIdentityId)
             .Without(u => u.Groups)
             .Create();
 
@@ -125,7 +125,7 @@ public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory facto
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var user = Fixture.Build<UserEntity>()
-            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id)
+            .With(u => u.IdentityId, TestsAuthHandler.DefaultIdentityId)
             .Without(u => u.Groups)
             .Create();
 

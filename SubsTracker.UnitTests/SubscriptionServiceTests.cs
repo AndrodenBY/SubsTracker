@@ -21,13 +21,13 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|test-user";
+        var identityId = "auth0|test-user";
         var userId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
 
         var userEntity = Fixture.Build<UserEntity>()
             .With(u => u.Id, userId)
-            .With(u => u.Auth0Id, auth0Id)
+            .With(u => u.IdentityId, identityId)
             .Create();
 
         var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
@@ -46,7 +46,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(dto => dto.Id, subscriptionId)
             .Create();
 
-        UserRepository.GetByAuth0Id(auth0Id, ct)
+        UserRepository.GetByIdentityId(identityId, ct)
             .Returns(Task.FromResult<UserEntity?>(userEntity));
 
         SubscriptionRepository.GetById(subscriptionId, ct)
@@ -59,7 +59,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(updatedSubscriptionDto);
 
         //Act
-        var result = await Service.CancelSubscription(auth0Id, subscriptionId, ct);
+        var result = await Service.CancelSubscription(identityId, subscriptionId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -96,13 +96,13 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|123456789";
+        var identityId = "auth0|123456789";
         var userId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
     
         var userEntity = Fixture.Build<UserEntity>()
             .With(u => u.Id, userId)
-            .With(u => u.Auth0Id, auth0Id)
+            .With(u => u.IdentityId, identityId)
             .Create();
     
         var subscriptionEntity = Fixture.Build<SubscriptionEntity>()
@@ -120,7 +120,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(d => d.Id, subscriptionId)
             .Create();
         
-        UserRepository.GetByAuth0Id(auth0Id, ct)
+        UserRepository.GetByIdentityId(identityId, ct)
             .Returns(userEntity);
         SubscriptionRepository.GetById(subscriptionId, ct)
             .Returns(subscriptionEntity);
@@ -130,7 +130,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(expectedDto);
 
         //Act
-        var result = await Service.CancelSubscription(auth0Id, subscriptionId, ct);
+        var result = await Service.CancelSubscription(identityId, subscriptionId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -151,7 +151,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|test-user";
+        var identityId = "auth0|test-user";
         var userId = Guid.NewGuid();
         var subscriptionId = Guid.NewGuid();
 
@@ -173,7 +173,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(dto => dto.Name, updateDto.Name)
             .Create();
     
-        UserRepository.GetByAuth0Id(auth0Id, ct)
+        UserRepository.GetByIdentityId(identityId, ct)
             .Returns(Task.FromResult<UserEntity?>(userEntity));
     
         SubscriptionRepository.GetById(subscriptionId, ct)
@@ -189,14 +189,14 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Update(auth0Id, updateDto, ct);
+        var result = await Service.Update(identityId, updateDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
         result.Id.ShouldBe(subscriptionId);
         result.Name.ShouldBe(updateDto.Name);
 
-        await UserRepository.Received(1).GetByAuth0Id(auth0Id, ct);
+        await UserRepository.Received(1).GetByIdentityId(identityId, ct);
         await SubscriptionRepository.Received(1).Update(
             Arg.Is<SubscriptionEntity>(s => s.Id == subscriptionId), 
             ct
@@ -287,15 +287,15 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|test-user";
+        var identityId = "auth0|test-user";
         
         var expectedBills = Fixture.CreateMany<SubscriptionDto>(3).ToList();
         
-        Mediator.Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct)
+        Mediator.Send(Arg.Is<GetUpcomingBills>(q => q.IdentityId == identityId), ct)
             .Returns(expectedBills);
 
         //Act
-        var result = await Service.GetUpcomingBills(auth0Id, ct);
+        var result = await Service.GetUpcomingBills(identityId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -303,7 +303,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         result.ShouldBe(expectedBills);
         
         await Mediator.Received(1).Send(Arg.Any<GetUpcomingBills>(), ct);
-        await UserRepository.DidNotReceive().GetByAuth0Id(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await UserRepository.DidNotReceive().GetByIdentityId(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await SubscriptionRepository.DidNotReceive().GetUpcomingBills(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
 
@@ -312,22 +312,22 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|test-user";
+        var identityId = "auth0|test-user";
         
         List<SubscriptionDto> emptyList = [];
         
-        Mediator.Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct)
+        Mediator.Send(Arg.Is<GetUpcomingBills>(q => q.IdentityId == identityId), ct)
             .Returns(emptyList);
 
         //Act
-        var result = await Service.GetUpcomingBills(auth0Id, ct);
+        var result = await Service.GetUpcomingBills(identityId, ct);
 
         //Assert
         result.ShouldNotBeNull();
         result.ShouldBeEmpty();
         
-        await Mediator.Received(1).Send(Arg.Is<GetUpcomingBills>(q => q.Auth0Id == auth0Id), ct);
-        await UserRepository.DidNotReceive().GetByAuth0Id(Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await Mediator.Received(1).Send(Arg.Is<GetUpcomingBills>(q => q.IdentityId == identityId), ct);
+        await UserRepository.DidNotReceive().GetByIdentityId(Arg.Any<string>(), Arg.Any<CancellationToken>());
         await SubscriptionRepository.DidNotReceive().GetUpcomingBills(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
     
@@ -659,7 +659,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|test-user";
+        var identityId = "auth0|test-user";
         var createDto = Fixture.Create<CreateSubscriptionDto>();
         var existingUser = Fixture.Create<UserEntity>();
 
@@ -672,7 +672,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(s => s.Name, createDto.Name)
             .Create();
         
-        UserRepository.GetByAuth0Id(auth0Id, ct).Returns(existingUser);
+        UserRepository.GetByIdentityId(identityId, ct).Returns(existingUser);
         SubscriptionRepository.GetByPredicate(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), ct)
             .Returns(Task.FromResult<SubscriptionEntity?>(null));
         Mapper.Map<SubscriptionEntity>(createDto)
@@ -683,13 +683,13 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Create(auth0Id, createDto, ct);
+        var result = await Service.Create(identityId, createDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
         result.Name.ShouldBe(createDto.Name);
         
-        await UserRepository.Received(1).GetByAuth0Id(auth0Id, ct);
+        await UserRepository.Received(1).GetByIdentityId(identityId, ct);
         await SubscriptionRepository.Received(1).Create(
             Arg.Is<SubscriptionEntity>(s => s.Name == createDto.Name && s.UserId == existingUser.Id), 
             ct);
@@ -705,7 +705,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var auth0Id = "auth0|test-user";
+        var identityId = "auth0|test-user";
         var createDto = Fixture.Create<CreateSubscriptionDto>();
         var existingUser = Fixture.Create<UserEntity>();
 
@@ -715,13 +715,13 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(s => s.Active, true)
             .Create();
 
-        UserRepository.GetByAuth0Id(auth0Id, ct)
+        UserRepository.GetByIdentityId(identityId, ct)
             .Returns(existingUser);
         SubscriptionRepository.GetByPredicate(Arg.Any<Expression<Func<SubscriptionEntity, bool>>>(), ct)
             .Returns(existingSubscription);
 
         //Act
-        var act = async () => await Service.Create(auth0Id, createDto, ct);
+        var act = async () => await Service.Create(identityId, createDto, ct);
 
         //Assert
         var exception = await act.ShouldThrowAsync<PolicyViolationException>();

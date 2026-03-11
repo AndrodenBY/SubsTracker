@@ -18,7 +18,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
 
         var existingUsers = dbContext.Users
-            .Where(u => u.Auth0Id == TestsAuthHandler.DefaultAuth0Id);
+            .Where(u => u.IdentityId == TestsAuthHandler.DefaultIdentityId);
     
         if (existingUsers.Any())
         {
@@ -27,7 +27,7 @@ public class UserTestsDataSeedingHelper(TestsWebApplicationFactory factory) : Te
         }
         
         var user = Fixture.Build<UserEntity>()
-            .With(u => u.Auth0Id, TestsAuthHandler.DefaultAuth0Id) 
+            .With(u => u.IdentityId, TestsAuthHandler.DefaultIdentityId) 
             .Without(u => u.Groups)
             .Without(u => u.Subscriptions)
             .Create();

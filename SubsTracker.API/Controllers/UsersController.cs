@@ -34,9 +34,9 @@ public class UsersController(
     ///     Retrieves the profile of the currently authenticated user.
     /// </summary>
     [HttpGet("me")]
-    public async Task<UserViewModel> GetByAuth0Id(CancellationToken cancellationToken)
+    public async Task<UserViewModel> GetByIdentityId(CancellationToken cancellationToken)
     {
-        var user = await service.GetByAuth0Id(User.GetAuth0IdFromToken(), cancellationToken);
+        var user = await service.GetByIdentityId(User.GetIdentityIdFromToken(), cancellationToken);
         return mapper.Map<UserViewModel>(user);
     }
 
@@ -56,7 +56,7 @@ public class UsersController(
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
+        var create = await service.Create(User.GetIdentityIdFromToken(), createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
 
@@ -66,8 +66,8 @@ public class UsersController(
     [HttpPut("me")]
     public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
-        var auth0Id =  User.GetAuth0IdFromToken();
-        var updatedUser = await updateOrchestrator.FullUserUpdate(auth0Id, updateDto, cancellationToken);
+        var identityId =  User.GetIdentityIdFromToken();
+        var updatedUser = await updateOrchestrator.FullUserUpdate(identityId, updateDto, cancellationToken);
     
         return mapper.Map<UserViewModel>(updatedUser);
     }
@@ -78,6 +78,6 @@ public class UsersController(
     [HttpDelete]
     public async Task Delete(CancellationToken cancellationToken)
     {
-        await service.Delete(User.GetAuth0IdFromToken(), cancellationToken);
+        await service.Delete(User.GetIdentityIdFromToken(), cancellationToken);
     }
 }

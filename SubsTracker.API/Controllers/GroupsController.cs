@@ -56,7 +56,7 @@ public class GroupsController(
     [HttpPost]
     public async Task<GroupViewModel> Create(CreateGroupDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
+        var create = await service.Create(User.GetIdentityIdFromToken(), createDto, cancellationToken);
         return mapper.Map<GroupViewModel>(create);
     }
 

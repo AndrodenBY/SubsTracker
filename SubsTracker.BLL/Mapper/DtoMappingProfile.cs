@@ -23,7 +23,7 @@ public class DtoMappingProfile : Profile
 
         CreateMap<UpdateUserDto, UserEntity>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.Auth0Id, opt => opt.Ignore());
+            .ForMember(dest => dest.IdentityId, opt => opt.Ignore());
         CreateMap<UpdateGroupDto, GroupEntity>();
         CreateMap<UpdateMemberDto, MemberEntity>();
         CreateMap<UpdateSubscriptionDto, SubscriptionEntity>();

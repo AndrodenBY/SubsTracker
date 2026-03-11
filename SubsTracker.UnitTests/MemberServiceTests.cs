@@ -33,7 +33,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .With(m => m.UserId, userId)
             .With(m => m.GroupId, groupId)
             .With(m => m.Group, new GroupEntity { Name = groupName })
-            .With(m => m.User, new UserEntity { Email = userEmail })
+            .With(m => m.User, new UserEntity { IdentityId = Guid.NewGuid().ToString(), Email = userEmail })
             .Create();
 
         MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)
@@ -95,7 +95,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .With(m => m.UserId, userId)
             .With(m => m.GroupId, groupId)
             .With(m => m.Group, new GroupEntity { Name = groupName })
-            .With(m => m.User, new UserEntity { Email = userEmail })
+            .With(m => m.User, new UserEntity { IdentityId = Guid.NewGuid().ToString(), Email = userEmail })
             .Create();
 
         MemberRepository.GetByPredicateFullInfo(Arg.Any<Expression<Func<MemberEntity, bool>>>(), ct)

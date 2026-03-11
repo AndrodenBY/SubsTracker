@@ -59,13 +59,13 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
         });
     }
 
-    public HttpClient CreateAuthenticatedClient(string auth0Id = TestsAuthHandler.DefaultAuth0Id)
+    public HttpClient CreateAuthenticatedClient(string identityId = TestsAuthHandler.DefaultIdentityId)
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestAuthScheme");
         
         client.DefaultRequestHeaders.Remove(TestsAuthHandler.Auth0Header);
-        client.DefaultRequestHeaders.TryAddWithoutValidation(TestsAuthHandler.Auth0Header, auth0Id);
+        client.DefaultRequestHeaders.TryAddWithoutValidation(TestsAuthHandler.Auth0Header, identityId);
         
         return client;
     }

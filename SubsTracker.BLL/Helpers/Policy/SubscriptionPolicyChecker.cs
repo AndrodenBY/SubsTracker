@@ -9,12 +9,12 @@ public static class SubscriptionPolicyChecker
     public static async Task<(SubscriptionEntity subscription, UserEntity user)> GetValidatedSubscription(
         IUserRepository userRepository, 
         ISubscriptionRepository subscriptionRepository, 
-        string auth0Id, 
+        string identityId, 
         Guid subscriptionId, 
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                   ?? throw new UnknownIdentifierException($"User {auth0Id} not found");
+        var user = await userRepository.GetByIdentityId(identityId, cancellationToken)
+                   ?? throw new UnknownIdentifierException($"User {identityId} not found");
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
                            ?? throw new UnknownIdentifierException($"Subscription {subscriptionId} not found");

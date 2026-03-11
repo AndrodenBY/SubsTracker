@@ -90,14 +90,14 @@ public class OrchestratorResilienceTests : IClassFixture<TestsWebApplicationFact
         await AllureApi.Step("Exhaust the MinimumThroughput (2 failures)", async () =>
         {
             await Should.ThrowAsync<TimeoutException>(async () => 
-                await orchestrator.FullUserUpdate(TestsAuthHandler.DefaultAuth0Id, validDto, CancellationToken.None));
+                await orchestrator.FullUserUpdate(TestsAuthHandler.DefaultIdentityId, validDto, CancellationToken.None));
         });
         await Task.Yield();
 
         await AllureApi.Step("Subsequent call: Verify Circuit is OPEN", async () =>
         {
             await Should.ThrowAsync<BrokenCircuitException>(async () => 
-                await orchestrator.FullUserUpdate(TestsAuthHandler.DefaultAuth0Id, validDto, CancellationToken.None));
+                await orchestrator.FullUserUpdate(TestsAuthHandler.DefaultIdentityId, validDto, CancellationToken.None));
         });
     }
 }

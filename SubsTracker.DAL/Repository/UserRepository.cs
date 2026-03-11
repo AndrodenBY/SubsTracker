@@ -8,7 +8,7 @@ public class UserRepository(SubsDbContext context) : Repository<UserEntity>(cont
 {
     private readonly DbSet<UserEntity> _dbSet = context.Set<UserEntity>();
     
-    public async Task<UserEntity?> GetByAuth0Id(string auth0Id, CancellationToken cancellationToken, bool isTracking = true)
+    public async Task<UserEntity?> GetByIdentityId(string identityId, CancellationToken cancellationToken, bool isTracking = true)
     {
         var query = isTracking 
             ? _dbSet.AsSplitQuery() 
@@ -17,6 +17,6 @@ public class UserRepository(SubsDbContext context) : Repository<UserEntity>(cont
         return await query 
             .Include(u => u.Subscriptions) 
             .Include(u => u.Groups) 
-            .FirstOrDefaultAsync(u => u.Auth0Id == auth0Id, cancellationToken);
+            .FirstOrDefaultAsync(u => u.IdentityId == identityId, cancellationToken);
     }
 }

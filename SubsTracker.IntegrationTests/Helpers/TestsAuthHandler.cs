@@ -12,8 +12,8 @@ public class TestsAuthHandler(
     UrlEncoder encoder)
     : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public const string DefaultAuth0Id = "auth0|test-user-12345";
-    public const string Auth0Header = "X-Test-Auth0Id";
+    public const string DefaultIdentityId = "auth0|test-user-12345";
+    public const string Auth0Header = "X-Test-IdentityId";
     
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
@@ -24,7 +24,7 @@ public class TestsAuthHandler(
         
         var claims = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, DefaultAuth0Id),
+            new Claim(ClaimTypes.NameIdentifier, DefaultIdentityId),
             new Claim(ClaimTypes.Name, "testuser@example.com"),
             new Claim(ClaimTypes.Role, "Admin")
         };

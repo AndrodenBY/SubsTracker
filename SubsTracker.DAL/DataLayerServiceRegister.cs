@@ -12,6 +12,7 @@ public static class DataLayerServiceRegister
         IConfiguration configuration)
     {
         var postgreConnectionString = configuration["PostgreConnectionString"];
+        Console.WriteLine(postgreConnectionString);
 
         services.AddDbContext<SubsDbContext>(options =>
                 options.UseNpgsql(postgreConnectionString))

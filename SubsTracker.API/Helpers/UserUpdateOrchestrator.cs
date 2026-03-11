@@ -9,16 +9,16 @@ namespace SubsTracker.API.Helpers;
 
 public class UserUpdateOrchestrator(IAuth0Service auth0Service, IUserService userService, ResiliencePipelineProvider<string> provider)
 {
-    public async Task<UserDto> FullUserUpdate(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public async Task<UserDto> FullUserUpdate(string identityId, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
         var pipeline = provider.GetPipeline(ResilienceConstants.OrchestratorPipeline);
         
         return await pipeline.ExecuteAsync(async (state, token) =>
             {
-                await state.auth0Service.UpdateUserProfile(state.auth0Id, state.updateDto, token);
-                return await state.userService.Update(state.auth0Id, state.updateDto, token);
+                await state.auth0Service.UpdateUserProfile(state.identityId, state.updateDto, token);
+                return await state.userService.Update(state.identityId, state.updateDto, token);
             }, 
-            (auth0Service, userService, auth0Id, updateDto), 
+            (auth0Service, userService, identityId, updateDto), 
             cancellationToken);
     }
 }

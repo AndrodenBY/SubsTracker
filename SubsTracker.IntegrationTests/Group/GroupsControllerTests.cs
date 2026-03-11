@@ -433,12 +433,12 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
     {
         // Arrange
         var fixture = new Fixture();
-        var randomAuth0Id = $"auth0|{fixture.Create<Guid>()}";
-        var client = _factory.CreateAuthenticatedClient(randomAuth0Id); 
+        var randomIdentityId = $"auth0|{fixture.Create<Guid>()}";
+        var client = _factory.CreateAuthenticatedClient(randomIdentityId); 
         var createDto = fixture.Build<CreateGroupDto>().Create();
 
         // Removed 'await' because there is no async work inside this step
-        AllureApi.Step($"Arrange: Setup client with non-existent Auth0 ID: {randomAuth0Id}", () => {
+        AllureApi.Step($"Arrange: Setup client with non-existent Auth0 ID: {randomIdentityId}", () => {
             var json = JsonSerializer.Serialize(createDto);
             AllureApi.AddAttachment("Create DTO", "application/json", Encoding.UTF8.GetBytes(json), ".json");
         });

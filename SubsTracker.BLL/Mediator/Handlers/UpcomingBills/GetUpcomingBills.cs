@@ -3,4 +3,4 @@ using SubsTracker.BLL.DTOs.Subscription;
 
 namespace SubsTracker.BLL.Mediator.Handlers.UpcomingBills;
 
-public record GetUpcomingBills(string Auth0Id) : IRequest<GetUpcomingBills, ValueTask<List<SubscriptionDto>>>;
+public record GetUpcomingBills(string IdentityId) : IRequest<GetUpcomingBills, ValueTask<List<SubscriptionDto>>>;
