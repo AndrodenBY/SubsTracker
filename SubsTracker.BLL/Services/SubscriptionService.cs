@@ -75,6 +75,8 @@ public class SubscriptionService(
         var (subscription, user) = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, identityId, subscriptionId, cancellationToken);
         
         subscription.Active = false;
+        subscription.DueDate =  DateOnly.FromDateTime(DateTime.UtcNow);
+        
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
         await mediator.Publish(new SubscriptionSignals.Canceled(canceledSubscription, user.Id), cancellationToken);
@@ -83,16 +85,23 @@ public class SubscriptionService(
 
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
     {
-        if (monthsToRenew <= 1)
+        var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
+                                  ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found");
+        
+        if (monthsToRenew < 1)
         {
             throw new InvalidRequestDataException("Cannot renew subscription for less than one month");
         }
 
-        var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
-                                  ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
+        var baseDate = subscriptionToRenew.DueDate > today 
+            ? subscriptionToRenew.DueDate 
+            : today;
+        
+        subscriptionToRenew.DueDate = baseDate.AddMonths(monthsToRenew);
         subscriptionToRenew.Active = true;
+        
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
         
         await mediator.Publish(new SubscriptionSignals.Renewed(renewedSubscription, renewedSubscription.UserId

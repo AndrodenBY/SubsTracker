@@ -22,10 +22,12 @@ public class GetUpcomingBillsHandler(
         
         var cacheKey = RedisKeySetter.SetCacheKey(existingUser.Id, "upcoming_bills");
         var cachedData = await cacheAccessService.GetData<List<SubscriptionDto>>(cacheKey, cancellationToken);
-        
-        if (cachedData is not null) 
+
+        if (cachedData is not null)
+        {
             return cachedData;
-        
+        }
+
         var billsToPay = await subscriptionRepository.GetUpcomingBills(existingUser.Id, cancellationToken)
                          ?? throw new UnknownIdentifierException($"Subscriptions with UserId {existingUser.Id} not found");
         
