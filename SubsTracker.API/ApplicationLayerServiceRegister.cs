@@ -9,6 +9,7 @@ public static class ApplicationLayerServiceRegister
     {
         services.RegisterBusinessLayerDependencies(configuration)
             .AddInfrastructureDependencies(configuration)
+            .AddInfrastructureDependencies()
             .AddAuthorizationDependencies()
             .AddResilienceDependencies();
     }

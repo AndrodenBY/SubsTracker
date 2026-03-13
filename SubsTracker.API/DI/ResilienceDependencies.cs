@@ -23,14 +23,6 @@ public static class ResilienceDependencies
             var retryOptions = context.ServiceProvider.GetRequiredService<IOptions<RetryOptions>>().Value;
             var circuitBreakerOptions = context.ServiceProvider.GetRequiredService<IOptions<CircuitBreakerOptions>>().Value;
             var capacityLimiterOptions = context.ServiceProvider.GetRequiredService<IOptions<CapacityLimiterOptions>>().Value;
-            
-            builder.AddRateLimiter(new SlidingWindowRateLimiter(
-                new SlidingWindowRateLimiterOptions
-                {
-                    PermitLimit = capacityLimiterOptions.PermitLimit,
-                    Window = TimeSpan.FromSeconds(capacityLimiterOptions.RequestWindow),
-                    SegmentsPerWindow = capacityLimiterOptions.SegmentsPerWindow
-                }));
     
             builder.AddRateLimiter(new SlidingWindowRateLimiter(
                 new SlidingWindowRateLimiterOptions

@@ -12,7 +12,7 @@ namespace SubsTracker.API.DI;
 
 public static class InfrastructureDependencies
 {
-    public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services)
     {
         services.AddAutoMapper(_ => { }, typeof(ViewModelMappingProfile).Assembly)
             .AddControllers()
