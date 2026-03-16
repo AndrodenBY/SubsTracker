@@ -43,10 +43,10 @@ public class SubscriptionService(
         return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
-    public async Task<SubscriptionDto> Create(string identityId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByIdentityId(identityId, cancellationToken)
-                           ?? throw new UnknownIdentifierException($"User with id {identityId} does not exist");
+        var existingUser = await userRepository.GetById(userId, cancellationToken)
+                           ?? throw new UnknownIdentifierException($"User with id {userId} does not exist");
         
         await SubscriptionPolicyChecker.PreventSubscriptionDuplication(subscriptionRepository, existingUser.Id, createDto.Name, cancellationToken);
         
@@ -59,27 +59,27 @@ public class SubscriptionService(
         return Mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
-    public async Task<SubscriptionDto> Update(string identityId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
+    public new async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var (originalSubscription, user) = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, identityId, updateDto.Id, cancellationToken);
+        var originalSubscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, updateDto.Id, cancellationToken);
 
         Mapper.Map(updateDto, originalSubscription);
         var updated = await subscriptionRepository.Update(originalSubscription, cancellationToken);
         
-        await mediator.Publish(new SubscriptionSignals.Updated(updated, originalSubscription.Type, user.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionSignals.Updated(updated, originalSubscription.Type, userId), cancellationToken);
         return Mapper.Map<SubscriptionDto>(updated);
     }
 
-    public async Task<SubscriptionDto> CancelSubscription(string identityId, Guid subscriptionId, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var (subscription, user) = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, identityId, subscriptionId, cancellationToken);
+        var subscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, subscriptionId, cancellationToken);
         
         subscription.Active = false;
         subscription.DueDate =  DateOnly.FromDateTime(DateTime.UtcNow);
         
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
-        await mediator.Publish(new SubscriptionSignals.Canceled(canceledSubscription, user.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionSignals.Canceled(canceledSubscription, userId), cancellationToken);
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
@@ -109,8 +109,8 @@ public class SubscriptionService(
         return Mapper.Map<SubscriptionDto>(renewedSubscription);
     }
 
-    public async Task<List<SubscriptionDto>> GetUpcomingBills(string identityId, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
-        return await mediator.Send(new GetUpcomingBills(identityId), cancellationToken);
+        return await mediator.Send(new GetUpcomingBills(userId), cancellationToken);
     }
 }

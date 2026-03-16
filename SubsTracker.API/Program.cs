@@ -1,5 +1,7 @@
 using Scalar.AspNetCore;
+using Serilog;
 using SubsTracker.API.Middlewares.ExceptionHandling;
+using SubsTracker.API.Middlewares.Session;
 
 namespace SubsTracker.API;
 
@@ -25,6 +27,12 @@ public class Program
 
         builder.Services.AddOpenApi();
         builder.Services.RegisterApplicationLayerDependencies(builder.Configuration);
+        builder.Host.UseSerilog();
+        
+        var rabbitHost = builder.Configuration["RabbitMQ:HostName"];
+        Console.WriteLine($"DEBUG: RabbitMQ Host is: {rabbitHost}");
+        var retry = builder.Configuration["Retry:MaxRetryAttempts"];
+                Console.WriteLine($"DEBUG:  retry is: {retry}");
 
         var app = builder.Build();
 
@@ -42,7 +50,7 @@ public class Program
                     .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
             });
         }
-
+        
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.UseHttpsRedirection();
@@ -51,6 +59,7 @@ public class Program
         app.UseCors();
 
         app.UseAuthentication();
+        app.UseMiddleware<SessionMiddleware>();
         app.UseAuthorization();
 
         app.MapControllers();

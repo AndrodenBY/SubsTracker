@@ -14,15 +14,23 @@ public class UserCacheHandler(ICacheService cacheService)
         => await InvalidateUserEntry(signal.IdentityId, cancellationToken);
     
     public async ValueTask Handle(UserSignals.Updated signal, CancellationToken cancellationToken) 
-        => await InvalidateUserEntry(signal.IdentityId, cancellationToken);
+        => await InvalidateUserEntry(signal.Id, cancellationToken);
     
     public async ValueTask Handle(UserSignals.Deleted signal, CancellationToken cancellationToken) 
-        => await InvalidateUserEntry(signal.IdentityId, cancellationToken);
+        => await InvalidateUserEntry(signal.Id, cancellationToken);
 
     private async Task InvalidateUserEntry(string identityId, CancellationToken cancellationToken)
     {
         await cacheService.InvalidateCache<UserEntity>(
             identityId, 
+            cancellationToken
+        );
+    }
+    
+    private async Task InvalidateUserEntry(Guid internalId, CancellationToken cancellationToken)
+    {
+        await cacheService.InvalidateCache<UserEntity>(
+            internalId, 
             cancellationToken
         );
     }

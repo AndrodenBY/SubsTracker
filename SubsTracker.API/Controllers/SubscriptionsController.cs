@@ -44,7 +44,7 @@ public class SubscriptionsController(
     [HttpPost]
     public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
-        var create = await subscriptionService.Create(User.GetIdentityIdFromToken(), createDto, cancellationToken);
+        var create = await subscriptionService.Create(User.GetInternalId(), createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
     }
 
@@ -54,7 +54,7 @@ public class SubscriptionsController(
     [HttpPut]
     public async Task<SubscriptionViewModel> Update([FromBody] UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var update = await subscriptionService.Update(User.GetIdentityIdFromToken(), updateDto, cancellationToken);
+        var update = await subscriptionService.Update(User.GetInternalId(), updateDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(update);
     }
 
@@ -64,7 +64,7 @@ public class SubscriptionsController(
     [HttpPatch("{subscriptionId:guid}/cancel")]
     public async Task<SubscriptionViewModel> CancelSubscription(Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var cancelledSubscription = await subscriptionService.CancelSubscription(User.GetIdentityIdFromToken(), subscriptionId, cancellationToken);
+        var cancelledSubscription = await subscriptionService.CancelSubscription(User.GetInternalId(), subscriptionId, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(cancelledSubscription);
     }
 
@@ -84,7 +84,7 @@ public class SubscriptionsController(
     [HttpGet("bills/users")]
     public async Task<List<SubscriptionViewModel>> GetUpcomingBills(CancellationToken cancellationToken)
     {
-        var getUpcomingBills = await subscriptionService.GetUpcomingBills(User.GetIdentityIdFromToken(), cancellationToken);
+        var getUpcomingBills = await subscriptionService.GetUpcomingBills(User.GetInternalId(), cancellationToken);
         return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
     }
 }

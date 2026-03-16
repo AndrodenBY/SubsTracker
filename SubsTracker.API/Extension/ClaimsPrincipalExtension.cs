@@ -4,11 +4,21 @@ namespace SubsTracker.API.Extension;
 
 public static class ClaimsPrincipalExtension
 {
-    public static string GetIdentityIdFromToken(this ClaimsPrincipal claimsPrincipal)
+    public static Guid GetInternalId(this ClaimsPrincipal principal)
     {
-        var identityId = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("IdentityId is missing from token");
+        var internalId = principal.FindFirstValue(ClaimTypes.Name);
 
-        return identityId;
+        if (string.IsNullOrEmpty(internalId) || !Guid.TryParse(internalId, out var userId))
+        {
+            throw new UnauthorizedAccessException("Internal User ID is missing from session");
+        }
+
+        return userId;
+    }
+
+    public static string GetIdentityId(this ClaimsPrincipal principal)
+    {
+        return principal.FindFirstValue(ClaimTypes.NameIdentifier) 
+               ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }
 }

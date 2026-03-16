@@ -6,25 +6,25 @@ namespace SubsTracker.BLL.Helpers.Policy;
 
 public static class SubscriptionPolicyChecker
 {
-    public static async Task<(SubscriptionEntity subscription, UserEntity user)> GetValidatedSubscription(
+    public static async Task<SubscriptionEntity> GetValidatedSubscription(
         IUserRepository userRepository, 
         ISubscriptionRepository subscriptionRepository, 
-        string identityId, 
+        Guid userId, 
         Guid subscriptionId, 
         CancellationToken cancellationToken)
     {
-        var user = await userRepository.GetByIdentityId(identityId, cancellationToken)
-                   ?? throw new UnknownIdentifierException($"User {identityId} not found");
+        var user = await userRepository.GetById(userId, cancellationToken)
+                   ?? throw new UnknownIdentifierException($"User with id {userId} not found");
 
         var subscription = await subscriptionRepository.GetById(subscriptionId, cancellationToken)
                            ?? throw new UnknownIdentifierException($"Subscription {subscriptionId} not found");
         
         if (!subscription.UserId.HasValue || subscription.UserId.Value != user.Id)
         {
-            throw new ForbiddenException($"User {user.Id} does not own subscription {subscriptionId}");
+            throw new ForbiddenException($"User with id {userId} does not own subscription {subscriptionId}");
         }
         
-        return (subscription, user);
+        return subscription;
     }
     
     public static async Task PreventSubscriptionDuplication(

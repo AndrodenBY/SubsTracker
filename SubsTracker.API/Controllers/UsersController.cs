@@ -16,7 +16,7 @@ namespace SubsTracker.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController(
-    IUserService service,
+    IUserService userService,
     IMapper mapper) 
     : ControllerBase
 {
@@ -26,7 +26,7 @@ public class UsersController(
     [HttpGet("{id:guid}")]
     public async Task<UserViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var getById = await service.GetById(id, cancellationToken);
+        var getById = await userService.GetById(id, cancellationToken);
         return mapper.Map<UserViewModel>(getById);
     }
 
@@ -36,7 +36,7 @@ public class UsersController(
     [HttpGet("me")]
     public async Task<UserViewModel> GetByIdentityId(CancellationToken cancellationToken)
     {
-        var user = await service.GetByIdentityId(User.GetIdentityIdFromToken(), cancellationToken);
+        var user = await userService.GetByIdentityId(User.GetIdentityId(), cancellationToken);
         return mapper.Map<UserViewModel>(user);
     }
 
@@ -46,7 +46,7 @@ public class UsersController(
     [HttpGet]
     public async Task<PaginatedList<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
-        var pagedResult = await service.GetAll(filterDto, paginationParameters, cancellationToken);
+        var pagedResult = await userService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<UserViewModel>);
     }
 
@@ -56,7 +56,7 @@ public class UsersController(
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(User.GetIdentityIdFromToken(), createDto, cancellationToken);
+        var create = await userService.Create(User.GetIdentityId(), createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
 
@@ -66,9 +66,8 @@ public class UsersController(
     [HttpPut("me")]
     public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
-        var identityId =  User.GetIdentityIdFromToken();
-        var updatedUser = await updateOrchestrator.FullUserUpdate(identityId, updateDto, cancellationToken);
-    
+        var updatedUser = await updateOrchestrator.FullUserUpdate(User.GetInternalId(), User.GetIdentityId(), updateDto, cancellationToken);
+        
         return mapper.Map<UserViewModel>(updatedUser);
     }
 
@@ -78,6 +77,6 @@ public class UsersController(
     [HttpDelete]
     public async Task Delete(CancellationToken cancellationToken)
     {
-        await service.Delete(User.GetIdentityIdFromToken(), cancellationToken);
+        await userService.Delete(User.GetInternalId(), cancellationToken);
     }
 }

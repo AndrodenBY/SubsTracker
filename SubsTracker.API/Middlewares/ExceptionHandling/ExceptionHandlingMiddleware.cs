@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Mime;
-using FluentValidation;
 using SubsTracker.Domain.Exceptions;
 
 namespace SubsTracker.API.Middlewares.ExceptionHandling;

@@ -52,6 +52,8 @@ public class UserService(
             var newUser = Mapper.Map<UserEntity>(createDto);
             newUser.IdentityId = identityId; 
             var createdUser = await userRepository.Create(newUser, cancellationToken);
+            
+            await mediator.Publish(new UserSignals.Created(createdUser.IdentityId), cancellationToken);
             return Mapper.Map<UserDto>(createdUser);
         }
         
@@ -59,30 +61,31 @@ public class UserService(
         {
             existingUser.IdentityId = identityId;
             await userRepository.Update(existingUser, cancellationToken);
+            
+            await mediator.Publish(new UserSignals.Updated(existingUser.Id), cancellationToken);
         }
-
-        await mediator.Publish(new UserSignals.Created(existingUser.IdentityId), cancellationToken);
+        
         return Mapper.Map<UserDto>(existingUser);
     }
 
-    public async Task<UserDto> Update(string identityId, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public new async Task<UserDto> Update(Guid id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByIdentityId(identityId, cancellationToken)
-                   ?? throw new UnknownIdentifierException($"User with id {identityId} not found");
+        var existingUser = await userRepository.GetById(id, cancellationToken)
+                   ?? throw new UnknownIdentifierException($"User with id {id} not found");
         
         Mapper.Map(updateDto, existingUser);
         var updatedEntity = await userRepository.Update(existingUser, cancellationToken);
         
-        await mediator.Publish(new UserSignals.Updated(updatedEntity.IdentityId), cancellationToken);
+        await mediator.Publish(new UserSignals.Updated(updatedEntity.Id), cancellationToken);
         return Mapper.Map<UserDto>(updatedEntity);
     }
 
-    public async Task<bool> Delete(string identityId, CancellationToken cancellationToken)
+    public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByIdentityId(identityId, cancellationToken)
-                   ?? throw new UnknownIdentifierException($"User with id {identityId} not found");
+        var existingUser = await userRepository.GetById(id, cancellationToken)
+                   ?? throw new UnknownIdentifierException($"User with id {id} not found");
 
-        await mediator.Publish(new UserSignals.Deleted(existingUser.IdentityId), cancellationToken);
+        await mediator.Publish(new UserSignals.Deleted(existingUser.Id), cancellationToken);
         return await userRepository.Delete(existingUser, cancellationToken);
     }
 }

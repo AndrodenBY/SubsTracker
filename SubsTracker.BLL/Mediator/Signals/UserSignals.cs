@@ -5,6 +5,6 @@ namespace SubsTracker.BLL.Mediator.Signals;
 public class UserSignals
 {
     public record Created(string IdentityId) : INotification;
-    public record Deleted(string IdentityId) : INotification;
-    public record Updated(string IdentityId) : INotification;
+    public record Deleted(Guid Id) : INotification;
+    public record Updated(Guid Id) : INotification;
 }

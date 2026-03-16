@@ -12,6 +12,6 @@ public interface IUserService : IService<UserEntity, UserDto, CreateUserDto, Upd
     Task<PaginatedList<UserDto>> GetAll(UserFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken);
     Task<UserDto?> GetByIdentityId(string identityId, CancellationToken cancellationToken);
     Task<UserDto> Create(string identityId, CreateUserDto createDto, CancellationToken cancellationToken);
-    Task<UserDto> Update(string identityId, UpdateUserDto updateDto, CancellationToken cancellationToken);
-    Task<bool> Delete(string identityId, CancellationToken cancellationToken);
+    new Task<UserDto> Update(Guid id, UpdateUserDto updateDto, CancellationToken cancellationToken);
+    new Task<bool> Delete(Guid id, CancellationToken cancellationToken);
 }

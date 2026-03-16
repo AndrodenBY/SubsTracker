@@ -9,10 +9,10 @@ namespace SubsTracker.BLL.Interfaces
     {
         Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken);
         Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken);
-        Task<SubscriptionDto> Create(string identityId, CreateSubscriptionDto createDto, CancellationToken cancellationToken);
-        Task<SubscriptionDto> Update(string identityId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken);
-        Task<SubscriptionDto> CancelSubscription(string identityId, Guid subscriptionId, CancellationToken cancellationToken);
+        Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken);
+        new Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken);
+        Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken);
         Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken);
-        Task<List<SubscriptionDto>> GetUpcomingBills(string identityId, CancellationToken cancellationToken);
+        Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken);
     }
 }
