@@ -1,5 +1,4 @@
 using Scalar.AspNetCore;
-using Serilog;
 using SubsTracker.API.Middlewares.ExceptionHandling;
 using SubsTracker.API.Middlewares.Session;
 
@@ -27,12 +26,6 @@ public class Program
 
         builder.Services.AddOpenApi();
         builder.Services.RegisterApplicationLayerDependencies(builder.Configuration);
-        builder.Host.UseSerilog();
-        
-        var rabbitHost = builder.Configuration["RabbitMQ:HostName"];
-        Console.WriteLine($"DEBUG: RabbitMQ Host is: {rabbitHost}");
-        var retry = builder.Configuration["Retry:MaxRetryAttempts"];
-                Console.WriteLine($"DEBUG:  retry is: {retry}");
 
         var app = builder.Build();
 
@@ -54,7 +47,7 @@ public class Program
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.UseHttpsRedirection();
-        app.UseStaticFiles();
+        //app.UseStaticFiles();
         app.UseRouting();
         app.UseCors();
 

@@ -1,10 +1,10 @@
+using System.Reflection;
 using DispatchR.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.DI;
 using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Interfaces;
-using SubsTracker.BLL.Mapper;
 using SubsTracker.BLL.Mediator.Handlers.UpcomingBills;
 using SubsTracker.BLL.Services;
 using SubsTracker.DAL;
@@ -19,7 +19,7 @@ public static class BusinessLayerServiceRegister
         services.RegisterDataLayerDependencies(configuration)
             .RegisterMessagingLayerDependencies(configuration)
             .AddCacheDependencies(configuration)
-            .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
+            .AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
             .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
             .AddScoped<ISubscriptionService, SubscriptionService>()
             .AddScoped<IUserService, UserService>()

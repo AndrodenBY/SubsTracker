@@ -16,32 +16,24 @@ public class SessionMiddleware(RequestDelegate next)
             return;
         }
         
-        var internalId = user.FindFirstValue(ClaimTypes.Name);
-        if (!string.IsNullOrEmpty(internalId))
+        var identity = (ClaimsIdentity)user.Identity!;
+        var nameIdentifier = identity.FindFirst(ClaimTypes.NameIdentifier);
+        if (nameIdentifier is null || Guid.TryParse(nameIdentifier.Value, out _))
         {
             await next(httpContext);
             return;
         }
         
-        var identityId = user.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(identityId))
+        var userDto = await userService.GetByIdentityId(nameIdentifier.Value, httpContext.RequestAborted);
+        if (userDto is not null)
         {
-            await next(httpContext);
-            return;
+            await httpContext.SessionLogin(nameIdentifier.Value, userDto.Id);
+        
+            identity.RemoveClaim(nameIdentifier);
+            identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userDto.Id.ToString()));
+            identity.AddClaim(new Claim("identity_id", nameIdentifier.Value));
         }
         
-        var userDto = await userService.GetByIdentityId(identityId, httpContext.RequestAborted);
-        if (userDto is null)
-        {
-            await next(httpContext);
-            return;
-        }
-        
-        await httpContext.SessionSignIn(identityId, userDto.Id);
-        
-        var identity = (ClaimsIdentity)user.Identity;
-        identity.AddClaim(new Claim(ClaimTypes.Name, userDto.Id.ToString()));
-
         await next(httpContext);
     }
 }

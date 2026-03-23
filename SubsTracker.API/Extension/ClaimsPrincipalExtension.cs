@@ -6,7 +6,7 @@ public static class ClaimsPrincipalExtension
 {
     public static Guid GetInternalId(this ClaimsPrincipal principal)
     {
-        var internalId = principal.FindFirstValue(ClaimTypes.Name);
+        var internalId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(internalId) || !Guid.TryParse(internalId, out var userId))
         {
@@ -18,7 +18,16 @@ public static class ClaimsPrincipalExtension
 
     public static string GetIdentityId(this ClaimsPrincipal principal)
     {
-        return principal.FindFirstValue(ClaimTypes.NameIdentifier) 
+        var identityId = principal.FindFirstValue("identity_id");
+        
+        if (!string.IsNullOrEmpty(identityId))
+        {
+            return identityId;
+        }
+
+        var nameId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        return nameId
                ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }
 }

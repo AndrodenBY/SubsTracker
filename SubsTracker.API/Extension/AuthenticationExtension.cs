@@ -6,16 +6,15 @@ namespace SubsTracker.API.Extension;
 
 public static class AuthenticationExtension
 {
-    public static async Task SessionSignIn(
+    public static async Task SessionLogin(
         this HttpContext httpContext, 
         string identityId, 
-        Guid internalId, 
-        bool isPersistent = true)
+        Guid internalId)
     {
         var claims = new List<Claim>
         {
-            new (ClaimTypes.NameIdentifier, identityId),
-            new (ClaimTypes.Name, internalId.ToString()),
+            new (ClaimTypes.NameIdentifier, internalId.ToString()),
+            new ("identity_id", identityId),
             new ("auth_method", "jwt_exchange") 
         };
 
@@ -25,7 +24,7 @@ public static class AuthenticationExtension
 
         var authProperties = new AuthenticationProperties
         {
-            IsPersistent = isPersistent,
+            IsPersistent = true,
             IssuedUtc = DateTimeOffset.UtcNow,
             ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
         };

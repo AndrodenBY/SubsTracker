@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Auth0.AuthenticationApi;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
@@ -8,8 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using SubsTracker.API.Auth0;
 using SubsTracker.API.Extension;
 using SubsTracker.API.Helpers;
-using SubsTracker.BLL.Interfaces;
-using SubsTracker.Domain.Exceptions;
+using SubsTracker.API.Options;
 
 namespace SubsTracker.API.DI;
 
@@ -26,22 +24,30 @@ public static class  AuthorizationDependencies
         });
     
         services.AddScoped<UserUpdateOrchestrator>()
+            .AddScoped<UserGetOrchestrator>()
             .AddScoped<IAuth0Service, Auth0Service>();
 
         services.AddAuthentication(options =>
             {
-                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultScheme = "SmartScheme";
+                options.DefaultAuthenticateScheme = "SmartScheme";
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
             .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
             {
+                options.Cookie.Name = "SubsTracker.Session";
                 options.Cookie.HttpOnly = true;
-                options.Cookie.SameSite = SameSiteMode.Lax;
+                
+                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    
+                options.Cookie.Path = "/";
+                options.Cookie.IsEssential = true;
+                
+                options.Cookie.Domain = null;
                 
                 options.ExpireTimeSpan = TimeSpan.FromDays(7); 
                 options.SlidingExpiration = true;
-                
-                options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 
                 options.Events = new CookieAuthenticationEvents
                 {
@@ -52,7 +58,25 @@ public static class  AuthorizationDependencies
                     }
                 };
             })
-            .AddJwtBearer();
+            .AddJwtBearer()
+            .AddPolicyScheme("SmartScheme", "JWT or Cookie", options =>
+            {
+                options.ForwardDefaultSelector = context =>
+                {
+                    if (context.Request.Cookies.ContainsKey("SubsTracker.Session"))
+                    {
+                        return CookieAuthenticationDefaults.AuthenticationScheme;
+                    }
+                    
+                    var authHeader = context.Request.Headers.Authorization.ToString();
+                    if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+                    {
+                        return JwtBearerDefaults.AuthenticationScheme;
+                    }
+
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                };
+            });
 
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<Auth0Options>>((options, auth0) =>
@@ -67,6 +91,21 @@ public static class  AuthorizationDependencies
                     ValidateLifetime = true,
                 };
             });
+        
+        services.RegisterOptions<CorsOptions>(CorsOptions.SectionName);
+        
+        services.AddCors(options =>
+            options.AddDefaultPolicy(policy =>
+            {
+                var serviceProvider = services.BuildServiceProvider();
+                var corsOptions = serviceProvider.GetRequiredService<IOptions<CorsOptions>>().Value;
+                
+                policy.WithOrigins(corsOptions.AllowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials()
+                    .WithExposedHeaders("Content-Disposition");
+            }));
         
         return services;
     }

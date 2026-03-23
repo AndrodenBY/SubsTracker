@@ -23,10 +23,10 @@ public class UsersController(
     /// <summary>
     ///     Retrieves a user by their ID.
     /// </summary>
-    [HttpGet("{id:guid}")]
-    public async Task<UserViewModel> GetById(Guid id, CancellationToken cancellationToken)
+    [HttpGet("byId")]
+    public async Task<UserViewModel> GetById(CancellationToken cancellationToken)
     {
-        var getById = await userService.GetById(id, cancellationToken);
+        var getById = await userService.GetById(User.GetInternalId(), cancellationToken);
         return mapper.Map<UserViewModel>(getById);
     }
 
@@ -34,10 +34,10 @@ public class UsersController(
     ///     Retrieves the profile of the currently authenticated user.
     /// </summary>
     [HttpGet("me")]
-    public async Task<UserViewModel> GetByIdentityId(CancellationToken cancellationToken)
+    public async Task<UserViewModel> GetByIdentityId([FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
     {
-        var user = await userService.GetByIdentityId(User.GetIdentityId(), cancellationToken);
-        return mapper.Map<UserViewModel>(user);
+        var userProfile = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        return mapper.Map<UserViewModel>(userProfile);
     }
 
     /// <summary>

@@ -32,15 +32,22 @@ public class UserService(
 
     public async Task<UserDto?> GetByIdentityId(string identityId, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(identityId);
-        return await CacheService.CacheDataWithLock(cacheKey, GetUser, cancellationToken);
-        
-        async Task<UserDto?> GetUser()
+        var user = await userRepository.GetByIdentityId(identityId, cancellationToken);
+
+        if (user is null)
         {
-            var user = await userRepository.GetByIdentityId(identityId, cancellationToken)
-                       ?? throw new UnknownIdentifierException($"User with {identityId} not found");
-            return Mapper.Map<UserDto>(user);
+            return null;
         }
+        
+        var userDto = Mapper.Map<UserDto>(user);
+        var guidCacheKey = RedisKeySetter.SetCacheKey<UserEntity>(userDto.Id);
+        
+        await CacheService.CacheDataWithLock(
+            guidCacheKey, 
+            () => Task.FromResult<UserDto?>(userDto), 
+            cancellationToken);
+
+        return userDto;
     }
     
     public async Task<UserDto> Create(string identityId, CreateUserDto createDto, CancellationToken cancellationToken)
