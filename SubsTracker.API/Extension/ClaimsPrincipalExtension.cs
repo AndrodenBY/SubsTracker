@@ -6,9 +6,9 @@ public static class ClaimsPrincipalExtension
 {
     public static Guid GetInternalId(this ClaimsPrincipal principal)
     {
-        var internalId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(internalId) || !Guid.TryParse(internalId, out var userId))
+        var nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        Console.WriteLine("NameIdentifier for update request: " + nameIdentifier);
+        if (string.IsNullOrEmpty(nameIdentifier) || !Guid.TryParse(nameIdentifier, out var userId))
         {
             throw new UnauthorizedAccessException("Internal User ID is missing from session");
         }
@@ -18,18 +18,13 @@ public static class ClaimsPrincipalExtension
 
     public static string GetIdentityId(this ClaimsPrincipal principal)
     {
-        var identityId = principal.FindFirstValue("identity_id");
-        
-        if (!string.IsNullOrEmpty(identityId))
-        {
-            return identityId;
-        }
-
-        var nameId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-        
-        return nameId
+        return principal.FindFirstValue("identity_id") 
+               ?? principal.FindFirstValue("sub")
                ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }
     
-    
+    // public static string GetSessionRefreshedTime(this ClaimsPrincipal principal)
+    // {
+    //     return principal.FindFirstValue("refreshed_at") ?? "Initial Login";
+    // }
 }

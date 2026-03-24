@@ -1,10 +1,12 @@
     using System.Security.Claims;
     using Auth0.AuthenticationApi;
+    using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.Cookies;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.Extensions.Options;
     using Microsoft.IdentityModel.Tokens;
     using SubsTracker.API.Auth.IdentityProvider;
+    using SubsTracker.API.Auth.Session;
     using SubsTracker.API.Extension;
     using SubsTracker.API.Helpers;
     using SubsTracker.API.Options;
@@ -61,6 +63,7 @@
 
             services.AddScoped<UserUpdateOrchestrator>()
                 .AddScoped<UserGetOrchestrator>()
+                .AddScoped<IClaimsTransformation, ClaimsTransformer>()
                 .AddScoped<IAuth0Service, Auth0Service>();
 
             return services;

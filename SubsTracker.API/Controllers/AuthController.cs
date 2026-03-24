@@ -13,7 +13,7 @@ public class AuthController(IUserService userService) : ControllerBase
     [HttpPost("login")]
     public async Task Login(CancellationToken cancellationToken)
     {
-        await HttpContext.SessionLogin(userService, cancellationToken); 
+        await HttpContext.RefreshSession(userService, cancellationToken); 
     }
 
     [HttpPost("logout")]

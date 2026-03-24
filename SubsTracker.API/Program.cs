@@ -1,6 +1,5 @@
 using Scalar.AspNetCore;
 using SubsTracker.API.Middlewares.ExceptionHandling;
-using SubsTracker.API.Middlewares.Session;
 
 namespace SubsTracker.API;
 
@@ -52,7 +51,6 @@ public class Program
         app.UseCors();
 
         app.UseAuthentication();
-        app.UseMiddleware<SessionMiddleware>();
         app.UseAuthorization();
 
         app.MapControllers();

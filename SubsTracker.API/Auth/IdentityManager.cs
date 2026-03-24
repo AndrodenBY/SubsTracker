@@ -12,38 +12,33 @@ public static class IdentityManager
         IUserService userService, 
         CancellationToken cancellationToken)
     {
-        var principal = context.User;
-        if (principal.Identity?.IsAuthenticated is not true)
+        var claimsPrincipal = context.User;
+        if (claimsPrincipal.Identity?.IsAuthenticated is not true)
         {
             return null;
         }
 
-        var identity = (ClaimsIdentity)principal.Identity;
-        var nameIdentifier = identity.FindFirst(ClaimTypes.NameIdentifier);
-        if (nameIdentifier is null || Guid.TryParse(nameIdentifier.Value, out _))
+        var identityId = claimsPrincipal.FindFirstValue("sub") ?? claimsPrincipal.FindFirstValue("identity_id");
+        if (string.IsNullOrEmpty(identityId))
         {
             return null;
         }
-
-        var userDto = await userService.GetByIdentityId(nameIdentifier.Value, cancellationToken);
+        
+        var userDto = await userService.GetByIdentityId(identityId, cancellationToken);
         if (userDto is null)
         {
             return null;
         }
-        
+    
         var claims = new List<Claim>
         {
             new (ClaimTypes.NameIdentifier, userDto.Id.ToString()),
-            new ("identity_id", nameIdentifier.Value),
-            new ("auth_method", "jwt_exchange") 
+            new ("identity_id", identityId),
+            new ("refreshed_at", DateTimeOffset.UtcNow.ToString("O")),
+            new ("auth_method", "session_sync") 
         };
         
         var internalIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-        
-        identity.RemoveClaim(nameIdentifier);
-        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, userDto.Id.ToString()));
-        identity.AddClaim(new Claim("identity_id", nameIdentifier.Value));
-
         return new ClaimsPrincipal(internalIdentity);
     }
 

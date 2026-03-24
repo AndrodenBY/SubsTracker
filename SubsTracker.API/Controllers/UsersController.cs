@@ -1,7 +1,6 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SubsTracker.API.Auth;
 using SubsTracker.API.Extension;
 using SubsTracker.API.Helpers;
 using SubsTracker.API.ViewModel;
@@ -68,7 +67,13 @@ public class UsersController(
     [HttpPut("me")]
     public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
-        var updatedUser = await updateOrchestrator.FullUserUpdate(User.GetInternalId(), User.GetIdentityId(), updateDto, cancellationToken);
+        //Console.WriteLine($"Session was last refreshed at: {User.GetSessionRefreshedTime()}");
+        var updatedUser = await updateOrchestrator.FullUserUpdate(
+            HttpContext, 
+            User.GetInternalId(), 
+            User.GetIdentityId(), 
+            updateDto, 
+            cancellationToken);
         
         return mapper.Map<UserViewModel>(updatedUser);
     }
