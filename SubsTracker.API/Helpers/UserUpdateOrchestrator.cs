@@ -1,8 +1,8 @@
-using SubsTracker.API.Auth0;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Interfaces;
 using Polly.Registry;
+using SubsTracker.API.Auth.IdentityProvider;
 using SubsTracker.API.Resilience;
 
 namespace SubsTracker.API.Helpers;

@@ -1,6 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SubsTracker.API.Auth;
 using SubsTracker.API.Extension;
 using SubsTracker.API.Helpers;
 using SubsTracker.API.ViewModel;
@@ -20,10 +21,11 @@ public class UsersController(
     IMapper mapper) 
     : ControllerBase
 {
+    
     /// <summary>
     ///     Retrieves a user by their ID.
     /// </summary>
-    [HttpGet("byId")]
+    [HttpGet]
     public async Task<UserViewModel> GetById(CancellationToken cancellationToken)
     {
         var getById = await userService.GetById(User.GetInternalId(), cancellationToken);

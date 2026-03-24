@@ -5,7 +5,7 @@ using Auth0.ManagementApi.Models;
 using Microsoft.Extensions.Options;
 using SubsTracker.BLL.DTOs.User.Update;
 
-namespace SubsTracker.API.Auth0;
+namespace SubsTracker.API.Auth.IdentityProvider;
 
 public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Options> options) : IAuth0Service
 {

@@ -1,112 +1,142 @@
-using System.Security.Claims;
-using Auth0.AuthenticationApi;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using SubsTracker.API.Auth0;
-using SubsTracker.API.Extension;
-using SubsTracker.API.Helpers;
-using SubsTracker.API.Options;
+    using System.Security.Claims;
+    using Auth0.AuthenticationApi;
+    using Microsoft.AspNetCore.Authentication.Cookies;
+    using Microsoft.AspNetCore.Authentication.JwtBearer;
+    using Microsoft.Extensions.Options;
+    using Microsoft.IdentityModel.Tokens;
+    using SubsTracker.API.Auth.IdentityProvider;
+    using SubsTracker.API.Extension;
+    using SubsTracker.API.Helpers;
+    using SubsTracker.API.Options;
+    using CookieOptions = SubsTracker.API.Options.CookieOptions;
 
-namespace SubsTracker.API.DI;
+    namespace SubsTracker.API.DI;
 
-public static class  AuthorizationDependencies
-{
-    public static IServiceCollection AddAuthorizationDependencies(this IServiceCollection services)
+    public static class  AuthorizationDependencies
     {
-        services.RegisterOptions<Auth0Options>(Auth0Options.SectionName);
-        
-        services.AddSingleton<AuthenticationApiClient>(serviceProvider => 
+        public static IServiceCollection AddAuthorizationDependencies(this IServiceCollection services)
         {
-            var options = serviceProvider.GetRequiredService<IOptions<Auth0Options>>().Value;
-            return new AuthenticationApiClient(new Uri(options.Authority));
-        });
-    
-        services.AddScoped<UserUpdateOrchestrator>()
-            .AddScoped<UserGetOrchestrator>()
-            .AddScoped<IAuth0Service, Auth0Service>();
+            services.AddCorsConfiguration()
+                .AddAuth0Infrastructure()
+                .AddAuthenticationScheme();
 
-        services.AddAuthentication(options =>
+            return services;
+        }
+        
+        private static IServiceCollection AddCorsConfiguration(this IServiceCollection services)
+        {
+            services.RegisterOptions<CorsOptions>(CorsOptions.SectionName)
+                .ValidateOnStart()
+                .ValidateDataAnnotations();
+
+            services.AddCors();
+            services.AddOptions<Microsoft.AspNetCore.Cors.Infrastructure.CorsOptions>()
+                .PostConfigure<IOptions<CorsOptions>>((options, cors) =>
+                {
+                    var corsOptions = cors.Value;
+                    options.AddDefaultPolicy(policy =>
+                    {
+                        policy.WithOrigins(corsOptions.AllowedOrigins)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials()
+                            .WithExposedHeaders("Content-Disposition");
+                    });
+                });
+
+            return services;
+        }
+        
+        private static IServiceCollection AddAuth0Infrastructure(this IServiceCollection services)
+        {
+            services.RegisterOptions<Auth0Options>(Auth0Options.SectionName)
+                .ValidateOnStart()
+                .ValidateDataAnnotations();
+
+            services.AddSingleton<AuthenticationApiClient>(serviceProvider =>
+            {
+                var options = serviceProvider.GetRequiredService<IOptions<Auth0Options>>().Value;
+                return new AuthenticationApiClient(new Uri(options.Authority));
+            });
+
+            services.AddScoped<UserUpdateOrchestrator>()
+                .AddScoped<UserGetOrchestrator>()
+                .AddScoped<IAuth0Service, Auth0Service>();
+
+            return services;
+        } 
+        
+        private static IServiceCollection AddAuthenticationScheme(this IServiceCollection services)
+        {
+            services.RegisterOptions<CookieOptions>(CookieOptions.SectionName)
+                .ValidateOnStart()
+                .ValidateDataAnnotations();
+
+            services.AddAuthentication(options =>
             {
                 options.DefaultScheme = "SmartScheme";
                 options.DefaultAuthenticateScheme = "SmartScheme";
                 options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             })
-            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
-            {
-                options.Cookie.Name = "SubsTracker.Session";
-                options.Cookie.HttpOnly = true;
-                
-                options.Cookie.SameSite = SameSiteMode.None;
-                options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
-    
-                options.Cookie.Path = "/";
-                options.Cookie.IsEssential = true;
-                
-                options.Cookie.Domain = null;
-                
-                options.ExpireTimeSpan = TimeSpan.FromDays(7); 
-                options.SlidingExpiration = true;
-
-                options.Events = new CookieAuthenticationEvents
-                {
-                    OnRedirectToLogin = context =>
-                    {
-                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                        return Task.CompletedTask;
-                    }
-                };
-            })
+            .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
             .AddJwtBearer()
             .AddPolicyScheme("SmartScheme", "JWT or Cookie", options =>
             {
                 options.ForwardDefaultSelector = context =>
                 {
-                    if (context.Request.Cookies.ContainsKey("SubsTracker.Session"))
+                    var cookieOptions = context.RequestServices.GetRequiredService<IOptions<CookieOptions>>().Value;
+                    if (context.Request.Cookies.ContainsKey(cookieOptions.Name))
                     {
                         return CookieAuthenticationDefaults.AuthenticationScheme;
                     }
                     
                     var authHeader = context.Request.Headers.Authorization.ToString();
-                    if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
-                    {
-                        return JwtBearerDefaults.AuthenticationScheme;
-                    }
-
-                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                    
+                    return authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+                        ? JwtBearerDefaults.AuthenticationScheme
+                        : CookieAuthenticationDefaults.AuthenticationScheme;
                 };
             });
-
-        services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
-            .Configure<IOptions<Auth0Options>>((options, auth0) =>
-            {
-                options.Authority = auth0.Value.Authority;
-                options.Audience = auth0.Value.Audience;
-                
-                options.TokenValidationParameters = new TokenValidationParameters
+            
+            services.AddOptions<CookieAuthenticationOptions>(CookieAuthenticationDefaults.AuthenticationScheme)
+                .Configure<IOptions<CookieOptions>>((options, cookie) =>
                 {
-                    NameClaimType = ClaimTypes.NameIdentifier,
-                    ValidateIssuerSigningKey = true,
-                    ValidateLifetime = true,
-                };
-            });
-        
-        services.RegisterOptions<CorsOptions>(CorsOptions.SectionName);
-        
-        services.AddCors(options =>
-            options.AddDefaultPolicy(policy =>
-            {
-                var serviceProvider = services.BuildServiceProvider();
-                var corsOptions = serviceProvider.GetRequiredService<IOptions<CorsOptions>>().Value;
-                
-                policy.WithOrigins(corsOptions.AllowedOrigins)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials()
-                    .WithExposedHeaders("Content-Disposition");
-            }));
-        
-        return services;
+                    var cookieOptions = cookie.Value;
+                    
+                    options.Cookie.Name = cookieOptions.Name;
+                    options.Cookie.HttpOnly = cookieOptions.HttpOnly;
+                    options.Cookie.SameSite = cookieOptions.SameSite;
+                    options.Cookie.SecurePolicy = cookieOptions.SecurePolicy;
+                    options.Cookie.Path = cookieOptions.Path;
+                    options.ExpireTimeSpan = TimeSpan.FromDays(cookieOptions.ExpirationTimeSpan);
+                    options.SlidingExpiration = cookieOptions.SlidingExpiration;
+                    
+                    options.Events = new CookieAuthenticationEvents
+                    {
+                        OnRedirectToLogin = redirectContext =>
+                        {
+                            redirectContext.Response.StatusCode = 401; 
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+            
+            services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+                .Configure<IOptions<Auth0Options>>((options, auth0) =>
+                {
+                    var auth0Options = auth0.Value;
+                    
+                    options.Authority = auth0Options.Authority;
+                    options.Audience = auth0Options.Audience;
+                    
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        NameClaimType = ClaimTypes.NameIdentifier,
+                        ValidateIssuerSigningKey = true,
+                        ValidateLifetime = true,
+                    };
+                });
+
+            return services;
+        }
     }
-}

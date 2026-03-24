@@ -1,6 +1,6 @@
 using SubsTracker.BLL.DTOs.User.Update;
 
-namespace SubsTracker.API.Auth0;
+namespace SubsTracker.API.Auth.IdentityProvider;
 
 public interface IAuth0Service
 { 

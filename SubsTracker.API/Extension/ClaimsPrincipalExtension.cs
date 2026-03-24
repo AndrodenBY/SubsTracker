@@ -30,4 +30,6 @@ public static class ClaimsPrincipalExtension
         return nameId
                ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }
+    
+    
 }

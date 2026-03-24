@@ -14,9 +14,15 @@ public static class ResilienceDependencies
 {
     public static IServiceCollection AddResilienceDependencies(this IServiceCollection services)
     {
-        services.RegisterOptions<RetryOptions>(RetryOptions.SectionName);
-        services.RegisterOptions<CircuitBreakerOptions>(CircuitBreakerOptions.SectionName);
-        services.RegisterOptions<CapacityLimiterOptions>(CapacityLimiterOptions.SectionName);
+        services.RegisterOptions<RetryOptions>(RetryOptions.SectionName)
+            .ValidateOnStart()
+            .ValidateDataAnnotations();
+        services.RegisterOptions<CircuitBreakerOptions>(CircuitBreakerOptions.SectionName)
+            .ValidateOnStart()
+            .ValidateDataAnnotations();
+        services.RegisterOptions<CapacityLimiterOptions>(CapacityLimiterOptions.SectionName)
+            .ValidateOnStart()
+            .ValidateDataAnnotations();
         
         services.AddResiliencePipeline(ResilienceConstants.OrchestratorPipeline, (builder, context) => 
         {
