@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using SubsTracker.API.Auth0;
+using SubsTracker.API.Auth.IdentityProvider;
 using SubsTracker.IntegrationTests.Helpers;
 
 namespace SubsTracker.IntegrationTests.Configuration.ServiceConfigs;

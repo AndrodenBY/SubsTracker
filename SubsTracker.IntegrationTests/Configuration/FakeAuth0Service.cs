@@ -1,4 +1,4 @@
-using SubsTracker.API.Auth0;
+using SubsTracker.API.Auth.IdentityProvider;
 using SubsTracker.BLL.DTOs.User.Update;
 
 namespace SubsTracker.IntegrationTests.Configuration;

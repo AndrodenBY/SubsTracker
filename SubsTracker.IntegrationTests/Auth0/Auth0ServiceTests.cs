@@ -2,7 +2,7 @@ using Auth0.AuthenticationApi;
 using Auth0.AuthenticationApi.Models;
 using Microsoft.Extensions.Options;
 using NSubstitute;
-using SubsTracker.API.Auth0;
+using SubsTracker.API.Auth.IdentityProvider;
 using SubsTracker.BLL.DTOs.User.Update;
 
 namespace SubsTracker.IntegrationTests.Auth0;
