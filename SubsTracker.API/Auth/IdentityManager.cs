@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using SubsTracker.API.Extension;
 using SubsTracker.BLL.Interfaces;
 
 namespace SubsTracker.API.Auth;
@@ -45,8 +46,8 @@ public static class IdentityManager
     public static async Task ValidateIdentity(HttpContext httpContext, CancellationToken cancellationToken)
     {
         var user = httpContext.User;
-        
-        var tokenIdentityId = user.FindFirstValue("sub");
+
+        var tokenIdentityId = user.GetIdentityId();
         var cookieIdentityId = user.FindFirstValue("identity_id");
 
         if (string.IsNullOrEmpty(tokenIdentityId) || string.IsNullOrEmpty(cookieIdentityId))

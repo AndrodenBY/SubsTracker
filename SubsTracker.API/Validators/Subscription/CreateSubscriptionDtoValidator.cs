@@ -22,7 +22,7 @@ public class CreateSubscriptionDtoValidator : AbstractValidator<CreateSubscripti
         RuleFor(model => model.DueDate)
             .NotNull()
             .WithMessage(ValidatorMessages.Required(nameof(CreateSubscriptionDto.DueDate)))
-            .LessThanOrEqualTo(_ => DateOnly.FromDateTime(DateTime.Now))
+            .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(DateTime.Now))
             .WithMessage(ValidatorMessages.IncorrectDate(nameof(CreateSubscriptionDto.DueDate)));
 
         RuleFor(model => model.Type)

@@ -5,8 +5,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using Polly;
 using Polly.CircuitBreaker;
 using Polly.Registry;
+using Polly.Retry;
 using Shouldly;
 using SubsTracker.API.Auth.IdentityProvider;
 using SubsTracker.API.Helpers;
@@ -18,11 +20,15 @@ using SubsTracker.IntegrationTests.Helpers;
 
 namespace SubsTracker.IntegrationTests.Orchestrator;
 
+//[Collection("ResilienceTestCollection")]
+[AllureSuite("Integration Tests")]
+[AllureFeature("Resilience")]
 public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
     private readonly HttpContext _mockContext;
     private readonly IUserService _userService;
+    private readonly ResiliencePipelineProvider<string> _pipelineProvider;
     private readonly UserGetOrchestrator _getOrchestrator;
 
     public OrchestratorTests(TestsWebApplicationFactory factory)
@@ -30,7 +36,47 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
         _factory = factory;
         _mockContext = new DefaultHttpContext();
         _userService = Substitute.For<IUserService>();
-        _getOrchestrator = new UserGetOrchestrator(_userService);
+        _pipelineProvider = _factory.Services.GetRequiredService<ResiliencePipelineProvider<string>>();
+        _getOrchestrator = new UserGetOrchestrator(_userService, _pipelineProvider);
+    }
+    
+    [Fact]
+    [AllureFeature("Resilience")]
+    [AllureStory("Get Profile Retry Logic")]
+    public async Task GetCurrentProfile_ShouldRetry_WhenDatabaseTransientlyFails()
+    {
+        // Arrange
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = 3,
+                Delay = TimeSpan.Zero,
+                ShouldHandle = new PredicateBuilder().Handle<Exception>()
+            })
+            .Build();
+
+        var provider = new TestPipelineProvider(pipeline);
+
+        var getOrchestrator = new UserGetOrchestrator(_userService, provider);
+        var internalId = Guid.NewGuid();
+        var principal = CreateMockPrincipal(internalId.ToString());
+        var attempts = 0;
+
+        _userService.GetById(internalId, Arg.Any<CancellationToken>())
+            .Returns( _ => 
+            {
+                attempts++;
+                if (attempts == 1) throw new Exception("Transient DB Error");
+                return new UserDto { Id = internalId, IdentityId = TestsAuthHandler.DefaultIdentityId, FirstName = "RandomName"};
+            });
+
+        // Act
+        var result = await getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
+
+        // Assert
+        result.ShouldNotBeNull();
+        attempts.ShouldBe(2);
+        await _userService.Received(2).GetById(internalId, Arg.Any<CancellationToken>());
     }
 
     [Fact]
@@ -39,6 +85,17 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
     public async Task GetCurrentProfile_ShouldUseGetById_WhenClaimIsGuid()
     {
         // Arrange
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = 3,
+                Delay = TimeSpan.Zero,
+                ShouldHandle = new PredicateBuilder().Handle<Exception>()
+            })
+            .Build();
+
+        var provider = new TestPipelineProvider(pipeline);
+        var getOrchestrator = new UserGetOrchestrator(_userService, provider);
         var internalId = Guid.NewGuid();
         var userDto = new UserDto { Id = internalId, IdentityId = TestsAuthHandler.DefaultIdentityId, FirstName = "RandomChel", Email = "test@example.com" };
         var principal = CreateMockPrincipal(internalId.ToString());
@@ -47,7 +104,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             .Returns(userDto);
 
         // Act
-        var result = await _getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
+        var result = await getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
 
         // Assert
         result.ShouldNotBeNull();
@@ -62,6 +119,17 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
     public async Task GetCurrentProfile_ShouldUseGetByIdentityId_WhenClaimIsNotGuid()
     {
         // Arrange
+        var pipeline = new ResiliencePipelineBuilder()
+            .AddRetry(new RetryStrategyOptions
+            {
+                MaxRetryAttempts = 3,
+                Delay = TimeSpan.Zero,
+                ShouldHandle = new PredicateBuilder().Handle<Exception>()
+            })
+            .Build();
+
+        var provider = new TestPipelineProvider(pipeline);
+        var getOrchestrator = new UserGetOrchestrator(_userService, provider);
         var identityId = TestsAuthHandler.DefaultIdentityId;
         var userDto = new UserDto { FirstName = "RandomChel", IdentityId = identityId };
         var principal = CreateMockPrincipal(identityId);
@@ -70,7 +138,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             .Returns(userDto);
 
         // Act
-        var result = await _getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
+        var result = await getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
 
         // Assert
         result.ShouldNotBeNull();

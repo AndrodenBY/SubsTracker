@@ -18,7 +18,8 @@ public static class ClaimsPrincipalExtension
 
     public static string GetIdentityId(this ClaimsPrincipal principal)
     {
-        return principal.FindFirstValue("identity_id") 
+        return principal.FindFirstValue("identity_id")
+               ?? principal.FindFirstValue(ClaimTypes.NameIdentifier)
                ?? principal.FindFirstValue("sub")
                ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }

@@ -24,10 +24,11 @@ public class UsersController(
     /// <summary>
     ///     Retrieves a user by their ID.
     /// </summary>
-    [HttpGet]
-    public async Task<UserViewModel> GetById(CancellationToken cancellationToken)
+    [HttpGet("id")]
+    public async Task<UserViewModel> GetById([FromServices] UserGetOrchestrator getOrchestrator,CancellationToken cancellationToken)
     {
-        var getById = await userService.GetById(User.GetInternalId(), cancellationToken);
+        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var getById = await userService.GetById(currentUser.Id, cancellationToken);
         return mapper.Map<UserViewModel>(getById);
     }
 

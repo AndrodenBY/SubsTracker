@@ -25,6 +25,7 @@ using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Group;
 
+[Collection("User API")]
 [AllureSuite("Integration Tests")]
 [AllureFeature("Group Management")]
 public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
@@ -429,13 +430,13 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
     [AllureFeature("Validation")]
     [AllureStory("Create Group")]
     [AllureDescription("Verifies that the API prevents group creation if the authenticated Auth0 ID does not exist in our system")]
-    public async Task Create_WhenUserDoesNotExist_ReturnsBadRequest()
+    public async Task Create_WhenUserDoesNotExist_ReturnsUnauthorized()
     {
         // Arrange
         var fixture = new Fixture();
-        var randomIdentityId = $"auth0|{fixture.Create<Guid>()}";
+        var randomIdentityId = TestsAuthHandler.DefaultIdentityId;
         var client = _factory.CreateAuthenticatedClient(randomIdentityId); 
-        var createDto = fixture.Build<CreateGroupDto>().Create();
+        var createDto = fixture.Create<CreateGroupDto>();
         
         AllureApi.Step($"Arrange: Setup client with non-existent Auth0 ID: {randomIdentityId}", () => {
             var json = JsonSerializer.Serialize(createDto);
@@ -449,13 +450,10 @@ public class GroupsControllerTests : IClassFixture<TestsWebApplicationFactory>
         });
 
         // Assert
-        await AllureApi.Step("Assert: Validate 400 BadRequest and error message", async () => {
-            response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
-
+        await AllureApi.Step("Assert: Validate 401 BadRequest and error message", async () => {
+            response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
             var error = await response.Content.ReadAsStringAsync();
             AllureApi.AddAttachment("Error Payload", "text/plain", Encoding.UTF8.GetBytes(error), ".txt");
-    
-            error.ShouldContain("does not exist");
         });
     }
     

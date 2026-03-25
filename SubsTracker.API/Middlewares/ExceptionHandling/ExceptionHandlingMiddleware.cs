@@ -31,6 +31,7 @@ public class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<Exception
             InvalidRequestDataException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
             PolicyViolationException ex => new ErrorModel((int)HttpStatusCode.BadRequest, ex.Message),
             ForbiddenException ex => new ErrorModel((int)HttpStatusCode.Forbidden, ex.Message),
+            UnauthorizedAccessException ex => new ErrorModel((int)HttpStatusCode.Unauthorized, ex.Message),
             _ => new ErrorModel((int)HttpStatusCode.InternalServerError, "An unexpected error occurred")
         };
 
