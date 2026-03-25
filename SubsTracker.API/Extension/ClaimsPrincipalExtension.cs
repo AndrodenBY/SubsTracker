@@ -22,9 +22,4 @@ public static class ClaimsPrincipalExtension
                ?? principal.FindFirstValue("sub")
                ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }
-    
-    // public static string GetSessionRefreshedTime(this ClaimsPrincipal principal)
-    // {
-    //     return principal.FindFirstValue("refreshed_at") ?? "Initial Login";
-    // }
 }

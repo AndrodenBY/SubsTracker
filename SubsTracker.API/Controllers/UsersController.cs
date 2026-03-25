@@ -67,7 +67,6 @@ public class UsersController(
     [HttpPut("me")]
     public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
-        //Console.WriteLine($"Session was last refreshed at: {User.GetSessionRefreshedTime()}");
         var updatedUser = await updateOrchestrator.FullUserUpdate(
             HttpContext, 
             User.GetInternalId(), 
