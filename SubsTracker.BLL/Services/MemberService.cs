@@ -46,7 +46,7 @@ public class MemberService(
         }
     }
 
-    public async Task<PaginatedList<MemberDto>> GetAll(MemberFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<MemberDto>> GetAll(MemberFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var expression = MemberFilterHelper.CreatePredicate(filter);
         var pagedEntities = await memberRepository.GetAll(expression, paginationParameters, cancellationToken);

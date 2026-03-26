@@ -54,7 +54,7 @@ public class GroupService(
         }
     }
 
-    public async Task<PaginatedList<GroupDto>> GetAll(GroupFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
+    public async Task<PaginatedList<GroupDto>> GetAll(GroupFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = GroupFilterHelper.CreatePredicate(filter);
         var pagedEntities = await groupRepository.GetAll(expression, paginationParameters, cancellationToken);

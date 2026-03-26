@@ -34,14 +34,14 @@ public class SubscriptionsController(
     ///     Retrieves all subscriptions with optional filtering
     /// </summary>
     [HttpGet]
-    public async Task<PaginatedList<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var pagedResult = await subscriptionService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<SubscriptionViewModel>);
     }
 
     [HttpGet("history/{id:guid}")]
-    public async Task<PaginatedList<SubscriptionHistoryViewModel>> GetHistory(Guid id, [FromQuery] SubscriptionHistoryFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<SubscriptionHistoryViewModel>> GetHistory(Guid id, [FromQuery] SubscriptionHistoryFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var pagedResult = await subscriptionHistoryService.GetAllHistory(id, filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<SubscriptionHistoryViewModel>);

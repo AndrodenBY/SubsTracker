@@ -244,7 +244,7 @@ public class MemberServiceTests : MemberServiceTestBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new MemberFilterDto();
+        var filter = new MemberFilter();
 
         List<MemberEntity> members = [.. Fixture.CreateMany<MemberEntity>(3)];
         List<MemberDto> memberDtos = [.. Fixture.CreateMany<MemberDto>(3)];
@@ -280,7 +280,7 @@ public class MemberServiceTests : MemberServiceTestBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new MemberFilterDto();
+        var filter = new MemberFilter();
         
         var emptyPagedList = new PaginatedList<MemberEntity>([], 1, 10, 0);
         
@@ -316,7 +316,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .With(d => d.Role, memberToFind.Role)
             .Create();
 
-        var filter = new MemberFilterDto { Role = memberToFind.Role };
+        var filter = new MemberFilter { Role = memberToFind.Role };
         var pagedList = new PaginatedList<MemberEntity>([memberToFind], 1, 10, 1);
     
         MemberRepository.GetAll(
@@ -351,7 +351,7 @@ public class MemberServiceTests : MemberServiceTestBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new MemberFilterDto { Role = targetRole };
+        var filter = new MemberFilter { Role = targetRole };
 
         List<MemberEntity> entities = [.. Fixture.Build<MemberEntity>()
             .With(m => m.Role, targetRole)
@@ -392,7 +392,7 @@ public class MemberServiceTests : MemberServiceTestBase
         //Arrange
         var ct = CancellationToken.None;
         var targetId = Guid.NewGuid();
-        var filter = new MemberFilterDto { Id = targetId };
+        var filter = new MemberFilter { Id = targetId };
 
         var entity = Fixture.Build<MemberEntity>().With(m => m.Id, targetId).Create();
         var dto = Fixture.Build<MemberDto>().With(d => d.Id, targetId).Create();

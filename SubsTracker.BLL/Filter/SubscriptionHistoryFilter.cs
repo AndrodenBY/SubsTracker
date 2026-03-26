@@ -2,7 +2,7 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.BLL.Filter;
 
-public class SubscriptionHistoryFilterDto
+public class SubscriptionHistoryFilter
 {
     public decimal? PricePaid { get; set; }
     public SubscriptionAction? Action { get; set; }

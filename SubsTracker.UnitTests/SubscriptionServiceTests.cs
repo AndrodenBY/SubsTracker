@@ -441,7 +441,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(s => s.Name, subscriptionToFind.Name)
             .Create();
 
-        var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
+        var filter = new SubscriptionFilter { Name = subscriptionToFind.Name };
     
         var pagedList = new PaginatedList<SubscriptionEntity>([subscriptionToFind], 1, 10, 1);
     
@@ -474,7 +474,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto { Name = "NonExistentName123" };
+        var filter = new SubscriptionFilter { Name = "NonExistentName123" };
         
         var emptyPagedList = new PaginatedList<SubscriptionEntity>([], 1, 10, 0);
         
@@ -504,7 +504,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto();
+        var filter = new SubscriptionFilter();
         
         var emptyPagedList = new PaginatedList<SubscriptionEntity>([], 1, 10, 0);
         
@@ -534,7 +534,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto();
+        var filter = new SubscriptionFilter();
 
         List<SubscriptionEntity> subscriptions = [.. Fixture.CreateMany<SubscriptionEntity>(3)];
         List<SubscriptionDto> subscriptionDtos = [.. Fixture.CreateMany<SubscriptionDto>(3)];
@@ -572,7 +572,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto { Type = type, Content = content };
+        var filter = new SubscriptionFilter { Type = type, Content = content };
 
         List<SubscriptionEntity> entities = [.. Fixture.Build<SubscriptionEntity>()
             .With(s => s.Type, type)
@@ -616,7 +616,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         var userId = Guid.NewGuid();
-        var filter = new SubscriptionFilterDto { UserId = userId };
+        var filter = new SubscriptionFilter { UserId = userId };
     
         List<SubscriptionEntity> userSubscriptions = [.. Fixture.Build<SubscriptionEntity>()
             .With(s => s.UserId, userId)

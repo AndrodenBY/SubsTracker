@@ -46,7 +46,7 @@ public class UsersController(
     ///     Retrieves all users with optional filtering.
     /// </summary>
     [HttpGet]
-    public async Task<PaginatedList<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<UserViewModel>> GetAll([FromQuery] UserFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var pagedResult = await userService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<UserViewModel>);

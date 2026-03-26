@@ -26,7 +26,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         var groupDto = Fixture.Build<GroupDto>()
             .With(g => g.Name, userGroupToFind.Name)
             .Create();
-        var filter = new GroupFilterDto { Name = userGroupToFind.Name };
+        var filter = new GroupFilter { Name = userGroupToFind.Name };
     
         var pagedList = new PaginatedList<GroupEntity>([userGroupToFind], 1, 10, 1);
 
@@ -59,7 +59,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto { Name = "Family" };
+        var filter = new GroupFilter { Name = "Family" };
 
         List<GroupEntity> groups = 
         [ 
@@ -98,7 +98,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         const string groupName = "NetflixPremium";
-        var filter = new GroupFilterDto { Name = "nEtFlIx" };
+        var filter = new GroupFilter { Name = "nEtFlIx" };
 
         var entity = Fixture.Build<GroupEntity>().With(g => g.Name, groupName).Create();
         var dto = Fixture.Build<GroupDto>().With(d => d.Name, groupName).Create();
@@ -133,7 +133,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         // Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto();
+        var filter = new GroupFilter();
 
         List<GroupEntity> userGroups = [.. Fixture.CreateMany<GroupEntity>(3)];
         List<GroupDto> userGroupDtos = [.. Fixture.CreateMany<GroupDto>(3)];
@@ -169,7 +169,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto { Name = "NonExistentName123" };
+        var filter = new GroupFilter { Name = "NonExistentName123" };
         
         var emptyPagedList = new PaginatedList<GroupEntity>([], 1, 10, 0);
         
@@ -200,7 +200,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto();
+        var filter = new GroupFilter();
         
         var emptyPagedList = new PaginatedList<GroupEntity>([], 1, 10, 0);
         

@@ -52,7 +52,7 @@ public class SubscriptionService(
         }
     }
 
-    public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
+    public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = SubscriptionFilterHelper.CreatePredicate(filter);
         var pagedEntities = await subscriptionRepository.GetAll(expression, paginationParameters, cancellationToken);

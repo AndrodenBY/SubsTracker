@@ -1,6 +1,6 @@
 namespace SubsTracker.BLL.Filter;
 
-public class UserFilterDto
+public class UserFilter
 {
     public string? FirstName { get; set; }
     public string? LastName { get; set; }

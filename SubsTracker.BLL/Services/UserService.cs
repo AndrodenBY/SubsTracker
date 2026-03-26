@@ -23,7 +23,7 @@ public class UserService(
     IMediator mediator) 
     : IUserService
 {
-    public async Task<PaginatedList<UserDto>> GetAll(UserFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<UserDto>> GetAll(UserFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var expression = UserFilterHelper.CreatePredicate(filter);
         var pagedEntities = await userRepository.GetAll(expression, paginationParameters, cancellationToken);

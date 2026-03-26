@@ -2,7 +2,7 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.BLL.Filter;
 
-public class SubscriptionFilterDto
+public class SubscriptionFilter
 {
     public string? Name { get; set; }
     public Guid? Id { get; set; }

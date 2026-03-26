@@ -13,7 +13,7 @@ public class SubscriptionHistoryService(
     IMapper mapper)
     : ISubscriptionHistoryService
 {
-    public async Task<PaginatedList<SubscriptionHistoryDto>> GetAllHistory(Guid subscriptionId, SubscriptionHistoryFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
+    public async Task<PaginatedList<SubscriptionHistoryDto>> GetAllHistory(Guid subscriptionId, SubscriptionHistoryFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = SubscriptionHistoryFilterHelper.CreatePredicate(filter);
         var pagedEntities = await subscriptionHistoryRepository.GetAll(expression, paginationParameters, cancellationToken);

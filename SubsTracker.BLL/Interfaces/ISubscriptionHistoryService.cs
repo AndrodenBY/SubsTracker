@@ -6,5 +6,5 @@ namespace SubsTracker.BLL.Interfaces;
 
 public interface ISubscriptionHistoryService
 {
-    Task<PaginatedList<SubscriptionHistoryDto>> GetAllHistory(Guid subscriptionId, SubscriptionHistoryFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken);
+    Task<PaginatedList<SubscriptionHistoryDto>> GetAllHistory(Guid subscriptionId, SubscriptionHistoryFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken);
 }

@@ -9,7 +9,7 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public class SubscriptionHistoryFilterHelper
 {
-    public static Expression<Func<SubscriptionHistory, bool>> CreatePredicate(SubscriptionHistoryFilterDto? filter)
+    public static Expression<Func<SubscriptionHistory, bool>> CreatePredicate(SubscriptionHistoryFilter? filter)
     {
         var expression = PredicateBuilder.New<SubscriptionHistory>(true);
 

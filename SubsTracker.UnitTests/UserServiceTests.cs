@@ -174,7 +174,7 @@ public class UserServiceTests : UserServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         const string firstName = "Alexander";
-        var filter = new UserFilterDto { FirstName = "aLeX" };
+        var filter = new UserFilter { FirstName = "aLeX" };
 
         var user = Fixture.Build<UserEntity>().With(u => u.FirstName, firstName).Create();
         var dto = Fixture.Build<UserDto>().With(u => u.FirstName, firstName).Create();
@@ -209,7 +209,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new UserFilterDto();
+        var filter = new UserFilter();
         var pagination = new PaginationParameters { PageNumber = 2, PageSize = 5 };
         
         var users = Fixture.CreateMany<UserEntity>(5).ToList();
@@ -249,7 +249,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(pagedList);
 
         //Act
-        var result = await Service.GetAll(new UserFilterDto(), pagination, ct);
+        var result = await Service.GetAll(new UserFilter(), pagination, ct);
 
         //Assert
         result.HasNextPage.ShouldBeFalse();
@@ -263,7 +263,7 @@ public class UserServiceTests : UserServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         const string lastName = "Ivanov";
-        var filter = new UserFilterDto { LastName = "IVAN" };
+        var filter = new UserFilter { LastName = "IVAN" };
 
         var user = Fixture.Build<UserEntity>().With(u => u.LastName, lastName).Create();
         var dto = Fixture.Build<UserDto>().With(u => u.LastName, lastName).Create();
@@ -297,7 +297,7 @@ public class UserServiceTests : UserServiceTestsBase
             .With(u => u.Id, userToFind.Id)
             .Create();
 
-        var filter = new UserFilterDto { Email = userToFind.Email };
+        var filter = new UserFilter { Email = userToFind.Email };
         var pagedList = new PaginatedList<UserEntity>([userToFind], 1, 10, 1);
 
         UserRepository.GetAll(
@@ -326,7 +326,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new UserFilterDto { Email = "nonexistent@example.com" };
+        var filter = new UserFilter { Email = "nonexistent@example.com" };
         var emptyPagedList = new PaginatedList<UserEntity>([], 1, 10, 0);
 
         UserRepository.GetAll(
@@ -349,7 +349,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new UserFilterDto();
+        var filter = new UserFilter();
         
         var emptyPagedList = new PaginatedList<UserEntity>([], 1, 10, 0);
         
@@ -373,7 +373,7 @@ public class UserServiceTests : UserServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new UserFilterDto();
+        var filter = new UserFilter();
 
         List<UserEntity> users = [.. Fixture.CreateMany<UserEntity>(3)];
         List<UserDto> userDtos = [.. Fixture.CreateMany<UserDto>(3)];
