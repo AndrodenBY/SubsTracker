@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.DI;
 using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Interfaces;
+using SubsTracker.BLL.Mapper;
 using SubsTracker.BLL.Mediator.Handlers.UpcomingBills;
 using SubsTracker.BLL.Services;
 using SubsTracker.DAL;
@@ -20,6 +21,7 @@ public static class BusinessLayerServiceRegister
             .RegisterMessagingLayerDependencies(configuration)
             .AddCacheDependencies(configuration)
             .AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
+            .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
             .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
             .AddScoped<ISubscriptionService, SubscriptionService>()
             .AddScoped<IUserService, UserService>()
