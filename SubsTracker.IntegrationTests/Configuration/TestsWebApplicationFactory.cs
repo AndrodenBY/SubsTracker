@@ -43,7 +43,16 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
             {
                 ["Cors:AllowedOrigins:0"] = "http://localhost:5173",
                 ["Cors:ContentDisposition"] = "Content-Disposition",
-                ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString()
+                ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString(),
+                ["Cookie:Name"] = "SubsTrackerTestCookie",
+                ["Cookie:HttpOnly"] = "true",
+                ["Cookie:IsEssential"] = "true",
+                ["Cookie:SlidingExpiration"] = "true",
+                ["Cookie:SameSite"] = "Lax",
+                ["Cookie:SecurePolicy"] = "SameAsRequest",
+                ["Cookie:Path"] = "/",
+                ["Cookie:ExpirationTimeSpan"] = "3600", 
+                ["Cookie:Domain"] = "localhost"
             });
 
             config.AddFakeAuth0Config();
