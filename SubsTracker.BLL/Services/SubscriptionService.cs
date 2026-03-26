@@ -11,6 +11,7 @@ using SubsTracker.BLL.Mediator.Signals;
 using SubsTracker.BLL.RedisSettings;
 using SubsTracker.DAL.Entities;
 using SubsTracker.DAL.Interfaces.Repositories;
+using SubsTracker.Domain.Enums;
 using SubsTracker.Domain.Exceptions;
 using SubsTracker.Domain.Pagination;
 
@@ -52,6 +53,9 @@ public class SubscriptionService(
         
         var subscriptionToCreate = Mapper.Map<SubscriptionEntity>(createDto);
         subscriptionToCreate.UserId = existingUser.Id;
+        subscriptionToCreate.DueDate = subscriptionToCreate.Type is SubscriptionType.Lifetime
+            ? subscriptionToCreate.DueDate = DateOnly.MaxValue
+            : createDto.DueDate;
 
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
 
@@ -75,7 +79,7 @@ public class SubscriptionService(
         var subscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, subscriptionId, cancellationToken);
         
         subscription.Active = false;
-        subscription.DueDate =  DateOnly.FromDateTime(DateTime.UtcNow);
+        subscription.DueDate = DateOnly.FromDateTime(DateTime.UtcNow);
         
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
@@ -93,13 +97,21 @@ public class SubscriptionService(
             throw new InvalidRequestDataException("Cannot renew subscription for less than one month");
         }
 
+        if (subscriptionToRenew.Type is SubscriptionType.Trial or SubscriptionType.Lifetime)
+        {
+            throw new PolicyViolationException("This type of subscription cannot be renewed");
+        }
+
         var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         var baseDate = subscriptionToRenew.DueDate > today 
             ? subscriptionToRenew.DueDate 
             : today;
         
-        subscriptionToRenew.DueDate = baseDate.AddMonths(monthsToRenew);
+        subscriptionToRenew.DueDate = subscriptionToRenew.Type is SubscriptionType.Lifetime
+            ? DateOnly.MaxValue
+            : baseDate.AddMonths(monthsToRenew);
+        
         subscriptionToRenew.Active = true;
         
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
