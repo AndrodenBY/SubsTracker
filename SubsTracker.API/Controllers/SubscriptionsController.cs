@@ -2,6 +2,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Extension;
+using SubsTracker.API.Helpers;
 using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Filter;
@@ -42,9 +43,10 @@ public class SubscriptionsController(
     ///     Creates a new subscription for a specific user
     /// </summary>
     [HttpPost]
-    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, CancellationToken cancellationToken)
+    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, [FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
     {
-        var create = await subscriptionService.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
+        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken); 
+        var create = await subscriptionService.Create(currentUser.Id, createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
     }
 
@@ -54,7 +56,7 @@ public class SubscriptionsController(
     [HttpPut]
     public async Task<SubscriptionViewModel> Update([FromBody] UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var update = await subscriptionService.Update(User.GetAuth0IdFromToken(), updateDto, cancellationToken);
+        var update = await subscriptionService.Update(User.GetInternalId(), updateDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(update);
     }
 
@@ -64,7 +66,7 @@ public class SubscriptionsController(
     [HttpPatch("{subscriptionId:guid}/cancel")]
     public async Task<SubscriptionViewModel> CancelSubscription(Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var cancelledSubscription = await subscriptionService.CancelSubscription(User.GetAuth0IdFromToken(), subscriptionId, cancellationToken);
+        var cancelledSubscription = await subscriptionService.CancelSubscription(User.GetInternalId(), subscriptionId, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(cancelledSubscription);
     }
 
@@ -84,7 +86,7 @@ public class SubscriptionsController(
     [HttpGet("bills/users")]
     public async Task<List<SubscriptionViewModel>> GetUpcomingBills(CancellationToken cancellationToken)
     {
-        var getUpcomingBills = await subscriptionService.GetUpcomingBills(User.GetAuth0IdFromToken(), cancellationToken);
+        var getUpcomingBills = await subscriptionService.GetUpcomingBills(User.GetInternalId(), cancellationToken);
         return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
     }
 }

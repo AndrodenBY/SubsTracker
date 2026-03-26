@@ -1,9 +1,9 @@
 using SubsTracker.BLL.DTOs.User.Update;
 
-namespace SubsTracker.API.Auth0;
+namespace SubsTracker.API.Auth.IdentityProvider;
 
 public interface IAuth0Service
 { 
     Task<string> GetClientCredentialsToken(CancellationToken cancellationToken);
-    Task UpdateUserProfile(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken);
+    Task UpdateUserProfile(string identityId, UpdateUserDto updateDto, CancellationToken cancellationToken);
 }

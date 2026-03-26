@@ -43,10 +43,10 @@ public class SubscriptionService(
         return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
-    public async Task<SubscriptionDto> Create(string auth0Id, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                           ?? throw new UnknownIdentifierException($"User with id {auth0Id} does not exist");
+        var existingUser = await userRepository.GetById(userId, cancellationToken)
+                           ?? throw new UnknownIdentifierException($"User with id {userId} does not exist");
         
         await SubscriptionPolicyChecker.PreventSubscriptionDuplication(subscriptionRepository, existingUser.Id, createDto.Name, cancellationToken);
         
@@ -59,40 +59,49 @@ public class SubscriptionService(
         return Mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
-    public async Task<SubscriptionDto> Update(string auth0Id, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
+    public new async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
-        var (originalSubscription, user) = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, auth0Id, updateDto.Id, cancellationToken);
+        var originalSubscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, updateDto.Id, cancellationToken);
 
         Mapper.Map(updateDto, originalSubscription);
         var updated = await subscriptionRepository.Update(originalSubscription, cancellationToken);
         
-        await mediator.Publish(new SubscriptionSignals.Updated(updated, originalSubscription.Type, user.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionSignals.Updated(updated, originalSubscription.Type, userId), cancellationToken);
         return Mapper.Map<SubscriptionDto>(updated);
     }
 
-    public async Task<SubscriptionDto> CancelSubscription(string auth0Id, Guid subscriptionId, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var (subscription, user) = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, auth0Id, subscriptionId, cancellationToken);
+        var subscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, subscriptionId, cancellationToken);
         
         subscription.Active = false;
+        subscription.DueDate =  DateOnly.FromDateTime(DateTime.UtcNow);
+        
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
-        await mediator.Publish(new SubscriptionSignals.Canceled(canceledSubscription, user.Id), cancellationToken);
+        await mediator.Publish(new SubscriptionSignals.Canceled(canceledSubscription, userId), cancellationToken);
         return Mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
     {
-        if (monthsToRenew <= 1)
+        var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
+                                  ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found");
+        
+        if (monthsToRenew < 1)
         {
             throw new InvalidRequestDataException("Cannot renew subscription for less than one month");
         }
 
-        var subscriptionToRenew = await subscriptionRepository.GetUserInfoById(subscriptionId, cancellationToken)
-                                  ?? throw new UnknownIdentifierException($"Subscription with id {subscriptionId} not found");
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
 
-        subscriptionToRenew.DueDate = subscriptionToRenew.DueDate.AddMonths(monthsToRenew);
+        var baseDate = subscriptionToRenew.DueDate > today 
+            ? subscriptionToRenew.DueDate 
+            : today;
+        
+        subscriptionToRenew.DueDate = baseDate.AddMonths(monthsToRenew);
         subscriptionToRenew.Active = true;
+        
         var renewedSubscription = await subscriptionRepository.Update(subscriptionToRenew, cancellationToken);
         
         await mediator.Publish(new SubscriptionSignals.Renewed(renewedSubscription, renewedSubscription.UserId
@@ -100,8 +109,8 @@ public class SubscriptionService(
         return Mapper.Map<SubscriptionDto>(renewedSubscription);
     }
 
-    public async Task<List<SubscriptionDto>> GetUpcomingBills(string auth0Id, CancellationToken cancellationToken)
+    public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
-        return await mediator.Send(new GetUpcomingBills(auth0Id), cancellationToken);
+        return await mediator.Send(new GetUpcomingBills(userId), cancellationToken);
     }
 }

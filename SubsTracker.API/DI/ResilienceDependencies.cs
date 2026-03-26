@@ -14,23 +14,21 @@ public static class ResilienceDependencies
 {
     public static IServiceCollection AddResilienceDependencies(this IServiceCollection services)
     {
-        services.RegisterOptions<RetryOptions>(RetryOptions.SectionName);
-        services.RegisterOptions<CircuitBreakerOptions>(CircuitBreakerOptions.SectionName);
-        services.RegisterOptions<CapacityLimiterOptions>(CapacityLimiterOptions.SectionName);
+        services.RegisterOptions<RetryOptions>(RetryOptions.SectionName)
+            .ValidateOnStart()
+            .ValidateDataAnnotations();
+        services.RegisterOptions<CircuitBreakerOptions>(CircuitBreakerOptions.SectionName)
+            .ValidateOnStart()
+            .ValidateDataAnnotations();
+        services.RegisterOptions<CapacityLimiterOptions>(CapacityLimiterOptions.SectionName)
+            .ValidateOnStart()
+            .ValidateDataAnnotations();
         
         services.AddResiliencePipeline(ResilienceConstants.OrchestratorPipeline, (builder, context) => 
         {
             var retryOptions = context.ServiceProvider.GetRequiredService<IOptions<RetryOptions>>().Value;
             var circuitBreakerOptions = context.ServiceProvider.GetRequiredService<IOptions<CircuitBreakerOptions>>().Value;
             var capacityLimiterOptions = context.ServiceProvider.GetRequiredService<IOptions<CapacityLimiterOptions>>().Value;
-            
-            builder.AddRateLimiter(new SlidingWindowRateLimiter(
-                new SlidingWindowRateLimiterOptions
-                {
-                    PermitLimit = capacityLimiterOptions.PermitLimit,
-                    Window = TimeSpan.FromSeconds(capacityLimiterOptions.RequestWindow),
-                    SegmentsPerWindow = capacityLimiterOptions.SegmentsPerWindow
-                }));
     
             builder.AddRateLimiter(new SlidingWindowRateLimiter(
                 new SlidingWindowRateLimiterOptions

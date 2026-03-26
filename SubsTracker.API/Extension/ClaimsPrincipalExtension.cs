@@ -1,14 +1,27 @@
 using System.Security.Claims;
+using SubsTracker.API.Constants;
 
 namespace SubsTracker.API.Extension;
 
 public static class ClaimsPrincipalExtension
 {
-    public static string GetAuth0IdFromToken(this ClaimsPrincipal claimsPrincipal)
+    public static Guid GetInternalId(this ClaimsPrincipal principal)
     {
-        var auth0Id = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("Auth0Id is missing from token");
+        var nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+        
+        if (string.IsNullOrEmpty(nameIdentifier) || !Guid.TryParse(nameIdentifier, out var userId))
+        {
+            throw new UnauthorizedAccessException("Internal User ID is missing from session");
+        }
 
-        return auth0Id;
+        return userId;
+    }
+
+    public static string GetIdentityId(this ClaimsPrincipal principal)
+    {
+        return principal.FindFirstValue(ClaimsConstants.IdentityId)
+               ?? principal.FindFirstValue(ClaimTypes.NameIdentifier)
+               ?? principal.FindFirstValue(ClaimsConstants.Sub)
+               ?? throw new UnauthorizedAccessException("Identity identifier is missing");
     }
 }

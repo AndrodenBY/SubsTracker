@@ -5,7 +5,7 @@ using Auth0.ManagementApi.Models;
 using Microsoft.Extensions.Options;
 using SubsTracker.BLL.DTOs.User.Update;
 
-namespace SubsTracker.API.Auth0;
+namespace SubsTracker.API.Auth.IdentityProvider;
 
 public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Options> options) : IAuth0Service
 {
@@ -24,12 +24,12 @@ public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Opti
         return token.AccessToken;
     }
     
-    public async Task UpdateUserProfile(string auth0Id, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public async Task UpdateUserProfile(string identityId, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
         var token = await GetClientCredentialsToken(cancellationToken);
 
         using var managementApi = new ManagementApiClient(token, new Uri(_options.ManagementApiUrl));
-        await managementApi.Users.UpdateAsync(auth0Id, new UserUpdateRequest
+        await managementApi.Users.UpdateAsync(identityId, new UserUpdateRequest
             {
                 FullName = $"{updateDto.FirstName} {updateDto.LastName}",
             }, cancellationToken);

@@ -4,7 +4,7 @@ namespace SubsTracker.DAL.Entities;
 
 public class MemberEntity : BaseEntity
 {
-    public required Guid UserId { get; set; }
+    public Guid UserId { get; set; }
     public required UserEntity User { get; set; }
     public required Guid GroupId { get; set; }
     public required GroupEntity Group { get; set; }

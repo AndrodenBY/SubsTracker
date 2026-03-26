@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Allure.Net.Commons;
 using Allure.Xunit.Attributes;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using SubsTracker.API.ViewModel;
@@ -11,11 +12,15 @@ using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 using SubsTracker.IntegrationTests.Constants;
 using SubsTracker.IntegrationTests.Helpers;
 
 namespace SubsTracker.IntegrationTests.User;
 
+[Collection("User API")]
+[AllureSuite("Integration Tests")]
+[AllureFeature("User Management")]
 public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly HttpClient _client;
@@ -24,6 +29,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
 
     public UsersControllerTests(TestsWebApplicationFactory factory)
     {
+        
         _factory = factory;
         _client = factory.CreateClient();
         _dataSeedingHelper = new UserTestsDataSeedingHelper(factory);
@@ -52,7 +58,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
         // Act
         HttpResponseMessage response = null!;
         await AllureApi.Step($"Act: GET request for user ID: {expected.Id}", async () => {
-            response = await _client.GetAsync($"{EndpointConst.User}/{expected.Id}");
+            response = await _client.GetAsync($"{EndpointConst.User}/id");
         });
 
         // Assert
@@ -75,7 +81,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     [AllureFeature("Information")]
     [AllureStory("Get My Profile")]
     [AllureDescription("Verifies that /me returns the profile of the currently logged-in Auth0 user")]
-    public async Task GetByAuth0Id_ShouldReturnCurrentAuthenticatedUser()
+    public async Task GetByIdentityId_ShouldReturnCurrentAuthenticatedUser()
     {
         // Arrange
         UserEntity expected = null!;
@@ -99,7 +105,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
             result.ShouldNotBeNull();
             result.ShouldSatisfyAllConditions(
                 () => result.Id.ShouldBe(expected.Id),
-                () => result.Auth0Id.ShouldBe(expected.Auth0Id),
+                () => result.IdentityId.ShouldBe(expected.IdentityId),
                 () => result.Email.ShouldBe(expected.Email),
                 () => result.FirstName.ShouldBe(expected.FirstName),
                 () => result.LastName.ShouldBe(expected.LastName)
@@ -112,7 +118,7 @@ public class UsersControllerTests : IClassFixture<TestsWebApplicationFactory>
     [AllureFeature("Security")]
     [AllureStory("Unauthorized Access")]
     [AllureDescription("Ensures the API blocks requests to /me if the authentication token is missing or bypassed")]
-    public async Task GetByAuth0Id_WhenNoTokenProvided_ReturnsUnauthorized()
+    public async Task GetByIdentityId_WhenNoTokenProvided_ReturnsUnauthorized()
     {
         // Arrange
         HttpRequestMessage request = null!;

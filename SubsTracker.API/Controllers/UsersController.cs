@@ -16,17 +16,19 @@ namespace SubsTracker.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class UsersController(
-    IUserService service,
+    IUserService userService,
     IMapper mapper) 
     : ControllerBase
 {
+    
     /// <summary>
     ///     Retrieves a user by their ID.
     /// </summary>
-    [HttpGet("{id:guid}")]
-    public async Task<UserViewModel> GetById(Guid id, CancellationToken cancellationToken)
+    [HttpGet("id")]
+    public async Task<UserViewModel> GetById([FromServices] UserGetOrchestrator getOrchestrator,CancellationToken cancellationToken)
     {
-        var getById = await service.GetById(id, cancellationToken);
+        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var getById = await userService.GetById(currentUser.Id, cancellationToken);
         return mapper.Map<UserViewModel>(getById);
     }
 
@@ -34,10 +36,10 @@ public class UsersController(
     ///     Retrieves the profile of the currently authenticated user.
     /// </summary>
     [HttpGet("me")]
-    public async Task<UserViewModel> GetByAuth0Id(CancellationToken cancellationToken)
+    public async Task<UserViewModel> GetByIdentityId([FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
     {
-        var user = await service.GetByAuth0Id(User.GetAuth0IdFromToken(), cancellationToken);
-        return mapper.Map<UserViewModel>(user);
+        var userProfile = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        return mapper.Map<UserViewModel>(userProfile);
     }
 
     /// <summary>
@@ -46,7 +48,7 @@ public class UsersController(
     [HttpGet]
     public async Task<PaginatedList<UserViewModel>> GetAll([FromQuery] UserFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
-        var pagedResult = await service.GetAll(filterDto, paginationParameters, cancellationToken);
+        var pagedResult = await userService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<UserViewModel>);
     }
 
@@ -56,7 +58,7 @@ public class UsersController(
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
     {
-        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
+        var create = await userService.Create(User.GetIdentityId(), createDto, cancellationToken);
         return mapper.Map<UserViewModel>(create);
     }
 
@@ -66,9 +68,13 @@ public class UsersController(
     [HttpPut("me")]
     public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
     {
-        var auth0Id =  User.GetAuth0IdFromToken();
-        var updatedUser = await updateOrchestrator.FullUserUpdate(auth0Id, updateDto, cancellationToken);
-    
+        var updatedUser = await updateOrchestrator.FullUserUpdate(
+            HttpContext, 
+            User.GetInternalId(), 
+            User.GetIdentityId(), 
+            updateDto, 
+            cancellationToken);
+        
         return mapper.Map<UserViewModel>(updatedUser);
     }
 
@@ -78,6 +84,6 @@ public class UsersController(
     [HttpDelete]
     public async Task Delete(CancellationToken cancellationToken)
     {
-        await service.Delete(User.GetAuth0IdFromToken(), cancellationToken);
+        await userService.Delete(User.GetInternalId(), cancellationToken);
     }
 }

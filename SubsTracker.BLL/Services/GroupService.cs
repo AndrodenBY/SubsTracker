@@ -46,10 +46,10 @@ public class GroupService(
         return await base.GetAll(expression, paginationParameters, cancellationToken);
     }
 
-    public async Task<GroupDto> Create(string auth0Id, CreateGroupDto createDto, CancellationToken cancellationToken)
+    public async Task<GroupDto> Create(Guid userId, CreateGroupDto createDto, CancellationToken cancellationToken)
     {
-        var existingUser = await userRepository.GetByAuth0Id(auth0Id, cancellationToken)
-                           ?? throw new InvalidRequestDataException($"User with id {auth0Id} does not exist");
+        var existingUser = await userRepository.GetById(userId, cancellationToken)
+                           ?? throw new InvalidRequestDataException($"User with id {userId} does not exist");
         createDto.UserId = existingUser.Id;
 
         var createdGroup = await base.Create(createDto, cancellationToken);

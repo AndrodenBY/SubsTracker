@@ -42,7 +42,17 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cors:AllowedOrigins:0"] = "http://localhost:5173",
-                ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString()
+                ["Cors:ContentDisposition"] = "Content-Disposition",
+                ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString(),
+                ["Cookie:Name"] = "SubsTrackerTestCookie",
+                ["Cookie:HttpOnly"] = "true",
+                ["Cookie:IsEssential"] = "true",
+                ["Cookie:SlidingExpiration"] = "true",
+                ["Cookie:SameSite"] = "Lax",
+                ["Cookie:SecurePolicy"] = "SameAsRequest",
+                ["Cookie:Path"] = "/",
+                ["Cookie:ExpirationTimeSpan"] = "3600", 
+                ["Cookie:Domain"] = "localhost"
             });
 
             config.AddFakeAuth0Config();
@@ -59,13 +69,13 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
         });
     }
 
-    public HttpClient CreateAuthenticatedClient(string auth0Id = TestsAuthHandler.DefaultAuth0Id)
+    public HttpClient CreateAuthenticatedClient(string identityId = TestsAuthHandler.DefaultIdentityId)
     {
         var client = CreateClient();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("TestAuthScheme");
         
         client.DefaultRequestHeaders.Remove(TestsAuthHandler.Auth0Header);
-        client.DefaultRequestHeaders.TryAddWithoutValidation(TestsAuthHandler.Auth0Header, auth0Id);
+        client.DefaultRequestHeaders.TryAddWithoutValidation(TestsAuthHandler.Auth0Header, identityId);
         
         return client;
     }

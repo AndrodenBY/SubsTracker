@@ -466,7 +466,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Create();
 
         UserRepository.GetById(createDto.UserId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<UserEntity?>(new UserEntity { Id = createDto.UserId }));
+            .Returns(Task.FromResult<UserEntity?>(new UserEntity { IdentityId = Guid.NewGuid().ToString(), Id = createDto.UserId }));
 
         Mapper.Map<GroupEntity>(createDto)
             .Returns(userGroupEntity);
@@ -495,7 +495,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         //Act & Assert
         await Should.ThrowAsync<InvalidRequestDataException>(async () =>
         {
-            await Service.Create(string.Empty, createDto, Arg.Any<CancellationToken>());
+            await Service.Create(Guid.Empty, createDto, Arg.Any<CancellationToken>());
         });
     }
 
@@ -517,7 +517,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Create();
         
         UserRepository.GetById(createDto.UserId, Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<UserEntity?>(new UserEntity { Id = createDto.UserId }));
+            .Returns(Task.FromResult<UserEntity?>(new UserEntity { IdentityId = Guid.NewGuid().ToString(), Id = createDto.UserId }));
         Mapper.Map<GroupEntity>(createDto)
             .Returns(userGroupEntity);
         GroupRepository.Create(userGroupEntity, Arg.Any<CancellationToken>())

@@ -1,3 +1,4 @@
+using System.Reflection;
 using DispatchR.Extensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ public static class BusinessLayerServiceRegister
         services.RegisterDataLayerDependencies(configuration)
             .RegisterMessagingLayerDependencies(configuration)
             .AddCacheDependencies(configuration)
+            .AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
             .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
             .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
             .AddScoped<ISubscriptionService, SubscriptionService>()

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using Allure.Net.Commons;
 using Allure.Xunit.Attributes;
 using MassTransit.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using SubsTracker.API.ViewModel;
@@ -11,12 +12,16 @@ using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration;
+using SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 using SubsTracker.IntegrationTests.Constants;
 using SubsTracker.IntegrationTests.Helpers;
 using SubsTracker.Messaging.Contracts;
 
 namespace SubsTracker.IntegrationTests.Subscription;
 
+[Collection("Subscription API")]
+[AllureSuite("Integration Tests")]
+[AllureFeature("Subscription Management")]
 public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
@@ -25,6 +30,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
     public SubscriptionsControllerTests(TestsWebApplicationFactory factory)
     {
+        
         _factory = factory;
         _dataSeedingHelper = new SubscriptionTestsDataSeedingHelper(factory);
         _harness = factory.Services.GetRequiredService<ITestHarness>();
@@ -153,8 +159,8 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
 
         await AllureApi.Step("Arrange: Prepare DTO and seed authenticated user", async () => {
             dto = _dataSeedingHelper.AddCreateSubscriptionDto();
-            await _dataSeedingHelper.AddSeedUserOnly();
-            client = _factory.CreateAuthenticatedClient();
+            var seededUser = await _dataSeedingHelper.AddSeedUserOnly();
+            client = _factory.CreateAuthenticatedClient(seededUser.UserEntity.IdentityId);
         });
 
         // Act
@@ -166,7 +172,7 @@ public class SubscriptionsControllerTests : IClassFixture<TestsWebApplicationFac
         // Assert
         await AllureApi.Step("Assert: Validate response status and view model fields", async () => {
             response.StatusCode.ShouldBe(HttpStatusCode.OK); 
-        
+            
             var result = await response.Content.ReadFromJsonAsync<SubscriptionViewModel>(TestHelperBase.DefaultJsonOptions);
             result.ShouldNotBeNull();
             result.ShouldSatisfyAllConditions(

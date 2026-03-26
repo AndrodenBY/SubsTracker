@@ -42,11 +42,10 @@ public class Program
                     .WithDefaultHttpClient(ScalarTarget.CSharp, ScalarClient.HttpClient);
             });
         }
-
+        
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.UseHttpsRedirection();
-        app.UseStaticFiles();
         app.UseRouting();
         app.UseCors();
 

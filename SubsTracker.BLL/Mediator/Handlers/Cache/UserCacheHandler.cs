@@ -11,18 +11,26 @@ public class UserCacheHandler(ICacheService cacheService)
       INotificationHandler<UserSignals.Deleted>
 {
     public async ValueTask Handle(UserSignals.Created signal, CancellationToken cancellationToken) 
-        => await InvalidateUserEntry(signal.Auth0Id, cancellationToken);
+        => await InvalidateUserEntry(signal.IdentityId, cancellationToken);
     
     public async ValueTask Handle(UserSignals.Updated signal, CancellationToken cancellationToken) 
-        => await InvalidateUserEntry(signal.Auth0Id, cancellationToken);
+        => await InvalidateUserEntry(signal.Id, cancellationToken);
     
     public async ValueTask Handle(UserSignals.Deleted signal, CancellationToken cancellationToken) 
-        => await InvalidateUserEntry(signal.Auth0Id, cancellationToken);
+        => await InvalidateUserEntry(signal.Id, cancellationToken);
 
     private async Task InvalidateUserEntry(string identityId, CancellationToken cancellationToken)
     {
         await cacheService.InvalidateCache<UserEntity>(
             identityId, 
+            cancellationToken
+        );
+    }
+    
+    private async Task InvalidateUserEntry(Guid internalId, CancellationToken cancellationToken)
+    {
+        await cacheService.InvalidateCache<UserEntity>(
+            internalId, 
             cancellationToken
         );
     }

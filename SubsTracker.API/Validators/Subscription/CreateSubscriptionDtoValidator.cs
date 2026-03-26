@@ -21,15 +21,19 @@ public class CreateSubscriptionDtoValidator : AbstractValidator<CreateSubscripti
 
         RuleFor(model => model.DueDate)
             .NotNull()
-            .WithMessage(ValidatorMessages.Required(nameof(CreateSubscriptionDto.DueDate)));
+            .WithMessage(ValidatorMessages.Required(nameof(CreateSubscriptionDto.DueDate)))
+            .GreaterThanOrEqualTo(_ => DateOnly.FromDateTime(DateTime.Now))
+            .WithMessage(ValidatorMessages.IncorrectDate(nameof(CreateSubscriptionDto.DueDate)));
 
         RuleFor(model => model.Type)
-            .IsInEnum().WithMessage(ValidatorMessages.MustBeValid(nameof(CreateSubscriptionDto.Type)))
+            .IsInEnum()
+            .WithMessage(ValidatorMessages.MustBeValid(nameof(CreateSubscriptionDto.Type)))
             .NotEqual(SubscriptionType.None)
             .WithMessage(ValidatorMessages.MustBeSpecified(nameof(CreateSubscriptionDto.Type)));
 
         RuleFor(model => model.Content)
-            .IsInEnum().WithMessage(ValidatorMessages.MustBeValid("Subscription Content"))
+            .IsInEnum()
+            .WithMessage(ValidatorMessages.MustBeValid("Subscription Content"))
             .NotEqual(SubscriptionContent.None)
             .WithMessage(ValidatorMessages.MustBeSpecified("Subscription Content"));
     }

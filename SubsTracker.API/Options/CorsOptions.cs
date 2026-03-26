@@ -8,4 +8,6 @@ public class CorsOptions
     
     [Required]
     public required string[] AllowedOrigins { get; set; }
+    [Required]
+    public required string ContentDisposition { get; set; }
 }

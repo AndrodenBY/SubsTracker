@@ -1,20 +1,20 @@
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Options;
 using SubsTracker.API.Extension;
-using SubsTracker.API.Mapper;
+
 using SubsTracker.API.Options;
-using SubsTracker.API.Validators.User;
 
 namespace SubsTracker.API.DI;
 
 public static class InfrastructureDependencies
 {
-    public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services)
     {
-        services.AddAutoMapper(_ => { }, typeof(ViewModelMappingProfile).Assembly)
+        services.AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
             .AddControllers()
             .AddJsonOptions(options =>
             {
@@ -23,22 +23,7 @@ public static class InfrastructureDependencies
             });
         
         services.AddFluentValidationAutoValidation()
-            .AddValidatorsFromAssemblyContaining<CreateUserDtoValidator>();
-
-        services.RegisterOptions<CorsOptions>(CorsOptions.SectionName);
-        
-        services.AddCors(options =>
-            options.AddDefaultPolicy(policy =>
-            {
-                var serviceProvider = services.BuildServiceProvider();
-                var corsOptions = serviceProvider.GetRequiredService<IOptions<CorsOptions>>().Value;
-                
-                policy.WithOrigins(corsOptions.AllowedOrigins)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials()
-                    .WithExposedHeaders("Content-Disposition");
-            }));
+            .AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         return services;
     }

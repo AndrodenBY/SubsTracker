@@ -8,7 +8,7 @@ public static class ApplicationLayerServiceRegister
     public static void RegisterApplicationLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
         services.RegisterBusinessLayerDependencies(configuration)
-            .AddInfrastructureDependencies(configuration)
+            .AddInfrastructureDependencies()
             .AddAuthorizationDependencies()
             .AddResilienceDependencies();
     }

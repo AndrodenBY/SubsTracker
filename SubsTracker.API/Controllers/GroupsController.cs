@@ -1,7 +1,7 @@
 using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SubsTracker.API.Extension;
+using SubsTracker.API.Helpers;
 using SubsTracker.API.ViewModel;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -15,7 +15,7 @@ namespace SubsTracker.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 public class GroupsController(
-    IGroupService service,
+    IGroupService groupService,
     IMemberService memberService,
     IMapper mapper) 
     : ControllerBase
@@ -26,7 +26,7 @@ public class GroupsController(
     [HttpGet("{id:guid}")]
     public async Task<GroupViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var getById = await service.GetFullInfoById(id, cancellationToken);
+        var getById = await groupService.GetFullInfoById(id, cancellationToken);
         return mapper.Map<GroupViewModel>(getById);
     }
 
@@ -36,7 +36,7 @@ public class GroupsController(
     [HttpGet]
     public async Task<PaginatedList<GroupViewModel>> GetAll([FromQuery] GroupFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
-        var pagedResult = await service.GetAll(filterDto, paginationParameters, cancellationToken);
+        var pagedResult = await groupService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<GroupViewModel>);
     }
 
@@ -54,9 +54,10 @@ public class GroupsController(
     ///     Creates a new user group
     /// </summary>
     [HttpPost]
-    public async Task<GroupViewModel> Create(CreateGroupDto createDto, CancellationToken cancellationToken)
+    public async Task<GroupViewModel> Create(CreateGroupDto createDto, [FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
     {
-        var create = await service.Create(User.GetAuth0IdFromToken(), createDto, cancellationToken);
+        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var create = await groupService.Create(currentUser.Id, createDto, cancellationToken);
         return mapper.Map<GroupViewModel>(create);
     }
 
@@ -66,7 +67,7 @@ public class GroupsController(
     [HttpPut("{id:guid}")]
     public async Task<GroupViewModel> Update(Guid id, [FromBody] UpdateGroupDto updateDto, CancellationToken cancellationToken)
     {
-        var update = await service.Update(id, updateDto, cancellationToken);
+        var update = await groupService.Update(id, updateDto, cancellationToken);
         return mapper.Map<GroupViewModel>(update);
     }
 
@@ -76,7 +77,7 @@ public class GroupsController(
     [HttpDelete("{id:guid}")]
     public async Task Delete(Guid id, CancellationToken cancellationToken)
     {
-        await service.Delete(id, cancellationToken);
+        await groupService.Delete(id, cancellationToken);
     }
 
     /// <summary>
@@ -113,7 +114,7 @@ public class GroupsController(
     [HttpPost("share")]
     public async Task<GroupViewModel> ShareSubscription([FromQuery] Guid groupId, [FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var updatedGroup = await service.ShareSubscription(groupId, subscriptionId, cancellationToken);
+        var updatedGroup = await groupService.ShareSubscription(groupId, subscriptionId, cancellationToken);
         return mapper.Map<GroupViewModel>(updatedGroup);
     }
 
@@ -123,7 +124,7 @@ public class GroupsController(
     [HttpPost("unshare")]
     public async Task<GroupViewModel> UnshareSubscription([FromQuery] Guid groupId, [FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
     {
-        var updatedGroup = await service.UnshareSubscription(groupId, subscriptionId, cancellationToken);
+        var updatedGroup = await groupService.UnshareSubscription(groupId, subscriptionId, cancellationToken);
         return mapper.Map<GroupViewModel>(updatedGroup);
     }
 }
