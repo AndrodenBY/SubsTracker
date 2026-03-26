@@ -14,13 +14,13 @@ public static class IdentityManager
         IUserService userService, 
         CancellationToken cancellationToken)
     {
-        var claimsPrincipal = context.User;
-        if (claimsPrincipal.Identity?.IsAuthenticated is not true)
+        var principal = context.User;
+        if (principal.Identity?.IsAuthenticated is not true)
         {
             return null;
         }
 
-        var identityId = claimsPrincipal.FindFirstValue(ClaimsConstants.Sub) ?? claimsPrincipal.FindFirstValue(ClaimsConstants.IdentityId);
+        var identityId = principal.FindFirstValue(ClaimsConstants.Sub) ?? principal.FindFirstValue(ClaimsConstants.IdentityId);
         if (string.IsNullOrEmpty(identityId))
         {
             return null;

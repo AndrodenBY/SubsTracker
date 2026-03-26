@@ -8,9 +8,9 @@ namespace SubsTracker.API.Helpers;
 
 public class UserGetOrchestrator(IUserService userService,  ResiliencePipelineProvider<string> pipelineProvider)
 {
-    public async Task<UserDto> GetCurrentProfile(ClaimsPrincipal claimsPrincipal, CancellationToken cancellationToken)
+    public async Task<UserDto> GetCurrentProfile(ClaimsPrincipal principal, CancellationToken cancellationToken)
     {
-        var nameIdentifier = claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier)
+        var nameIdentifier = principal.FindFirstValue(ClaimTypes.NameIdentifier)
                         ?? throw new UnauthorizedAccessException("NameIdentifier claim is missing");
 
         var pipeline = pipelineProvider.GetPipeline(ResilienceConstants.OrchestratorPipeline);
@@ -18,12 +18,12 @@ public class UserGetOrchestrator(IUserService userService,  ResiliencePipelinePr
         var currentUser = await pipeline.ExecuteAsync(
             static async (state, token) =>
             {
-                var (primaryId, userService) = state;
+                var (primaryId, user) = state;
 
                 if (Guid.TryParse(primaryId, out var internalId))
-                    return await userService.GetById(internalId, token);
+                    return await user.GetById(internalId, token);
 
-                return await userService.GetByIdentityId(primaryId, token);
+                return await user.GetByIdentityId(primaryId, token);
             },
             (primaryId: nameIdentifier, userService), cancellationToken);
         

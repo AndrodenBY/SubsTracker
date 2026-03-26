@@ -46,7 +46,6 @@ public class Program
         app.UseMiddleware<ExceptionHandlingMiddleware>();
 
         app.UseHttpsRedirection();
-        //app.UseStaticFiles();
         app.UseRouting();
         app.UseCors();
 
