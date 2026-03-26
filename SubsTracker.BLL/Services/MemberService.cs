@@ -34,15 +34,15 @@ public class MemberService(
     public async Task<MemberDto?> GetById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<MemberEntity>(id);
-        var result = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
-                     ?? throw new UnknownIdentifierException($"Entity with {id} not found");
+        var memberDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
+                     ?? throw new UnknownIdentifierException($"Member with {id} not found");
         
-        return result;
+        return memberDto;
         
         async Task<MemberDto?> GetEntity()
         {
-            var entity = await memberRepository.GetById(id, cancellationToken);
-            return mapper.Map<MemberDto>(entity);
+            var member = await memberRepository.GetById(id, cancellationToken);
+            return mapper.Map<MemberDto>(member);
         }
     }
 
@@ -51,6 +51,13 @@ public class MemberService(
         var expression = MemberFilterHelper.CreatePredicate(filter);
         var pagedEntities = await memberRepository.GetAll(expression, paginationParameters, cancellationToken);
         return mapper.Map<PaginatedList<MemberDto>>(pagedEntities);
+    }
+    
+    public async Task<MemberDto> Create(CreateMemberDto createDto, CancellationToken cancellationToken)
+    {
+        var member = mapper.Map<MemberEntity>(createDto);
+        var createdEntity = await memberRepository.Create(member, cancellationToken);
+        return mapper.Map<MemberDto>(createdEntity);
     }
 
     public async Task<MemberDto> JoinGroup(CreateMemberDto createDto, CancellationToken cancellationToken)

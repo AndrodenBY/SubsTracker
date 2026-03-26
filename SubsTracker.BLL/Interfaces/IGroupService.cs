@@ -11,6 +11,7 @@ public interface IGroupService
 {
     Task<GroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken);
     Task<PaginatedList<GroupDto>> GetAll(GroupFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken);
+    Task<GroupDto> GetById(Guid id, CancellationToken cancellationToken);
     Task<GroupDto> Create(Guid userId, CreateGroupDto createDto, CancellationToken cancellationToken);
     Task<GroupDto> Update(Guid updateId, UpdateGroupDto updateDto, CancellationToken cancellationToken);
     Task<GroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken);

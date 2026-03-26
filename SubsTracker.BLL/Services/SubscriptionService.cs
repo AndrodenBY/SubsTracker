@@ -36,6 +36,21 @@ public class SubscriptionService(
             return mapper.Map<SubscriptionDto>(subscriptionWithEntities);
         }
     }
+    
+    public async Task<SubscriptionDto> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var cacheKey = RedisKeySetter.SetCacheKey<GroupEntity>(id);
+        var subscriptionDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
+                       ?? throw new UnknownIdentifierException($"Subscription with {id} not found");
+        
+        return subscriptionDto;
+        
+        async Task<SubscriptionDto?> GetEntity()
+        {
+            var subscription = await subscriptionRepository.GetById(id, cancellationToken);
+            return mapper.Map<SubscriptionDto>(subscription);
+        }
+    }
 
     public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {

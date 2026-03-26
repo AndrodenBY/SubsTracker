@@ -38,6 +38,21 @@ public class GroupService(
             return mapper.Map<GroupDto>(groupWithEntities);
         }
     }
+    
+    public async Task<GroupDto> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var cacheKey = RedisKeySetter.SetCacheKey<GroupEntity>(id);
+        var groupDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
+                     ?? throw new UnknownIdentifierException($"Group with {id} not found");
+        
+        return groupDto;
+        
+        async Task<GroupDto?> GetEntity()
+        {
+            var group = await groupRepository.GetById(id, cancellationToken);
+            return mapper.Map<GroupDto>(group);
+        }
+    }
 
     public async Task<PaginatedList<GroupDto>> GetAll(GroupFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
