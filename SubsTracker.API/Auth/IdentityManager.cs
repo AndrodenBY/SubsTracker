@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using SubsTracker.API.Constants;
 using SubsTracker.API.Extension;
 using SubsTracker.BLL.Interfaces;
 
@@ -19,7 +20,7 @@ public static class IdentityManager
             return null;
         }
 
-        var identityId = claimsPrincipal.FindFirstValue("sub") ?? claimsPrincipal.FindFirstValue("identity_id");
+        var identityId = claimsPrincipal.FindFirstValue(ClaimsConstants.Sub) ?? claimsPrincipal.FindFirstValue(ClaimsConstants.IdentityId);
         if (string.IsNullOrEmpty(identityId))
         {
             return null;
@@ -34,9 +35,9 @@ public static class IdentityManager
         var claims = new List<Claim>
         {
             new (ClaimTypes.NameIdentifier, userDto.Id.ToString()),
-            new ("identity_id", identityId),
-            new ("refreshed_at", DateTimeOffset.UtcNow.ToString("O")),
-            new ("auth_method", "session_sync") 
+            new (ClaimsConstants.IdentityId, identityId),
+            new (ClaimsConstants.RefreshedAt, DateTimeOffset.UtcNow.ToString("O")),
+            new (ClaimsConstants.AuthMethod, ClaimsConstants.MethodSessionSync) 
         };
         
         var internalIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
@@ -48,7 +49,7 @@ public static class IdentityManager
         var user = httpContext.User;
 
         var tokenIdentityId = user.GetIdentityId();
-        var cookieIdentityId = user.FindFirstValue("identity_id");
+        var cookieIdentityId = user.FindFirstValue(ClaimsConstants.IdentityId);
 
         if (string.IsNullOrEmpty(tokenIdentityId) || string.IsNullOrEmpty(cookieIdentityId))
         {
