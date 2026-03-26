@@ -495,7 +495,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         //Act & Assert
         await Should.ThrowAsync<InvalidRequestDataException>(async () =>
         {
-            await Service.Create(string.Empty, createDto, Arg.Any<CancellationToken>());
+            await Service.Create(Guid.Empty, createDto, Arg.Any<CancellationToken>());
         });
     }
 
