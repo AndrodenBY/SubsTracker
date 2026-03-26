@@ -26,6 +26,7 @@ public static class BusinessLayerServiceRegister
             .AddScoped<IUserService, UserService>()
             .AddScoped<IGroupService, GroupService>()
             .AddScoped<IMemberService, MemberService>()
+            .AddScoped<ISubscriptionHistoryService, SubscriptionHistoryService>()
             .AddScoped<IMemberPolicyChecker, MemberPolicyChecker>();
 
         services.AddDispatchR(options =>

@@ -16,6 +16,7 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class SubscriptionsController(
     ISubscriptionService subscriptionService,
+    ISubscriptionHistoryService subscriptionHistoryService,
     IMapper mapper) 
     : ControllerBase
 {
@@ -37,6 +38,13 @@ public class SubscriptionsController(
     {
         var pagedResult = await subscriptionService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<SubscriptionViewModel>);
+    }
+
+    [HttpGet("history/{id:guid}")]
+    public async Task<PaginatedList<SubscriptionHistoryViewModel>> GetHistory(Guid id, [FromQuery] SubscriptionHistoryFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    {
+        var pagedResult = await subscriptionHistoryService.GetAllHistory(id, filterDto, paginationParameters, cancellationToken);
+        return pagedResult.MapToPage(mapper.Map<SubscriptionHistoryViewModel>);
     }
 
     /// <summary>
