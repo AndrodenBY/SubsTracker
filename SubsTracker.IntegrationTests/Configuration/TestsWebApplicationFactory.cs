@@ -42,6 +42,7 @@ public class TestsWebApplicationFactory : WebApplicationFactory<Program>, IAsync
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["Cors:AllowedOrigins:0"] = "http://localhost:5173",
+                ["Cors:ContentDisposition"] = "Content-Disposition",
                 ["ConnectionStrings:Redis"] = _redisContainer.GetConnectionString()
             });
 
