@@ -23,25 +23,25 @@ public class SubscriptionService(
     IMapper mapper,
     ICacheService cacheService, 
     IMediator mediator) 
-    : Service<SubscriptionEntity, SubscriptionDto, CreateSubscriptionDto, UpdateSubscriptionDto, SubscriptionFilterDto>(subscriptionRepository, mapper, cacheService),
-      ISubscriptionService
+    : ISubscriptionService
 {
     public async Task<SubscriptionDto?> GetUserInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionEntity>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, GetSubscription, cancellationToken);
+        return await cacheService.CacheDataWithLock(cacheKey, GetSubscription, cancellationToken);
         
         async Task<SubscriptionDto?> GetSubscription()
         {
             var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
-            return Mapper.Map<SubscriptionDto>(subscriptionWithEntities);
+            return mapper.Map<SubscriptionDto>(subscriptionWithEntities);
         }
     }
 
     public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = SubscriptionFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, paginationParameters, cancellationToken);
+        var pagedEntities = await subscriptionRepository.GetAll(expression, paginationParameters, cancellationToken);
+        return pagedEntities.MapToPage(mapper.Map<SubscriptionDto>);
     }
 
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
@@ -51,7 +51,7 @@ public class SubscriptionService(
         
         await SubscriptionPolicyChecker.PreventSubscriptionDuplication(subscriptionRepository, existingUser.Id, createDto.Name, cancellationToken);
         
-        var subscriptionToCreate = Mapper.Map<SubscriptionEntity>(createDto);
+        var subscriptionToCreate = mapper.Map<SubscriptionEntity>(createDto);
         subscriptionToCreate.UserId = existingUser.Id;
         subscriptionToCreate.DueDate = subscriptionToCreate.Type is SubscriptionType.Lifetime
             ? subscriptionToCreate.DueDate = DateOnly.MaxValue
@@ -60,18 +60,18 @@ public class SubscriptionService(
         var createdSubscription = await subscriptionRepository.Create(subscriptionToCreate, cancellationToken);
 
         await mediator.Publish(new SubscriptionSignals.Created(createdSubscription, existingUser.Id), cancellationToken);
-        return Mapper.Map<SubscriptionDto>(createdSubscription);
+        return mapper.Map<SubscriptionDto>(createdSubscription);
     }
 
-    public new async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
+    public async Task<SubscriptionDto> Update(Guid userId, UpdateSubscriptionDto updateDto, CancellationToken cancellationToken)
     {
         var originalSubscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, updateDto.Id, cancellationToken);
 
-        Mapper.Map(updateDto, originalSubscription);
+        mapper.Map(updateDto, originalSubscription);
         var updated = await subscriptionRepository.Update(originalSubscription, cancellationToken);
         
         await mediator.Publish(new SubscriptionSignals.Updated(updated, originalSubscription.Type, userId), cancellationToken);
-        return Mapper.Map<SubscriptionDto>(updated);
+        return mapper.Map<SubscriptionDto>(updated);
     }
 
     public async Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
@@ -84,7 +84,7 @@ public class SubscriptionService(
         var canceledSubscription = await subscriptionRepository.Update(subscription, cancellationToken);
 
         await mediator.Publish(new SubscriptionSignals.Canceled(canceledSubscription, userId), cancellationToken);
-        return Mapper.Map<SubscriptionDto>(canceledSubscription);
+        return mapper.Map<SubscriptionDto>(canceledSubscription);
     }
 
     public async Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken)
@@ -97,7 +97,7 @@ public class SubscriptionService(
             throw new InvalidRequestDataException("Cannot renew subscription for less than one month");
         }
 
-        if (subscriptionToRenew.Type is SubscriptionType.Trial or SubscriptionType.Lifetime)
+        if (subscriptionToRenew.Type is SubscriptionType.Trial)
         {
             throw new PolicyViolationException("This type of subscription cannot be renewed");
         }
@@ -118,7 +118,7 @@ public class SubscriptionService(
         
         await mediator.Publish(new SubscriptionSignals.Renewed(renewedSubscription, renewedSubscription.UserId
                 ?? throw new InvalidOperationException("UserId cannot be null")), cancellationToken);
-        return Mapper.Map<SubscriptionDto>(renewedSubscription);
+        return mapper.Map<SubscriptionDto>(renewedSubscription);
     }
 
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
