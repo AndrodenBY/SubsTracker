@@ -16,7 +16,11 @@ public class DtoMappingProfile : Profile
         CreateMap<MemberEntity, MemberDto>();
         CreateMap<SubscriptionEntity, SubscriptionDto>();
         CreateMap<SubscriptionHistory, SubscriptionHistoryDto>()
-            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt));
+            .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(src => src.CreatedAt))
+            .ForMember(dest => dest.SubscriptionName, opt => opt.MapFrom(src => src.Subscription!.Name))
+            .ForMember(dest => dest.SubscriptionActive, opt => opt.MapFrom(src => src.Subscription!.Active))
+            .ForMember(dest => dest.SubscriptionType, opt => opt.MapFrom(src => src.Subscription!.Type))
+            .ForMember(dest => dest.SubscriptionContent, opt => opt.MapFrom(src => src.Subscription!.Content));
 
         CreateMap<CreateUserDto, UserEntity>();
         CreateMap<CreateGroupDto, GroupEntity>();

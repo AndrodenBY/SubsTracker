@@ -7,7 +7,7 @@ using SubsTracker.Domain.Enums;
 
 namespace SubsTracker.BLL.Helpers.Filters;
 
-public class SubscriptionHistoryFilterHelper
+public static class SubscriptionHistoryFilterHelper
 {
     public static Expression<Func<SubscriptionHistory, bool>> CreatePredicate(SubscriptionHistoryFilter? filter)
     {

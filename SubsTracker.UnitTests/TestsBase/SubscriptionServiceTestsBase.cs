@@ -13,7 +13,7 @@ public class SubscriptionServiceTestsBase
     protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
-    protected readonly SubscriptionService Service;
+    protected readonly SubscriptionService SubscriptionService;
     protected readonly ISubscriptionRepository SubscriptionRepository;
     protected readonly IUserRepository UserRepository;
     protected readonly IMediator Mediator;
@@ -33,7 +33,7 @@ public class SubscriptionServiceTestsBase
         CacheService = Substitute.For<ICacheService>();
         Mediator = Substitute.For<IMediator>();
 
-        Service = new SubscriptionService(
+        SubscriptionService = new SubscriptionService(
             SubscriptionRepository,
             UserRepository,
             Mapper,

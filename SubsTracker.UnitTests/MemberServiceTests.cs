@@ -43,7 +43,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(true);
 
         //Act
-        var result = await Service.LeaveGroup(groupId, userId, ct);
+        var result = await MemberService.LeaveGroup(groupId, userId, ct);
 
         //Assert
         result.ShouldBeTrue();
@@ -71,7 +71,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(Task.FromResult<MemberEntity?>(null));
 
         //Act
-        var act = async () => await Service.LeaveGroup(groupId, userId, ct);
+        var act = async () => await MemberService.LeaveGroup(groupId, userId, ct);
 
         //Assert
         await act.ShouldThrowAsync<UnknownIdentifierException>();
@@ -105,7 +105,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(true);
 
         //Act
-        var result = await Service.LeaveGroup(groupId, userId, ct);
+        var result = await MemberService.LeaveGroup(groupId, userId, ct);
 
         //Assert
         result.ShouldBeTrue();
@@ -196,7 +196,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(expectedDto);
 
         //Act
-        var result = await Service.GetFullInfoById(memberId, ct);
+        var result = await MemberService.GetFullInfoById(memberId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -229,7 +229,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(memberDto);
 
         //Act
-        var result = await Service.GetFullInfoById(memberId, ct);
+        var result = await MemberService.GetFullInfoById(memberId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -261,7 +261,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(memberDtos[0], memberDtos[1], memberDtos[2]);
     
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await MemberService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -293,7 +293,7 @@ public class MemberServiceTests : MemberServiceTestBase
         Mapper.Map<List<MemberDto>>(Arg.Any<List<MemberEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await MemberService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -329,7 +329,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(memberDto);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await MemberService.GetAll(filter, null, ct);
         
         //Assert
         result.ShouldNotBeNull();
@@ -373,7 +373,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(dtos[0], dtos[1]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await MemberService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.Count.ShouldBe(2);
@@ -409,7 +409,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(dto);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await MemberService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldHaveSingleItem();
@@ -461,7 +461,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(memberDto);
         
         //Act
-        var result = await Service.ChangeRole(memberId, ct);
+        var result = await MemberService.ChangeRole(memberId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -499,7 +499,7 @@ public class MemberServiceTests : MemberServiceTestBase
             .Returns(memberEntity);
 
         //Act
-        var act = async () => await Service.ChangeRole(memberId, ct);
+        var act = async () => await MemberService.ChangeRole(memberId, ct);
 
         //Assert
         await act.ShouldThrowAsync<PolicyViolationException>();

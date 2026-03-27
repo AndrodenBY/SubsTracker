@@ -20,7 +20,7 @@ public class CacheServiceTests : CacheServiceTestsBase
             .Returns(ToBytes(cachedData));
 
         //Act
-        var result = await Service.CacheDataWithLock(
+        var result = await CacheService.CacheDataWithLock(
             key, 
             () => Task.FromResult<string?>("fallback"),
             ct);
@@ -52,7 +52,7 @@ public class CacheServiceTests : CacheServiceTestsBase
             .Returns(mockLock);
 
         //Act
-        var result = await Service.CacheDataWithLock(key, () => Task.FromResult<string?>(expectedData), Arg.Any<CancellationToken>());
+        var result = await CacheService.CacheDataWithLock(key, () => Task.FromResult<string?>(expectedData), Arg.Any<CancellationToken>());
 
         //Assert
         result.ShouldNotBeNull();
@@ -91,7 +91,7 @@ public class CacheServiceTests : CacheServiceTestsBase
             .Returns(Task.FromResult(mockLock));
 
         //Act
-        var result = await Service.CacheDataWithLock(
+        var result = await CacheService.CacheDataWithLock(
             key, 
             () => Task.FromResult<string?>("bad_data"),
             ct);

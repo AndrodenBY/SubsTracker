@@ -36,7 +36,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
         //Act
-        var result = await Service.Create(identityId, createDto, ct);
+        var result = await UserService.Create(identityId, createDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -66,7 +66,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(existingUser).Returns(userDto);
 
         // Act
-        var result = await Service.Create(identityId, createDto, ct);
+        var result = await UserService.Create(identityId, createDto, ct);
 
         // Assert
         await UserRepository.Received(1).Update(
@@ -103,7 +103,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(existingUser).Returns(userDto);
 
         // Act
-        var result = await Service.Create(identityId, createDto, ct);
+        var result = await UserService.Create(identityId, createDto, ct);
 
         // Assert
         await UserRepository.DidNotReceive().Update(Arg.Any<UserEntity>(), ct);
@@ -133,7 +133,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(true);
 
         //Act
-        var result = await Service.Delete(userId, ct);
+        var result = await UserService.Delete(userId, ct);
 
         //Assert
         result.ShouldBeTrue();
@@ -158,7 +158,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(Task.FromResult<UserEntity?>(null));
 
         //Act
-        var act = async () => await Service.Delete(userId, ct);
+        var act = async () => await UserService.Delete(userId, ct);
 
         //Assert
         var exception = await act.ShouldThrowAsync<UnknownIdentifierException>();
@@ -191,7 +191,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(dto);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await UserService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldHaveSingleItem();
@@ -225,7 +225,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns([.. Fixture.CreateMany<UserDto>(5)]);
 
         //Act
-        var result = await Service.GetAll(filter, pagination, ct);
+        var result = await UserService.GetAll(filter, pagination, ct);
 
         //Assert
         result.PageNumber.ShouldBe(2);
@@ -249,7 +249,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(pagedList);
 
         //Act
-        var result = await Service.GetAll(new UserFilter(), pagination, ct);
+        var result = await UserService.GetAll(new UserFilter(), pagination, ct);
 
         //Assert
         result.HasNextPage.ShouldBeFalse();
@@ -279,7 +279,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(Arg.Is<UserEntity>(u => u.Id == user.Id)).Returns(dto);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await UserService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldHaveSingleItem();
@@ -309,7 +309,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(Arg.Is<UserEntity>(u => u.Id == userToFind.Id)).Returns(userDto);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await UserService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldNotBeNull();
@@ -338,7 +338,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await UserService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -362,7 +362,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<List<UserDto>>(Arg.Any<List<UserEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await UserService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -390,7 +390,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(userDtos[0], userDtos[1], userDtos[2]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await UserService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -430,7 +430,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(expectedDto);
 
         //Act
-        var result = await Service.GetByIdentityId(identityId, ct);
+        var result = await UserService.GetByIdentityId(identityId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -460,7 +460,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns((UserEntity?)null);
 
         //Act
-        var result = await Service.GetByIdentityId(nonExistentIdentityId, ct);
+        var result = await UserService.GetByIdentityId(nonExistentIdentityId, ct);
 
         //Assert
         result.ShouldBeNull();
@@ -480,7 +480,7 @@ public class UserServiceTests : UserServiceTestsBase
             .ThrowsAsync(new OperationCanceledException(token));
 
         // Act
-        var act = () => Service.GetByIdentityId(identityId, token);
+        var act = () => UserService.GetByIdentityId(identityId, token);
 
         // Assert
         await Should.ThrowAsync<OperationCanceledException>(act);
@@ -514,7 +514,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(existingUser).Returns(expectedDto);
 
         //Act
-        var result = await Service.GetById(existingUser.Id, ct);
+        var result = await UserService.GetById(existingUser.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -536,7 +536,7 @@ public class UserServiceTests : UserServiceTestsBase
         var emptyId = Guid.Empty;
 
         //Act
-        var emptyIdResult = async () => await Service.GetById(emptyId, Arg.Any<CancellationToken>());
+        var emptyIdResult = async () => await UserService.GetById(emptyId, Arg.Any<CancellationToken>());
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(emptyIdResult());
@@ -549,7 +549,7 @@ public class UserServiceTests : UserServiceTestsBase
         var fakeId = Guid.NewGuid();
 
         //Act
-        var fakeIdResult = async () => await Service.GetById(fakeId, Arg.Any<CancellationToken>());
+        var fakeIdResult = async () => await UserService.GetById(fakeId, Arg.Any<CancellationToken>());
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(fakeIdResult());
@@ -570,7 +570,7 @@ public class UserServiceTests : UserServiceTestsBase
         ).Returns(cachedDto);
 
         //Act
-        var result = await Service.GetById(cachedDto.Id, ct);
+        var result = await UserService.GetById(cachedDto.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -608,7 +608,7 @@ public class UserServiceTests : UserServiceTestsBase
         Mapper.Map<UserDto>(userEntity).Returns(userDto);
 
         //Act
-        var result = await Service.Update(userId, updateDto, ct);
+        var result = await UserService.Update(userId, updateDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -632,7 +632,7 @@ public class UserServiceTests : UserServiceTestsBase
             .Returns(Task.FromResult<UserEntity?>(null));
 
         //Act
-        var act = async () => await Service.Update(userId, updateDto, ct);
+        var act = async () => await UserService.Update(userId, updateDto, ct);
 
         //Assert
         await act.ShouldThrowAsync<UnknownIdentifierException>();

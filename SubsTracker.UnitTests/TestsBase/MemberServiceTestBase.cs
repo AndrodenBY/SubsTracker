@@ -15,7 +15,7 @@ public class MemberServiceTestBase
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
     protected readonly IMemberRepository MemberRepository;
-    protected readonly MemberService Service;
+    protected readonly MemberService MemberService;
     protected readonly IMediator Mediator;
     
     protected readonly IMemberPolicyChecker MemberPolicyChecker;
@@ -40,7 +40,7 @@ public class MemberServiceTestBase
         CacheService = Substitute.For<ICacheService>();
         Mediator = Substitute.For<IMediator>();
 
-        Service = new MemberService(
+        MemberService = new MemberService(
             MemberRepository,
             Mapper,
             CacheService,
