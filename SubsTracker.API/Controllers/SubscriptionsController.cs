@@ -16,6 +16,7 @@ namespace SubsTracker.API.Controllers;
 [Route("api/[controller]")]
 public class SubscriptionsController(
     ISubscriptionService subscriptionService,
+    ISubscriptionHistoryService subscriptionHistoryService,
     IMapper mapper) 
     : ControllerBase
 {
@@ -33,10 +34,20 @@ public class SubscriptionsController(
     ///     Retrieves all subscriptions with optional filtering
     /// </summary>
     [HttpGet]
-    public async Task<PaginatedList<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<SubscriptionViewModel>> GetAll([FromQuery] SubscriptionFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var pagedResult = await subscriptionService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<SubscriptionViewModel>);
+    }
+    
+    /// <summary>
+    ///     Retrieves a subscription's history of operations
+    /// </summary>
+    [HttpGet("history/{id:guid}")]
+    public async Task<PaginatedList<SubscriptionHistoryViewModel>> GetHistory(Guid id, [FromQuery] SubscriptionHistoryFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    {
+        var pagedResult = await subscriptionHistoryService.GetAllHistory(id, filterDto, paginationParameters, cancellationToken);
+        return pagedResult.MapToPage(mapper.Map<SubscriptionHistoryViewModel>);
     }
 
     /// <summary>
@@ -88,5 +99,14 @@ public class SubscriptionsController(
     {
         var getUpcomingBills = await subscriptionService.GetUpcomingBills(User.GetInternalId(), cancellationToken);
         return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
+    }
+
+    /// <summary>
+    ///     Deletes a subscription from user
+    /// </summary>
+    [HttpDelete]
+    public async Task Delete([FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
+    {
+        await subscriptionService.Delete(User.GetInternalId(), subscriptionId, cancellationToken);
     }
 }

@@ -22,11 +22,11 @@ public static class BusinessLayerServiceRegister
             .AddCacheDependencies(configuration)
             .AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
             .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
-            .AddScoped(typeof(IService<,,,,>), typeof(Service<,,,,>))
             .AddScoped<ISubscriptionService, SubscriptionService>()
             .AddScoped<IUserService, UserService>()
             .AddScoped<IGroupService, GroupService>()
             .AddScoped<IMemberService, MemberService>()
+            .AddScoped<ISubscriptionHistoryService, SubscriptionHistoryService>()
             .AddScoped<IMemberPolicyChecker, MemberPolicyChecker>();
 
         services.AddDispatchR(options =>

@@ -8,7 +8,7 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class UserFilterHelper
 {
-    public static Expression<Func<UserEntity, bool>> CreatePredicate(UserFilterDto? filter)
+    public static Expression<Func<UserEntity, bool>> CreatePredicate(UserFilter? filter)
     {
         var expression = PredicateBuilder.New<UserEntity>(true);
 

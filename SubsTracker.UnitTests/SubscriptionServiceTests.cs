@@ -58,7 +58,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(updatedSubscriptionDto);
 
         //Act
-        var result = await Service.CancelSubscription(userId, subscriptionId, ct);
+        var result = await SubscriptionService.CancelSubscription(userId, subscriptionId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -84,7 +84,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         var emptyDto = new UpdateSubscriptionDto();
 
         //Act
-        var result = async () => await Service.Update(Guid.Empty, emptyDto, ct);
+        var result = async () => await SubscriptionService.Update(Guid.Empty, emptyDto, ct);
 
         //Assert
         await result.ShouldThrowAsync<UnknownIdentifierException>();
@@ -128,7 +128,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(expectedDto);
 
         //Act
-        var result = await Service.CancelSubscription(userId, subscriptionId, ct);
+        var result = await SubscriptionService.CancelSubscription(userId, subscriptionId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -186,7 +186,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Update(userId, updateDto, ct);
+        var result = await SubscriptionService.Update(userId, updateDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -208,7 +208,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         var emptyDto = new UpdateSubscriptionDto();
 
         //Act
-        var result = async () => await Service.Update(Guid.Empty, emptyDto, ct);
+        var result = async () => await SubscriptionService.Update(Guid.Empty, emptyDto, ct);
 
         //Assert
         await result.ShouldThrowAsync<UnknownIdentifierException>();
@@ -245,7 +245,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(x => (SubscriptionEntity)x[0]);
 
         // Act
-        var result = await Service.RenewSubscription(subscriptionEntity.Id, monthsToRenew, ct);
+        var result = await SubscriptionService.RenewSubscription(subscriptionEntity.Id, monthsToRenew, ct);
 
         // Assert
         result.ShouldNotBeNull();
@@ -273,7 +273,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         //Act & Assert
         await Should.ThrowAsync<InvalidRequestDataException>(async () =>
-            await Service.RenewSubscription(subscription.Id, monthsToRenew, ct));
+            await SubscriptionService.RenewSubscription(subscription.Id, monthsToRenew, ct));
     }
     
     [Fact]
@@ -289,7 +289,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(expectedBills);
 
         //Act
-        var result = await Service.GetUpcomingBills(userId, ct);
+        var result = await SubscriptionService.GetUpcomingBills(userId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -314,7 +314,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(emptyList);
 
         //Act
-        var result = await Service.GetUpcomingBills(userId, ct);
+        var result = await SubscriptionService.GetUpcomingBills(userId, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -358,7 +358,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.GetUserInfoById(subscriptionEntity.Id, ct);
+        var result = await SubscriptionService.GetUserInfoById(subscriptionEntity.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -382,7 +382,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         var emptyId = Guid.Empty;
 
         //Act
-        async Task Act() => await Service.GetById(emptyId, CancellationToken.None);
+        async Task Act() => await SubscriptionService.GetById(emptyId, CancellationToken.None);
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(Act);
@@ -396,7 +396,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         var ct = CancellationToken.None;
 
         //Act
-        async Task Act() => await Service.GetById(fakeId, ct);
+        async Task Act() => await SubscriptionService.GetById(fakeId, ct);
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(Act);
@@ -416,7 +416,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         ).Returns(Task.FromResult<SubscriptionDto?>(cachedDto));
 
         //Act
-        var result = await Service.GetById(cachedDto.Id, ct);
+        var result = await SubscriptionService.GetById(cachedDto.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -441,7 +441,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .With(s => s.Name, subscriptionToFind.Name)
             .Create();
 
-        var filter = new SubscriptionFilterDto { Name = subscriptionToFind.Name };
+        var filter = new SubscriptionFilter { Name = subscriptionToFind.Name };
     
         var pagedList = new PaginatedList<SubscriptionEntity>([subscriptionToFind], 1, 10, 1);
     
@@ -455,7 +455,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await SubscriptionService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -474,7 +474,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto { Name = "NonExistentName123" };
+        var filter = new SubscriptionFilter { Name = "NonExistentName123" };
         
         var emptyPagedList = new PaginatedList<SubscriptionEntity>([], 1, 10, 0);
         
@@ -487,7 +487,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<SubscriptionEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await SubscriptionService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -504,7 +504,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto();
+        var filter = new SubscriptionFilter();
         
         var emptyPagedList = new PaginatedList<SubscriptionEntity>([], 1, 10, 0);
         
@@ -517,7 +517,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         Mapper.Map<List<SubscriptionDto>>(Arg.Any<List<SubscriptionEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await SubscriptionService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -534,7 +534,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto();
+        var filter = new SubscriptionFilter();
 
         List<SubscriptionEntity> subscriptions = [.. Fixture.CreateMany<SubscriptionEntity>(3)];
         List<SubscriptionDto> subscriptionDtos = [.. Fixture.CreateMany<SubscriptionDto>(3)];
@@ -551,7 +551,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDtos[0], subscriptionDtos[1], subscriptionDtos[2]);
         
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await SubscriptionService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -572,7 +572,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new SubscriptionFilterDto { Type = type, Content = content };
+        var filter = new SubscriptionFilter { Type = type, Content = content };
 
         List<SubscriptionEntity> entities = [.. Fixture.Build<SubscriptionEntity>()
             .With(s => s.Type, type)
@@ -596,7 +596,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(dtos[0]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await SubscriptionService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldHaveSingleItem();
@@ -616,7 +616,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         var userId = Guid.NewGuid();
-        var filter = new SubscriptionFilterDto { UserId = userId };
+        var filter = new SubscriptionFilter { UserId = userId };
     
         List<SubscriptionEntity> userSubscriptions = [.. Fixture.Build<SubscriptionEntity>()
             .With(s => s.UserId, userId)
@@ -635,7 +635,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         Mapper.Map<List<SubscriptionDto>>(userSubscriptions).Returns(subscriptionDtos);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await SubscriptionService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -677,7 +677,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(subscriptionDto);
 
         //Act
-        var result = await Service.Create(userId, createDto, ct);
+        var result = await SubscriptionService.Create(userId, createDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -717,7 +717,7 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
             .Returns(existingSubscription);
 
         //Act
-        var act = async () => await Service.Create(userId, createDto, ct);
+        var act = async () => await SubscriptionService.Create(userId, createDto, ct);
 
         //Assert
         var exception = await act.ShouldThrowAsync<PolicyViolationException>();
@@ -736,6 +736,59 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 
         //Act & Assert
         await Should.ThrowAsync<UnknownIdentifierException>(async () =>
-            await Service.Create(Guid.Empty, createDto, ct));
+            await SubscriptionService.Create(Guid.Empty, createDto, ct));
+    }
+    
+    [Fact]
+    public async Task Delete_WhenSubscriptionExistsAndBelongsToUser_DeletesAndPublishesSignal()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var subId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        var validSubscription = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.Id, subId)
+            .With(s => s.UserId, userId)
+            .Create();
+        
+        UserRepository.GetById(userId, ct).Returns(new UserEntity { Id = userId });
+        SubscriptionRepository.GetById(subId, ct).Returns(validSubscription);
+    
+        SubscriptionRepository.Delete(validSubscription, ct).Returns(true);
+
+        // Act
+        var result = await SubscriptionService.Delete(userId, subId, ct);
+
+        // Assert
+        result.ShouldBeTrue();
+        
+        await Mediator.Received(1).Publish(
+            Arg.Is<SubscriptionSignals.Deleted>(s => s.SubscriptionId == subId && s.UserId == userId), 
+            ct);
+        
+        await SubscriptionRepository.Received(1).Delete(validSubscription, ct);
+    }
+    
+    [Fact]
+    public async Task Delete_WhenSubscriptionDoesNotExist_ThrowsUnknownIdentifierException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var subId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        UserRepository.GetById(userId, ct).Returns(new UserEntity { Id = userId });
+        SubscriptionRepository.GetById(subId, ct).Returns((SubscriptionEntity?)null);
+
+        // Act
+        var act = () => SubscriptionService.Delete(userId, subId, ct);
+
+        // Assert
+        var exception = await act.ShouldThrowAsync<UnknownIdentifierException>();
+        exception.Message.ShouldContain(subId.ToString());
+        
+        await Mediator.DidNotReceive().Publish(Arg.Any<SubscriptionSignals.Deleted>(), ct);
+        await SubscriptionRepository.DidNotReceive().Delete(Arg.Any<SubscriptionEntity>(), ct);
     }
 }

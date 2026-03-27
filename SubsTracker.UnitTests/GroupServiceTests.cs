@@ -26,7 +26,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         var groupDto = Fixture.Build<GroupDto>()
             .With(g => g.Name, userGroupToFind.Name)
             .Create();
-        var filter = new GroupFilterDto { Name = userGroupToFind.Name };
+        var filter = new GroupFilter { Name = userGroupToFind.Name };
     
         var pagedList = new PaginatedList<GroupEntity>([userGroupToFind], 1, 10, 1);
 
@@ -40,7 +40,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(groupDto);
 
         //Act 
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await GroupService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -59,7 +59,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto { Name = "Family" };
+        var filter = new GroupFilter { Name = "Family" };
 
         List<GroupEntity> groups = 
         [ 
@@ -81,7 +81,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(expectedDtos);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await GroupService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.Count.ShouldBe(2);
@@ -98,7 +98,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         //Arrange
         var ct = CancellationToken.None;
         const string groupName = "NetflixPremium";
-        var filter = new GroupFilterDto { Name = "nEtFlIx" };
+        var filter = new GroupFilter { Name = "nEtFlIx" };
 
         var entity = Fixture.Build<GroupEntity>().With(g => g.Name, groupName).Create();
         var dto = Fixture.Build<GroupDto>().With(d => d.Name, groupName).Create();
@@ -115,7 +115,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(dto);
     
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await GroupService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldHaveSingleItem();
@@ -133,7 +133,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         // Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto();
+        var filter = new GroupFilter();
 
         List<GroupEntity> userGroups = [.. Fixture.CreateMany<GroupEntity>(3)];
         List<GroupDto> userGroupDtos = [.. Fixture.CreateMany<GroupDto>(3)];
@@ -150,7 +150,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(userGroupDtos[0], userGroupDtos[1], userGroupDtos[2]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await GroupService.GetAll(filter, null, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -169,7 +169,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto { Name = "NonExistentName123" };
+        var filter = new GroupFilter { Name = "NonExistentName123" };
         
         var emptyPagedList = new PaginatedList<GroupEntity>([], 1, 10, 0);
         
@@ -183,7 +183,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await GroupService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -200,7 +200,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     {
         //Arrange
         var ct = CancellationToken.None;
-        var filter = new GroupFilterDto();
+        var filter = new GroupFilter();
         
         var emptyPagedList = new PaginatedList<GroupEntity>([], 1, 10, 0);
         
@@ -213,7 +213,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         Mapper.Map<List<GroupDto>>(Arg.Any<List<GroupEntity>>()).Returns([]);
 
         //Act
-        var result = await Service.GetAll(filter, null, ct);
+        var result = await GroupService.GetAll(filter, null, ct);
 
         //Assert
         result.Items.ShouldBeEmpty();
@@ -255,7 +255,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     Mapper.Map<GroupDto>(userGroup).Returns(expectedDto);
 
     //Act
-    var result = await Service.ShareSubscription(groupId, subscriptionId, ct);
+    var result = await GroupService.ShareSubscription(groupId, subscriptionId, ct);
 
     //Assert
     result.ShouldNotBeNull();
@@ -278,7 +278,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(Task.FromResult<GroupEntity?>(null));
 
         //Act
-        var act = () => Service.ShareSubscription(groupId, subId, CancellationToken.None);
+        var act = () => GroupService.ShareSubscription(groupId, subId, CancellationToken.None);
 
         //Assert
         await act.ShouldThrowAsync<UnknownIdentifierException>();
@@ -314,7 +314,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(userGroupDto);
 
         //Act
-        var result = await Service.GetById(userGroupDto.Id, ct);
+        var result = await GroupService.GetById(userGroupDto.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -335,7 +335,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         var emptyId = Guid.Empty;
         var ct = CancellationToken.None;
         
-        async Task Act() => await Service.GetById(emptyId, ct);
+        async Task Act() => await GroupService.GetById(emptyId, ct);
 
         // Assert
         await Should.ThrowAsync<UnknownIdentifierException>(Act);
@@ -348,7 +348,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         var fakeId = Guid.NewGuid();
 
         //Act
-        async Task Act() => await Service.GetById(fakeId, Arg.Any<CancellationToken>());
+        async Task Act() => await GroupService.GetById(fakeId, Arg.Any<CancellationToken>());
 
         //Assert
         await Should.ThrowAsync<UnknownIdentifierException>(Act);
@@ -383,7 +383,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(userGroupDto);
 
         //Act
-        await Service.GetById(userGroupDto.Id, ct);
+        await GroupService.GetById(userGroupDto.Id, ct);
 
         //Assert
         await GroupRepository.Received(1).GetById(userGroup.Id, Arg.Any<CancellationToken>());
@@ -404,7 +404,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         ).Returns(Task.FromResult<GroupDto?>(cachedDto));
 
         //Act
-        var result = await Service.GetById(cachedDto.Id, ct);
+        var result = await GroupService.GetById(cachedDto.Id, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -426,7 +426,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(Task.FromResult(true));
 
         //Act
-        var result = await Service.Delete(userGroupEntity.Id, ct);
+        var result = await GroupService.Delete(userGroupEntity.Id, ct);
 
         //Assert
         result.ShouldBeTrue();
@@ -442,7 +442,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         GroupRepository.GetById(emptyId, Arg.Any<CancellationToken>()).Returns((GroupEntity?)null);
 
         //Act
-        var result = async () => await Service.Delete(emptyId, Arg.Any<CancellationToken>());
+        var result = async () => await GroupService.Delete(emptyId, Arg.Any<CancellationToken>());
 
         //Assert
         await result.ShouldThrowAsync<UnknownIdentifierException>();
@@ -478,7 +478,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(userGroupDto);
 
         //Act
-        var result = await Service.Create(createDto, ct);
+        var result = await GroupService.Create(createDto.UserId, createDto, ct);
 
         //Assert
         result.ShouldNotBeNull();
@@ -495,7 +495,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         //Act & Assert
         await Should.ThrowAsync<InvalidRequestDataException>(async () =>
         {
-            await Service.Create(Guid.Empty, createDto, Arg.Any<CancellationToken>());
+            await GroupService.Create(Guid.Empty, createDto, Arg.Any<CancellationToken>());
         });
     }
 
@@ -526,7 +526,7 @@ public class GroupServiceTests : GroupServiceTestsBase
             .Returns(userGroupDto);
 
         //Act
-        await Service.Create(createDto, ct);
+        await GroupService.Create(createDto.UserId, createDto, ct);
 
         //Assert
         await GroupRepository.Received(1).Create(
@@ -569,7 +569,7 @@ public class GroupServiceTests : GroupServiceTestsBase
     Mapper.Map<GroupDto>(userGroup).Returns(expectedDto);
 
     //Act
-    var result = await Service.UnshareSubscription(groupId, subscriptionId, ct);
+    var result = await GroupService.UnshareSubscription(groupId, subscriptionId, ct);
 
     //Assert
     result.ShouldNotBeNull();
@@ -591,7 +591,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         .Returns(Task.FromResult<GroupEntity?>(null));
 
     //Act
-    var act = () => Service.UnshareSubscription(groupId, Guid.NewGuid(), CancellationToken.None);
+    var act = () => GroupService.UnshareSubscription(groupId, Guid.NewGuid(), CancellationToken.None);
 
     //Assert
     await act.ShouldThrowAsync<UnknownIdentifierException>();
@@ -632,7 +632,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         .Returns(userGroupDto);
 
     //Act
-    var result = await Service.Update(groupId, updateDto, ct);
+    var result = await GroupService.Update(groupId, updateDto, ct);
 
     //Assert
     result.ShouldNotBeNull();
@@ -656,7 +656,7 @@ public class GroupServiceTests : GroupServiceTestsBase
         .Returns(Task.FromResult<GroupEntity?>(null));
 
     //Act
-    var act = () => Service.Update(updateId, updateDto, CancellationToken.None);
+    var act = () => GroupService.Update(updateId, updateDto, CancellationToken.None);
 
     //Assert
     await act.ShouldThrowAsync<UnknownIdentifierException>();

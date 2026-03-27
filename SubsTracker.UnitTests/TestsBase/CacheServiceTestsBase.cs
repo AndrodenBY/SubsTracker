@@ -14,7 +14,7 @@ public class CacheServiceTestsBase
     protected readonly IDistributedCache CacheMock;
     protected readonly IDistributedLockFactory LockFactory;
     private readonly ILogger<CacheService> _logger;
-    protected readonly CacheService Service;
+    protected readonly CacheService CacheService;
 
     protected CacheServiceTestsBase()
     {
@@ -22,7 +22,7 @@ public class CacheServiceTestsBase
         LockFactory = Substitute.For<IDistributedLockFactory>();
         _logger = Substitute.For<ILogger<CacheService>>();
         
-        Service = new CacheService(CacheMock, _logger, LockFactory);
+        CacheService = new CacheService(CacheMock, _logger, LockFactory);
     }
 
     protected static byte[] ToBytes<T>(T value)

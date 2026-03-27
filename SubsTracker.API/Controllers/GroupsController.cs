@@ -34,7 +34,7 @@ public class GroupsController(
     ///     Retrieves all user groups with optional filtering
     /// </summary>
     [HttpGet]
-    public async Task<PaginatedList<GroupViewModel>> GetAll([FromQuery] GroupFilterDto? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<GroupViewModel>> GetAll([FromQuery] GroupFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var pagedResult = await groupService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<GroupViewModel>);
@@ -44,7 +44,7 @@ public class GroupsController(
     ///     Retrieves all members of a group with optional filtering
     /// </summary>
     [HttpGet("members")]
-    public async Task<PaginatedList<MemberViewModel>> GetAllMembers([FromQuery] MemberFilterDto? filterDto, [FromQuery] PaginationParameters paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<MemberViewModel>> GetAllMembers([FromQuery] MemberFilter? filterDto, [FromQuery] PaginationParameters paginationParameters, CancellationToken cancellationToken)
     {
         var pagedResult = await memberService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<MemberViewModel>);

@@ -14,5 +14,6 @@ public class ViewModelMappingProfile : Profile
         CreateMap<MemberDto, MemberViewModel>();
         CreateMap<SubscriptionDto, SubscriptionViewModel>();
         CreateMap<UpdateSubscriptionDto, SubscriptionDto>();
+        CreateMap<SubscriptionHistoryDto, SubscriptionHistoryViewModel>();
     }
 }

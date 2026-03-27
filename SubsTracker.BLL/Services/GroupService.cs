@@ -25,34 +25,51 @@ public class GroupService(
     IMapper mapper,
     ICacheService cacheService,
     IMediator mediator) 
-    : Service<GroupEntity, GroupDto, CreateGroupDto, UpdateGroupDto, GroupFilterDto>(groupRepository, mapper, cacheService),
-      IGroupService
+    : IGroupService
 {
     public async Task<GroupDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
         var cacheKey = RedisKeySetter.SetCacheKey<GroupEntity>(id);
-        return await CacheService.CacheDataWithLock(cacheKey, GetUserGroup, cancellationToken);
+        return await cacheService.CacheDataWithLock(cacheKey, GetUserGroup, cancellationToken);
         
         async Task<GroupDto?> GetUserGroup()
         {
             var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
-            return Mapper.Map<GroupDto>(groupWithEntities);
+            return mapper.Map<GroupDto>(groupWithEntities);
+        }
+    }
+    
+    public async Task<GroupDto> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var cacheKey = RedisKeySetter.SetCacheKey<GroupEntity>(id);
+        var groupDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
+                     ?? throw new UnknownIdentifierException($"Group with {id} not found");
+        
+        return groupDto;
+        
+        async Task<GroupDto?> GetEntity()
+        {
+            var group = await groupRepository.GetById(id, cancellationToken);
+            return mapper.Map<GroupDto>(group);
         }
     }
 
-    public async Task<PaginatedList<GroupDto>> GetAll(GroupFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
+    public async Task<PaginatedList<GroupDto>> GetAll(GroupFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = GroupFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(expression, paginationParameters, cancellationToken);
+        var pagedGroups = await groupRepository.GetAll(expression, paginationParameters, cancellationToken);
+        return pagedGroups.MapToPage(mapper.Map<GroupDto>);
     }
 
     public async Task<GroupDto> Create(Guid userId, CreateGroupDto createDto, CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetById(userId, cancellationToken)
                            ?? throw new InvalidRequestDataException($"User with id {userId} does not exist");
+        
         createDto.UserId = existingUser.Id;
-
-        var createdGroup = await base.Create(createDto, cancellationToken);
+        var mappedGroup = mapper.Map<GroupEntity>(createDto);
+        
+        var createdGroup = await groupRepository.Create(mappedGroup, cancellationToken);
 
         var createMemberDto = new CreateMemberDto
         {
@@ -63,20 +80,20 @@ public class GroupService(
         await memberService.Create(createMemberDto, cancellationToken);
 
         await mediator.Publish(new GroupSignals.Created(createdGroup.Id, existingUser.Id), cancellationToken);
-        return createdGroup;
+        return mapper.Map<GroupDto>(createdGroup);
     }
 
-    public new async Task<GroupDto> Update(Guid updateId, UpdateGroupDto updateDto, CancellationToken cancellationToken)
+    public async Task<GroupDto> Update(Guid updateId, UpdateGroupDto updateDto, CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(updateId, cancellationToken)
                                 ?? throw new UnknownIdentifierException($"UserGroup with id {updateId} not found");
 
-        Mapper.Map(updateDto, existingUserGroup);
+        mapper.Map(updateDto, existingUserGroup);
         var updatedEntity = await groupRepository.Update(existingUserGroup, cancellationToken);
 
         await mediator.Publish(new GroupSignals.Updated(updatedEntity.Id, updatedEntity.UserId 
                        ?? throw new UnknownIdentifierException($"Group with UserId {updatedEntity.UserId} does not exist")), cancellationToken);
-        return Mapper.Map<GroupDto>(updatedEntity);
+        return mapper.Map<GroupDto>(updatedEntity);
     }
 
     public async Task<GroupDto> ShareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
@@ -98,7 +115,7 @@ public class GroupService(
         
         await mediator.Publish(new GroupSignals.Updated(groupId, group.UserId
                        ?? throw new UnknownIdentifierException($"User with {group.UserId} not found")), cancellationToken);
-        return Mapper.Map<GroupDto>(updatedGroup);
+        return mapper.Map<GroupDto>(updatedGroup);
     }
 
     public async Task<GroupDto> UnshareSubscription(Guid groupId, Guid subscriptionId, CancellationToken cancellationToken)
@@ -115,10 +132,10 @@ public class GroupService(
         
         await mediator.Publish(new GroupSignals.Updated(groupId, group.UserId
                        ?? throw new UnknownIdentifierException($"User with {group.UserId} not found")), cancellationToken);
-        return Mapper.Map<GroupDto>(updatedGroup);
+        return mapper.Map<GroupDto>(updatedGroup);
     }
 
-    public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingUserGroup = await groupRepository.GetById(id, cancellationToken)
                                 ?? throw new UnknownIdentifierException($"UserGroup with id {id} not found");

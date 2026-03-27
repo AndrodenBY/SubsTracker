@@ -28,7 +28,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\SubsTracker.BLL\SubsTracker.BLL.csproj" />
-        <ProjectReference Include="..\SubsTracker.DAL\SubsTracker.DAL.csproj" />
     </ItemGroup>
 
     <ItemGroup>

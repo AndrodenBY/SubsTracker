@@ -16,7 +16,7 @@ public class GroupServiceTestsBase
     protected readonly IFixture Fixture;
     protected readonly IGroupRepository GroupRepository;
     protected readonly IMapper Mapper;
-    protected readonly GroupService Service;
+    protected readonly GroupService GroupService;
     protected readonly ISubscriptionRepository SubscriptionRepository;
     protected readonly IUserRepository UserRepository;
     protected readonly IMediator Mediator;
@@ -38,7 +38,7 @@ public class GroupServiceTestsBase
         CacheService = Substitute.For<ICacheService>();
         Mediator = Substitute.For<IMediator>();
 
-        Service = new GroupService(
+        GroupService = new GroupService(
             GroupRepository,
             UserRepository,
             SubscriptionRepository,

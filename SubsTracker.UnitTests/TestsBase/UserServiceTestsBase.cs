@@ -13,7 +13,7 @@ public class UserServiceTestsBase
     protected readonly ICacheService CacheService;
     protected readonly IFixture Fixture;
     protected readonly IMapper Mapper;
-    protected readonly UserService Service;
+    protected readonly UserService UserService;
     protected readonly IUserRepository UserRepository;
     protected readonly IMediator Mediator;
 
@@ -31,7 +31,7 @@ public class UserServiceTestsBase
         CacheService = Substitute.For<ICacheService>();
         Mediator = Substitute.For<IMediator>();
 
-        Service = new UserService(
+        UserService = new UserService(
             UserRepository,
             Mapper,
             CacheService,

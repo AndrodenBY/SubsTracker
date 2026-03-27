@@ -10,7 +10,7 @@ namespace SubsTracker.BLL.Helpers.Filters;
 
 public static class GroupFilterHelper
 {
-    public static Expression<Func<GroupEntity, bool>> CreatePredicate(GroupFilterDto? filter)
+    public static Expression<Func<GroupEntity, bool>> CreatePredicate(GroupFilter? filter)
     {
         var expression = PredicateBuilder.New<GroupEntity>(true);
 

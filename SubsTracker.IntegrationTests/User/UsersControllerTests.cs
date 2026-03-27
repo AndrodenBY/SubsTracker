@@ -2,7 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using Allure.Net.Commons;
 using Allure.Xunit.Attributes;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Shouldly;
 using SubsTracker.API.ViewModel;
@@ -12,7 +11,6 @@ using SubsTracker.DAL;
 using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Pagination;
 using SubsTracker.IntegrationTests.Configuration;
-using SubsTracker.IntegrationTests.Configuration.ServiceConfigs;
 using SubsTracker.IntegrationTests.Constants;
 using SubsTracker.IntegrationTests.Helpers;
 

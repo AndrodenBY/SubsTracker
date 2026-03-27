@@ -21,13 +21,28 @@ public class UserService(
     IMapper mapper,
     ICacheService cacheService,
     IMediator mediator) 
-    : Service<UserEntity, UserDto, CreateUserDto, UpdateUserDto, UserFilterDto>(userRepository, mapper, cacheService),
-    IUserService
+    : IUserService
 {
-    public async Task<PaginatedList<UserDto>> GetAll(UserFilterDto? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
+    public async Task<PaginatedList<UserDto>> GetAll(UserFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
-        var predicate = UserFilterHelper.CreatePredicate(filter);
-        return await base.GetAll(predicate, paginationParameters, cancellationToken);
+        var expression = UserFilterHelper.CreatePredicate(filter);
+        var pagedUsers = await userRepository.GetAll(expression, paginationParameters, cancellationToken);
+        return pagedUsers.MapToPage(mapper.Map<UserDto>);
+    }
+    
+    public async Task<UserDto> GetById(Guid id, CancellationToken cancellationToken)
+    {
+        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(id);
+        var userDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
+                       ?? throw new UnknownIdentifierException($"User with {id} not found");
+        
+        return userDto;
+        
+        async Task<UserDto?> GetEntity()
+        {
+            var user = await userRepository.GetById(id, cancellationToken);
+            return mapper.Map<UserDto>(user);
+        }
     }
 
     public async Task<UserDto?> GetByIdentityId(string identityId, CancellationToken cancellationToken)
@@ -39,10 +54,10 @@ public class UserService(
             return null;
         }
         
-        var userDto = Mapper.Map<UserDto>(user);
+        var userDto = mapper.Map<UserDto>(user);
         var guidCacheKey = RedisKeySetter.SetCacheKey<UserEntity>(userDto.Id);
         
-        await CacheService.CacheDataWithLock(
+        await cacheService.CacheDataWithLock(
             guidCacheKey, 
             () => Task.FromResult<UserDto?>(userDto), 
             cancellationToken);
@@ -56,12 +71,12 @@ public class UserService(
 
         if (existingUser is null)
         {
-            var newUser = Mapper.Map<UserEntity>(createDto);
+            var newUser = mapper.Map<UserEntity>(createDto);
             newUser.IdentityId = identityId; 
             var createdUser = await userRepository.Create(newUser, cancellationToken);
             
             await mediator.Publish(new UserSignals.Created(createdUser.IdentityId), cancellationToken);
-            return Mapper.Map<UserDto>(createdUser);
+            return mapper.Map<UserDto>(createdUser);
         }
         
         if (string.IsNullOrEmpty(existingUser.IdentityId))
@@ -72,22 +87,22 @@ public class UserService(
             await mediator.Publish(new UserSignals.Updated(existingUser.Id), cancellationToken);
         }
         
-        return Mapper.Map<UserDto>(existingUser);
+        return mapper.Map<UserDto>(existingUser);
     }
 
-    public new async Task<UserDto> Update(Guid id, UpdateUserDto updateDto, CancellationToken cancellationToken)
+    public async Task<UserDto> Update(Guid id, UpdateUserDto updateDto, CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetById(id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {id} not found");
         
-        Mapper.Map(updateDto, existingUser);
+        mapper.Map(updateDto, existingUser);
         var updatedEntity = await userRepository.Update(existingUser, cancellationToken);
         
         await mediator.Publish(new UserSignals.Updated(updatedEntity.Id), cancellationToken);
-        return Mapper.Map<UserDto>(updatedEntity);
+        return mapper.Map<UserDto>(updatedEntity);
     }
 
-    public new async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<bool> Delete(Guid id, CancellationToken cancellationToken)
     {
         var existingUser = await userRepository.GetById(id, cancellationToken)
                    ?? throw new UnknownIdentifierException($"User with id {id} not found");
