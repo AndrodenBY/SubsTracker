@@ -39,7 +39,10 @@ public class SubscriptionsController(
         var pagedResult = await subscriptionService.GetAll(filterDto, paginationParameters, cancellationToken);
         return pagedResult.MapToPage(mapper.Map<SubscriptionViewModel>);
     }
-
+    
+    /// <summary>
+    ///     Retrieves a subscription's history of operations
+    /// </summary>
     [HttpGet("history/{id:guid}")]
     public async Task<PaginatedList<SubscriptionHistoryViewModel>> GetHistory(Guid id, [FromQuery] SubscriptionHistoryFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
@@ -96,5 +99,14 @@ public class SubscriptionsController(
     {
         var getUpcomingBills = await subscriptionService.GetUpcomingBills(User.GetInternalId(), cancellationToken);
         return mapper.Map<List<SubscriptionViewModel>>(getUpcomingBills);
+    }
+
+    /// <summary>
+    ///     Deletes a subscription from user
+    /// </summary>
+    [HttpDelete]
+    public async Task Delete([FromQuery] Guid subscriptionId, CancellationToken cancellationToken)
+    {
+        await subscriptionService.Delete(User.GetInternalId(), subscriptionId, cancellationToken);
     }
 }

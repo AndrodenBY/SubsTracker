@@ -14,5 +14,6 @@ namespace SubsTracker.BLL.Interfaces
         Task<SubscriptionDto> CancelSubscription(Guid userId, Guid subscriptionId, CancellationToken cancellationToken);
         Task<SubscriptionDto> RenewSubscription(Guid subscriptionId, int monthsToRenew, CancellationToken cancellationToken);
         Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken);
+        Task<bool> Delete(Guid userId, Guid subscriptionId, CancellationToken cancellationToken);
     }
 }

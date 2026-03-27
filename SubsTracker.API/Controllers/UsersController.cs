@@ -22,7 +22,7 @@ public class UsersController(
 {
     
     /// <summary>
-    ///     Retrieves a user by their ID.
+    ///     Retrieves a user by their ID
     /// </summary>
     [HttpGet("id")]
     public async Task<UserViewModel> GetById([FromServices] UserGetOrchestrator getOrchestrator,CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ public class UsersController(
     }
 
     /// <summary>
-    ///     Retrieves the profile of the currently authenticated user.
+    ///     Retrieves the profile of the currently authenticated user
     /// </summary>
     [HttpGet("me")]
     public async Task<UserViewModel> GetByIdentityId([FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
@@ -43,7 +43,7 @@ public class UsersController(
     }
 
     /// <summary>
-    ///     Retrieves all users with optional filtering.
+    ///     Retrieves all users with optional filtering
     /// </summary>
     [HttpGet]
     public async Task<PaginatedList<UserViewModel>> GetAll([FromQuery] UserFilter? filterDto, [FromQuery] PaginationParameters? paginationParameters, CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ public class UsersController(
     }
 
     /// <summary>
-    ///     Creates a new user.
+    ///     Creates a new user
     /// </summary>
     [HttpPost]
     public async Task<UserViewModel> Create([FromBody] CreateUserDto createDto, CancellationToken cancellationToken)
@@ -79,7 +79,7 @@ public class UsersController(
     }
 
     /// <summary>
-    ///     Deletes a user by their Auth0 ID
+    ///     Deletes a user by their ID
     /// </summary>
     [HttpDelete]
     public async Task Delete(CancellationToken cancellationToken)

@@ -140,4 +140,12 @@ public class SubscriptionService(
     {
         return await mediator.Send(new GetUpcomingBills(userId), cancellationToken);
     }
+
+    public async Task<bool> Delete(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
+    {
+        var validatedSubscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, subscriptionId, cancellationToken);
+        
+        await mediator.Publish(new SubscriptionSignals.Deleted(validatedSubscription.Id, userId), cancellationToken);
+        return await subscriptionRepository.Delete(validatedSubscription, cancellationToken);
+    }
 }

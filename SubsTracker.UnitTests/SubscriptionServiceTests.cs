@@ -738,4 +738,57 @@ public class SubscriptionServiceTests : SubscriptionServiceTestsBase
         await Should.ThrowAsync<UnknownIdentifierException>(async () =>
             await SubscriptionService.Create(Guid.Empty, createDto, ct));
     }
+    
+    [Fact]
+    public async Task Delete_WhenSubscriptionExistsAndBelongsToUser_DeletesAndPublishesSignal()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var subId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        var validSubscription = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.Id, subId)
+            .With(s => s.UserId, userId)
+            .Create();
+        
+        UserRepository.GetById(userId, ct).Returns(new UserEntity { Id = userId });
+        SubscriptionRepository.GetById(subId, ct).Returns(validSubscription);
+    
+        SubscriptionRepository.Delete(validSubscription, ct).Returns(true);
+
+        // Act
+        var result = await SubscriptionService.Delete(userId, subId, ct);
+
+        // Assert
+        result.ShouldBeTrue();
+        
+        await Mediator.Received(1).Publish(
+            Arg.Is<SubscriptionSignals.Deleted>(s => s.SubscriptionId == subId && s.UserId == userId), 
+            ct);
+        
+        await SubscriptionRepository.Received(1).Delete(validSubscription, ct);
+    }
+    
+    [Fact]
+    public async Task Delete_WhenSubscriptionDoesNotExist_ThrowsUnknownIdentifierException()
+    {
+        // Arrange
+        var userId = Guid.NewGuid();
+        var subId = Guid.NewGuid();
+        var ct = CancellationToken.None;
+
+        UserRepository.GetById(userId, ct).Returns(new UserEntity { Id = userId });
+        SubscriptionRepository.GetById(subId, ct).Returns((SubscriptionEntity?)null);
+
+        // Act
+        var act = () => SubscriptionService.Delete(userId, subId, ct);
+
+        // Assert
+        var exception = await act.ShouldThrowAsync<UnknownIdentifierException>();
+        exception.Message.ShouldContain(subId.ToString());
+        
+        await Mediator.DidNotReceive().Publish(Arg.Any<SubscriptionSignals.Deleted>(), ct);
+        await SubscriptionRepository.DidNotReceive().Delete(Arg.Any<SubscriptionEntity>(), ct);
+    }
 }
