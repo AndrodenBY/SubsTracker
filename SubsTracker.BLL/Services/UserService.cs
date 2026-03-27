@@ -26,13 +26,13 @@ public class UserService(
     public async Task<PaginatedList<UserDto>> GetAll(UserFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)
     {
         var expression = UserFilterHelper.CreatePredicate(filter);
-        var pagedEntities = await userRepository.GetAll(expression, paginationParameters, cancellationToken);
-        return mapper.Map<PaginatedList<UserDto>>(pagedEntities);
+        var pagedUsers = await userRepository.GetAll(expression, paginationParameters, cancellationToken);
+        return pagedUsers.MapToPage(mapper.Map<UserDto>);
     }
     
     public async Task<UserDto> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<GroupEntity>(id);
+        var cacheKey = RedisKeySetter.SetCacheKey<UserEntity>(id);
         var userDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
                        ?? throw new UnknownIdentifierException($"User with {id} not found");
         

@@ -39,7 +39,7 @@ public class SubscriptionService(
     
     public async Task<SubscriptionDto> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var cacheKey = RedisKeySetter.SetCacheKey<GroupEntity>(id);
+        var cacheKey = RedisKeySetter.SetCacheKey<SubscriptionEntity>(id);
         var subscriptionDto = await cacheService.CacheDataWithLock(cacheKey, GetEntity, cancellationToken)
                        ?? throw new UnknownIdentifierException($"Subscription with {id} not found");
         
@@ -55,8 +55,8 @@ public class SubscriptionService(
     public async Task<PaginatedList<SubscriptionDto>> GetAll(SubscriptionFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = SubscriptionFilterHelper.CreatePredicate(filter);
-        var pagedEntities = await subscriptionRepository.GetAll(expression, paginationParameters, cancellationToken);
-        return pagedEntities.MapToPage(mapper.Map<SubscriptionDto>);
+        var pagedSubscriptions = await subscriptionRepository.GetAll(expression, paginationParameters, cancellationToken);
+        return pagedSubscriptions.MapToPage(mapper.Map<SubscriptionDto>);
     }
 
     public async Task<SubscriptionDto> Create(Guid userId, CreateSubscriptionDto createDto, CancellationToken cancellationToken)
