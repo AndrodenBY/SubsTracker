@@ -3,10 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using Microsoft.Extensions.Options;
-using SubsTracker.API.Extension;
-
-using SubsTracker.API.Options;
 
 namespace SubsTracker.API.DI;
 

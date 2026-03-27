@@ -1,8 +1,6 @@
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
-using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.BLL.Filter;
-using SubsTracker.DAL.Entities;
 using SubsTracker.Domain.Pagination;
 
 namespace SubsTracker.BLL.Interfaces;
