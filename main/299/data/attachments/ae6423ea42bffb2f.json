@@ -1,0 +1,1 @@
+{"type":"https://tools.ietf.org/html/rfc9110#section-15.5.1","title":"One or more validation errors occurred.","status":400,"errors":{"Name":["Name is required.","Name must be between 2 and 50 characters."]},"traceId":"00-47bd77c1b6665b21d28835f8162b5a75-efdff89db2dd9b37-00"}
