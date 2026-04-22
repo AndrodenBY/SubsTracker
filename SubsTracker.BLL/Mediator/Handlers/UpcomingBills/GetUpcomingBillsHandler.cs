@@ -1,5 +1,5 @@
-using AutoMapper;
 using DispatchR.Abstractions.Send;
+using MapsterMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Interfaces.Cache;
 using SubsTracker.BLL.RedisSettings;

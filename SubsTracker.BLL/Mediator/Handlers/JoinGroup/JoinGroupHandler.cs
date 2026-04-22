@@ -1,6 +1,6 @@
-using AutoMapper;
 using DispatchR;
 using DispatchR.Abstractions.Send;
+using MapsterMapper;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.Helpers.Policy;
 using SubsTracker.BLL.Mediator.Signals;

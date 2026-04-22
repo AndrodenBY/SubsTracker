@@ -1,5 +1,5 @@
-using AutoMapper;
 using DispatchR;
+using MapsterMapper;
 using SubsTracker.BLL.Helpers.Filters;
 using SubsTracker.BLL.Interfaces;
 using SubsTracker.BLL.Interfaces.Cache;

@@ -1,5 +1,5 @@
-using AutoMapper;
 using DispatchR;
+using MapsterMapper;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;

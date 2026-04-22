@@ -10,8 +10,7 @@ public static class InfrastructureDependencies
 {
     public static IServiceCollection AddInfrastructureDependencies(this IServiceCollection services)
     {
-        services.AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
-            .AddControllers()
+        services.AddControllers()
             .AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
