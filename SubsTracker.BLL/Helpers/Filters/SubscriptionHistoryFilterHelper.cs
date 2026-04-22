@@ -29,6 +29,12 @@ public static class SubscriptionHistoryFilterHelper
             filter.SubscriptionActive,
             subscriptionHistory => subscriptionHistory.Subscription!.Active == filter.SubscriptionActive
         );
+
+        expression = FilterHelper.AddFilterCondition<SubscriptionHistory, Guid>(
+            expression,
+            filter.SubscriptionId,
+            subscriptionHistory => subscriptionHistory.Subscription!.Id == filter.SubscriptionId
+        );
         
         expression = FilterHelper.AddFilterCondition<SubscriptionHistory, SubscriptionContent>(
             expression,
