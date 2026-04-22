@@ -63,8 +63,7 @@ public static class  AuthorizationDependencies
             return new AuthenticationApiClient(new Uri(options.Authority));
         });
 
-        services.AddScoped<UserUpdateOrchestrator>()
-            .AddScoped<UserGetOrchestrator>()
+        services.AddScoped<UserOrchestrator>()
             .AddScoped<IClaimsTransformation, ClaimsTransformer>()
             .AddScoped<IAuth0Service, Auth0Service>();
 

@@ -25,9 +25,9 @@ public class UsersController(
     ///     Retrieves a user by their ID
     /// </summary>
     [HttpGet("id")]
-    public async Task<UserViewModel> GetById([FromServices] UserGetOrchestrator getOrchestrator,CancellationToken cancellationToken)
+    public async Task<UserViewModel> GetById([FromServices] UserOrchestrator userOrchestrator,CancellationToken cancellationToken)
     {
-        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var currentUser = await userOrchestrator.GetCurrentProfile(User, cancellationToken);
         var getById = await userService.GetById(currentUser.Id, cancellationToken);
         return mapper.Map<UserViewModel>(getById);
     }
@@ -36,9 +36,9 @@ public class UsersController(
     ///     Retrieves the profile of the currently authenticated user
     /// </summary>
     [HttpGet("me")]
-    public async Task<UserViewModel> GetByIdentityId([FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
+    public async Task<UserViewModel> GetByIdentityId([FromServices] UserOrchestrator userOrchestrator, CancellationToken cancellationToken)
     {
-        var userProfile = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var userProfile = await userOrchestrator.GetCurrentProfile(User, cancellationToken);
         return mapper.Map<UserViewModel>(userProfile);
     }
 
@@ -66,14 +66,14 @@ public class UsersController(
     ///     Updates an existing user both in DB and in Auth0
     /// </summary>
     [HttpPut("me")]
-    public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserUpdateOrchestrator updateOrchestrator, CancellationToken cancellationToken)
+    public async Task<UserViewModel> Update([FromBody] UpdateUserDto updateDto, [FromServices] UserOrchestrator userOrchestrator, CancellationToken cancellationToken)
     {
-        var updatedUser = await updateOrchestrator.FullUserUpdate(
+        var updatedUser = await userOrchestrator.FullUserUpdate(
             HttpContext, 
             User.GetInternalId(), 
             User.GetIdentityId(), 
             updateDto, 
-            cancellationToken);
+        cancellationToken);
         
         return mapper.Map<UserViewModel>(updatedUser);
     }
@@ -82,8 +82,11 @@ public class UsersController(
     ///     Deletes a user by their ID
     /// </summary>
     [HttpDelete]
-    public async Task Delete(CancellationToken cancellationToken)
+    public async Task Delete([FromServices] UserOrchestrator userOrchestrator, CancellationToken cancellationToken)
     {
-        await userService.Delete(User.GetInternalId(), cancellationToken);
+        await userOrchestrator.FullUserDelete(HttpContext,
+            User.GetInternalId(),
+            User.GetIdentityId(),
+        cancellationToken);
     }
 }

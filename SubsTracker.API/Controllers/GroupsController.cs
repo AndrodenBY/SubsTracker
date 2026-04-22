@@ -54,9 +54,9 @@ public class GroupsController(
     ///     Creates a new user group
     /// </summary>
     [HttpPost]
-    public async Task<GroupViewModel> Create(CreateGroupDto createDto, [FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
+    public async Task<GroupViewModel> Create(CreateGroupDto createDto, [FromServices] UserOrchestrator userOrchestrator, CancellationToken cancellationToken)
     {
-        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var currentUser = await userOrchestrator.GetCurrentProfile(User, cancellationToken);
         var create = await groupService.Create(currentUser.Id, createDto, cancellationToken);
         return mapper.Map<GroupViewModel>(create);
     }
