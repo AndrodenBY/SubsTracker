@@ -27,8 +27,10 @@ public class MemberService(
 {
     public async Task<MemberDto?> GetFullInfoById(Guid id, CancellationToken cancellationToken)
     {
-        var memberWithEntities = await memberRepository.GetFullInfoById(id, cancellationToken);
-        return mapper.Map<MemberDto>(memberWithEntities);
+        var member = await memberRepository.GetFullInfoById(id, cancellationToken);
+        return member is null
+            ? null 
+            : mapper.Map<MemberDto>(member);
     }
 
     public async Task<MemberDto?> GetById(Guid id, CancellationToken cancellationToken)
@@ -42,7 +44,9 @@ public class MemberService(
         async Task<MemberDto?> GetEntity()
         {
             var member = await memberRepository.GetById(id, cancellationToken);
-            return mapper.Map<MemberDto>(member);
+            return member is null
+                ? null 
+                : mapper.Map<MemberDto>(member);
         }
     }
 

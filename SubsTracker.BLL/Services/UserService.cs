@@ -41,7 +41,9 @@ public class UserService(
         async Task<UserDto?> GetEntity()
         {
             var user = await userRepository.GetById(id, cancellationToken);
-            return mapper.Map<UserDto>(user);
+            return user is null 
+                ? null 
+                : mapper.Map<UserDto>(user);
         }
     }
 

@@ -1,7 +1,5 @@
 using Mapster;
 using SubsTracker.BLL.DTOs.Subscription;
-using SubsTracker.BLL.DTOs.User;
-using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
 using SubsTracker.DAL.Entities;
 

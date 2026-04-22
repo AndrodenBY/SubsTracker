@@ -32,8 +32,10 @@ public class SubscriptionService(
         
         async Task<SubscriptionDto?> GetSubscription()
         {
-            var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
-            return mapper.Map<SubscriptionDto>(subscriptionWithEntities);
+            var subscription = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
+            return subscription is null 
+                ? null 
+                : mapper.Map<SubscriptionDto>(subscription);
         }
     }
     
@@ -48,7 +50,9 @@ public class SubscriptionService(
         async Task<SubscriptionDto?> GetEntity()
         {
             var subscription = await subscriptionRepository.GetById(id, cancellationToken);
-            return mapper.Map<SubscriptionDto>(subscription);
+            return subscription is null
+                ? null
+                : mapper.Map<SubscriptionDto>(subscription);
         }
     }
 

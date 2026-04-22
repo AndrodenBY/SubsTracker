@@ -27,7 +27,7 @@ public class GroupsController(
     public async Task<GroupViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
         var getById = await groupService.GetFullInfoById(id, cancellationToken);
-        return mapper.Map<GroupViewModel>(getById);
+        return mapper.Map<GroupViewModel>(getById!);
     }
 
     /// <summary>
