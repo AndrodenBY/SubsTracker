@@ -145,6 +145,22 @@ public class SubscriptionService(
         return await mediator.Send(new GetUpcomingBills(userId), cancellationToken);
     }
 
+    public async Task ProcessExpiredSubscriptions(CancellationToken cancellationToken)
+    {
+        var expiredSubscriptions = await subscriptionRepository.CancelRange(cancellationToken);
+
+        if (expiredSubscriptions is null || expiredSubscriptions.Count == 0)
+        {
+            return;
+        }
+        
+        foreach (var expiredSubscription in expiredSubscriptions)
+        {
+            await mediator.Publish(new SubscriptionSignals.Canceled(expiredSubscription, expiredSubscription.UserId  
+                    ?? throw new InvalidOperationException("UserId cannot be null")), cancellationToken);
+        }
+    }
+
     public async Task<bool> Delete(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)
     {
         var validatedSubscription = await SubscriptionPolicyChecker.GetValidatedSubscription(userRepository, subscriptionRepository, userId, subscriptionId, cancellationToken);

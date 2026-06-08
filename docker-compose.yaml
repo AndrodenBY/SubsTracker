@@ -17,6 +17,12 @@
       ports: [ "27017:27017" ]
       env_file: [ ".env" ]
       volumes: [ "mongo-data:/data/db" ]
+      healthcheck:
+        test: [ "CMD", "mongosh", "--eval", "db.adminCommand('ping')" ]
+        interval: 30s
+        timeout: 5s
+        retries: 3
+        start_period: 10s
     
     redis:
       image: redis:7.2
@@ -25,7 +31,7 @@
       restart: always
       healthcheck:
         test: [ "CMD", "redis-cli", "ping" ]
-        interval: 5s
+        interval: 15s
         timeout: 3s
         retries: 5
     
@@ -58,6 +64,21 @@
           condition: service_healthy
       env_file: [ ".env" ]
       ports: [ "8080:8080" ]
+
+    substracker.hangfire:
+      build:
+        context: .
+        dockerfile: SubsTracker.Hangfire/Dockerfile
+      container_name: substracker.hangfire
+      restart: on-failure
+      depends_on:
+        postgresdb:
+          condition: service_healthy
+        mongodb:
+          condition: service_healthy
+      env_file: [ ".env" ]
+      ports: [ "5158:8080" ]
+         
   
   volumes:
     postgres-data:
