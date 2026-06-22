@@ -85,15 +85,14 @@ jobs:
             $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
           }
           dotnet sonarscanner begin `
-          /k:"AndrodenBY_SubsTracker" `
-          /o:"androdenby" `        
-          /d:sonar.token="$env:SONAR_TOKEN" `
-          /d:sonar.host.url="https://sonarcloud.io" `
-          /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
-          /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
-          /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
-          /d:sonar.coverage.exclusions="**/*ViewModel.cs,**/*Dto.cs,**/Constants/**,**/Enums/**,**/Exceptions/**,**/Json/**,**/Entities/**,**/Options/**,**/Filter/**,**/RedisSettings/**" `
-          @PR_ARGS
+            /k:"AndrodenBY_SubsTracker" `
+            /o:"androdenby" `
+            /d:sonar.host.url="https://sonarcloud.io" `
+            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
+            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
+            /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
+            /d:sonar.coverage.exclusions="**/*ViewModel.cs,**/*Dto.cs,**/Constants/**,**/Enums/**,**/Exceptions/**,**/Json/**,**/Entities/**,**/Options/**,**/Filter/**,**/RedisSettings/**" `
+            @PR_ARGS
 
       - name: Run Everything (Tests + Coverage + Allure)
         env:
