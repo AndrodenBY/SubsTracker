@@ -125,7 +125,11 @@ jobs:
       - name: Sonar End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end
+        shell: pwsh
+        run: |
+            Write-Host "Token length: $($env:SONAR_TOKEN.Length)"
+            dotnet sonarscanner end
+
 
       - name: Get Allure history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
