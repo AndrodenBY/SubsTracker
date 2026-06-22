@@ -22,13 +22,6 @@ jobs:
         with:
           dotnet-version: 9.0.x
 
-      - name: Validate Sonar Token
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-            curl -u $SONAR_TOKEN: https://sonarcloud.io/api/authentication/validate
-            curl -u $SONAR_TOKEN: "https://sonarcloud.io/api/projects/search?organization=androdenby"
-
       - name: Cache NuGet
         uses: actions/cache@v4
         with:
@@ -92,14 +85,15 @@ jobs:
             $PR_ARGS += "/d:sonar.branch.name=${{ github.ref_name }}"
           }
           dotnet sonarscanner begin `
-            /k:"AndrodenBY_SubsTracker" `
-            /o:"androdenby" `
-            /d:sonar.host.url="https://sonarcloud.io" `
-            /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
-            /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
-            /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
-            /d:sonar.coverage.exclusions="**/*ViewModel.cs,**/*Dto.cs,**/Constants/**,**/Enums/**,**/Exceptions/**,**/Json/**,**/Entities/**,**/Options/**,**/Filter/**,**/RedisSettings/**" `
-            @PR_ARGS
+          /k:"AndrodenBY_SubsTracker" `
+          /o:"androdenby" `
+          /d:sonar.login="$env:SONAR_TOKEN" `
+          /d:sonar.host.url="https://sonarcloud.io" `
+          /d:sonar.cs.opencover.reportsPaths="**/TestResults/**/coverage.opencover.xml" `
+          /d:sonar.cs.vstest.reportsPaths="**/TestResults/*.trx" `
+          /d:sonar.exclusions="**/Migrations/**,**/Dockerfile,**/*appsettings*.json" `
+          /d:sonar.coverage.exclusions="**/*ViewModel.cs,**/*Dto.cs,**/Constants/**,**/Enums/**,**/Exceptions/**,**/Json/**,**/Entities/**,**/Options/**,**/Filter/**,**/RedisSettings/**" `
+          @PR_ARGS
 
       - name: Run Everything (Tests + Coverage + Allure)
         env:
@@ -132,11 +126,7 @@ jobs:
       - name: Sonar End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        shell: pwsh
-        run: |
-            Write-Host "Token length: $($env:SONAR_TOKEN.Length)"
-            dotnet sonarscanner end
-
+        run: dotnet sonarscanner end /d:sonar.login="$env:SONAR_TOKEN"
 
       - name: Get Allure history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
