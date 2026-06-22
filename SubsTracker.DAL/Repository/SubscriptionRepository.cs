@@ -26,4 +26,23 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
             .OrderBy(s => s.DueDate)
             .ToListAsync(cancellationToken);
     }
+
+    public async Task<List<SubscriptionEntity>?> CancelRange(CancellationToken cancellationToken)
+    {
+        var subscriptionsToExpire = await _dbSet
+            .Include(subscription => subscription.User)
+            .Where(subscription => subscription.Active && subscription.DueDate < DateOnly.FromDateTime(DateTime.UtcNow))
+            .ToListAsync(cancellationToken);
+
+        var expiredSubscriptionsCount = await _dbSet
+            .Where(subscription => subscriptionsToExpire.Contains(subscription))
+            .ExecuteUpdateAsync(setter => setter
+                    .SetProperty(subscription => subscription.Active, false),
+                    cancellationToken
+            );
+
+        return expiredSubscriptionsCount == subscriptionsToExpire.Count
+            ? subscriptionsToExpire
+            : null;
+    }
 }

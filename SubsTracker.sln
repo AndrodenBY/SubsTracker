@@ -24,6 +24,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubsTracker.IntegrationTest
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubsTracker.Messaging", "SubsTracker.Messaging\SubsTracker.Messaging.csproj", "{89B6A699-A0B6-41C6-97FD-1BD3B4941280}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubsTracker.Hangfire", "SubsTracker.Hangfire\SubsTracker.Hangfire.csproj", "{9AC48752-3224-4DD9-BD53-D033BB4BDF0F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,5 +60,11 @@ Global
 		{89B6A699-A0B6-41C6-97FD-1BD3B4941280}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{89B6A699-A0B6-41C6-97FD-1BD3B4941280}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{89B6A699-A0B6-41C6-97FD-1BD3B4941280}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9AC48752-3224-4DD9-BD53-D033BB4BDF0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9AC48752-3224-4DD9-BD53-D033BB4BDF0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9AC48752-3224-4DD9-BD53-D033BB4BDF0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9AC48752-3224-4DD9-BD53-D033BB4BDF0F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal

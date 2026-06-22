@@ -50,4 +50,47 @@ public class Auth0ServiceTests
             Arg.Any<IDictionary<string, string>>(),
             Arg.Any<CancellationToken>());
     }
+    
+    [Fact]
+    public async Task DeleteUserProfile_ShouldExecuteServiceCodeAndAttemptDeletion()
+    {
+        // Arrange
+        var connectionMock = Substitute.For<IAuthenticationConnection>();
+        
+        connectionMock.SendAsync<AccessTokenResponse>(
+                Arg.Any<HttpMethod>(),
+                Arg.Any<Uri>(),
+                Arg.Any<object>(),
+                Arg.Any<IDictionary<string, string>>(),
+                Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(new AccessTokenResponse { AccessToken = "fake-management-token" }));
+
+        var auth0Options = new Auth0Options
+        {
+            Domain = "localhost",
+            Authority = "http://127.0.0.1",
+            ClientId = "test-id",
+            ClientSecret = "test-secret",
+            Audience = "test-audience",
+            ManagementApiUrl = "http://127.0.0.1"
+        };
+    
+        var options = Options.Create(auth0Options);
+        var authClient = new AuthenticationApiClient(new Uri(auth0Options.Authority), connectionMock);
+        var service = new Auth0Service(authClient, options);
+        
+        var targetIdentityId = "auth0|67890";
+
+        // Act & Assert
+        await Assert.ThrowsAsync<HttpRequestException>(async () => 
+            await service.DeleteUserProfile(targetIdentityId, CancellationToken.None)
+        );
+        
+        await connectionMock.Received().SendAsync<AccessTokenResponse>(
+            Arg.Any<HttpMethod>(),
+            Arg.Any<Uri>(),
+            Arg.Any<object>(),
+            Arg.Any<IDictionary<string, string>>(),
+            Arg.Any<CancellationToken>());
+    }
 }

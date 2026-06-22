@@ -63,15 +63,14 @@ public static class  AuthorizationDependencies
             return new AuthenticationApiClient(new Uri(options.Authority));
         });
 
-        services.AddScoped<UserUpdateOrchestrator>()
-            .AddScoped<UserGetOrchestrator>()
+        services.AddScoped<UserOrchestrator>()
             .AddScoped<IClaimsTransformation, ClaimsTransformer>()
             .AddScoped<IAuth0Service, Auth0Service>();
 
         return services;
     } 
         
-    private static IServiceCollection AddAuthenticationScheme(this IServiceCollection services)
+    private static void AddAuthenticationScheme(this IServiceCollection services)
     {
         services.RegisterOptions<CookieOptions>(CookieOptions.SectionName)
             .ValidateOnStart()
@@ -141,7 +140,5 @@ public static class  AuthorizationDependencies
                         ValidateLifetime = true,
                     };
                 });
-
-        return services;
     }
 }

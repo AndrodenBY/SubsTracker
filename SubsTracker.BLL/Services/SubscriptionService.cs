@@ -1,5 +1,5 @@
-using AutoMapper;
 using DispatchR;
+using MapsterMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Helpers.Filters;
@@ -32,8 +32,10 @@ public class SubscriptionService(
         
         async Task<SubscriptionDto?> GetSubscription()
         {
-            var subscriptionWithEntities = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
-            return mapper.Map<SubscriptionDto>(subscriptionWithEntities);
+            var subscription = await subscriptionRepository.GetUserInfoById(id, cancellationToken);
+            return subscription is null 
+                ? null 
+                : mapper.Map<SubscriptionDto>(subscription);
         }
     }
     
@@ -48,7 +50,9 @@ public class SubscriptionService(
         async Task<SubscriptionDto?> GetEntity()
         {
             var subscription = await subscriptionRepository.GetById(id, cancellationToken);
-            return mapper.Map<SubscriptionDto>(subscription);
+            return subscription is null
+                ? null
+                : mapper.Map<SubscriptionDto>(subscription);
         }
     }
 
@@ -139,6 +143,22 @@ public class SubscriptionService(
     public async Task<List<SubscriptionDto>> GetUpcomingBills(Guid userId, CancellationToken cancellationToken)
     {
         return await mediator.Send(new GetUpcomingBills(userId), cancellationToken);
+    }
+
+    public async Task ProcessExpiredSubscriptions(CancellationToken cancellationToken)
+    {
+        var expiredSubscriptions = await subscriptionRepository.CancelRange(cancellationToken);
+
+        if (expiredSubscriptions is null || expiredSubscriptions.Count == 0)
+        {
+            return;
+        }
+        
+        foreach (var expiredSubscription in expiredSubscriptions)
+        {
+            await mediator.Publish(new SubscriptionSignals.Canceled(expiredSubscription, expiredSubscription.UserId  
+                    ?? throw new InvalidOperationException("UserId cannot be null")), cancellationToken);
+        }
     }
 
     public async Task<bool> Delete(Guid userId, Guid subscriptionId, CancellationToken cancellationToken)

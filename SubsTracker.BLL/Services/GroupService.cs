@@ -1,5 +1,5 @@
-using AutoMapper;
 using DispatchR;
+using MapsterMapper;
 using SubsTracker.BLL.DTOs.User;
 using SubsTracker.BLL.DTOs.User.Create;
 using SubsTracker.BLL.DTOs.User.Update;
@@ -34,8 +34,10 @@ public class GroupService(
         
         async Task<GroupDto?> GetUserGroup()
         {
-            var groupWithEntities = await groupRepository.GetFullInfoById(id, cancellationToken);
-            return mapper.Map<GroupDto>(groupWithEntities);
+            var group = await groupRepository.GetFullInfoById(id, cancellationToken);
+            return group is null 
+                ? null 
+                : mapper.Map<GroupDto>(group);
         }
     }
     
@@ -50,7 +52,9 @@ public class GroupService(
         async Task<GroupDto?> GetEntity()
         {
             var group = await groupRepository.GetById(id, cancellationToken);
-            return mapper.Map<GroupDto>(group);
+            return group is null 
+                ? null 
+                : mapper.Map<GroupDto>(group);
         }
     }
 

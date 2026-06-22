@@ -6,4 +6,5 @@ public interface IAuth0Service
 { 
     Task<string> GetClientCredentialsToken(CancellationToken cancellationToken);
     Task UpdateUserProfile(string identityId, UpdateUserDto updateDto, CancellationToken cancellationToken);
+    Task DeleteUserProfile(string identityId, CancellationToken cancellationToken);
 }

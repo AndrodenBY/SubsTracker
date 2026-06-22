@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Extension;
@@ -27,7 +27,7 @@ public class SubscriptionsController(
     public async Task<SubscriptionViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
         var getById = await subscriptionService.GetUserInfoById(id, cancellationToken);
-        return mapper.Map<SubscriptionViewModel>(getById);
+        return mapper.Map<SubscriptionViewModel>(getById!);
     }
 
     /// <summary>
@@ -54,9 +54,9 @@ public class SubscriptionsController(
     ///     Creates a new subscription for a specific user
     /// </summary>
     [HttpPost]
-    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, [FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
+    public async Task<SubscriptionViewModel> Create([FromBody] CreateSubscriptionDto createDto, [FromServices] UserOrchestrator userOrchestrator, CancellationToken cancellationToken)
     {
-        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken); 
+        var currentUser = await userOrchestrator.GetCurrentProfile(User, cancellationToken); 
         var create = await subscriptionService.Create(currentUser.Id, createDto, cancellationToken);
         return mapper.Map<SubscriptionViewModel>(create);
     }

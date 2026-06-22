@@ -30,8 +30,16 @@ public class Auth0Service(AuthenticationApiClient authClient, IOptions<Auth0Opti
 
         using var managementApi = new ManagementApiClient(token, new Uri(_options.ManagementApiUrl));
         await managementApi.Users.UpdateAsync(identityId, new UserUpdateRequest
-            {
-                FullName = $"{updateDto.FirstName} {updateDto.LastName}",
-            }, cancellationToken);
+        {
+            FullName = $"{updateDto.FirstName} {updateDto.LastName}",
+        }, cancellationToken);
+    }
+
+    public async Task DeleteUserProfile(string identityId, CancellationToken cancellationToken)
+    {
+        var token = await GetClientCredentialsToken(cancellationToken);
+        
+        using var managementApi = new ManagementApiClient(token, new Uri(_options.ManagementApiUrl));
+        await managementApi.Users.DeleteAsync(identityId, cancellationToken);
     }
 }

@@ -1,5 +1,5 @@
 using AutoFixture;
-using AutoMapper;
+using MapsterMapper;
 using NSubstitute;
 using SubsTracker.BLL.Services;
 using SubsTracker.DAL.Interfaces.Repositories;

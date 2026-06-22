@@ -1,5 +1,5 @@
-using System.Reflection;
 using DispatchR.Extensions;
+using Mapster;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SubsTracker.BLL.DI;
@@ -17,11 +17,12 @@ public static class BusinessLayerServiceRegister
 {
     public static IServiceCollection RegisterBusinessLayerDependencies(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddMapster();
+        DtoMappingProfile.Configure();
+        
         services.RegisterDataLayerDependencies(configuration)
             .RegisterMessagingLayerDependencies(configuration)
             .AddCacheDependencies(configuration)
-            .AddAutoMapper(_ => { }, Assembly.GetExecutingAssembly())
-            .AddAutoMapper(_ => { }, typeof(DtoMappingProfile).Assembly)
             .AddScoped<ISubscriptionService, SubscriptionService>()
             .AddScoped<IUserService, UserService>()
             .AddScoped<IGroupService, GroupService>()

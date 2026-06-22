@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SubsTracker.API.Helpers;
@@ -27,7 +27,7 @@ public class GroupsController(
     public async Task<GroupViewModel> GetById(Guid id, CancellationToken cancellationToken)
     {
         var getById = await groupService.GetFullInfoById(id, cancellationToken);
-        return mapper.Map<GroupViewModel>(getById);
+        return mapper.Map<GroupViewModel>(getById!);
     }
 
     /// <summary>
@@ -54,9 +54,9 @@ public class GroupsController(
     ///     Creates a new user group
     /// </summary>
     [HttpPost]
-    public async Task<GroupViewModel> Create(CreateGroupDto createDto, [FromServices] UserGetOrchestrator getOrchestrator, CancellationToken cancellationToken)
+    public async Task<GroupViewModel> Create(CreateGroupDto createDto, [FromServices] UserOrchestrator userOrchestrator, CancellationToken cancellationToken)
     {
-        var currentUser = await getOrchestrator.GetCurrentProfile(User, cancellationToken);
+        var currentUser = await userOrchestrator.GetCurrentProfile(User, cancellationToken);
         var create = await groupService.Create(currentUser.Id, createDto, cancellationToken);
         return mapper.Map<GroupViewModel>(create);
     }

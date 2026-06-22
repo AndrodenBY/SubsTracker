@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using SubsTracker.BLL.DTOs.Subscription;
 using SubsTracker.BLL.Filter;
 using SubsTracker.BLL.Helpers.Filters;
