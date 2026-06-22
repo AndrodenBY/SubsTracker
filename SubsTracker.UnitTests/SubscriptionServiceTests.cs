@@ -17,6 +17,83 @@ namespace SubsTracker.UnitTests;
 public class SubscriptionServiceTests : SubscriptionServiceTestsBase
 {
     [Fact]
+    public async Task ProcessExpiredSubscriptions_WhenExpiredSubscriptionsExist_ShouldPublishCanceledSignals()
+    {
+        // Arrange
+        var ct = CancellationToken.None;
+        
+
+        var expiredSubscriptions = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.UserId, Guid.NewGuid())
+            .With(s => s.Active, false)
+            .CreateMany(2)
+            .ToList();
+        
+        SubscriptionRepository.CancelRange(ct)
+            .Returns(Task.FromResult<List<SubscriptionEntity>?>(expiredSubscriptions));
+
+        // Act
+        await SubscriptionService.ProcessExpiredSubscriptions(ct);
+
+        // Assert
+        await SubscriptionRepository.Received(1).CancelRange(ct);
+        
+        await Mediator.Received(1).Publish(
+            Arg.Is<SubscriptionSignals.Canceled>(s => s.Subscription.Id == expiredSubscriptions[0].Id && s.UserId == expiredSubscriptions[0].UserId), 
+            ct);
+
+        await Mediator.Received(1).Publish(
+            Arg.Is<SubscriptionSignals.Canceled>(s => s.Subscription.Id == expiredSubscriptions[1].Id && s.UserId == expiredSubscriptions[1].UserId), 
+            ct);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData(true)]
+    public async Task ProcessExpiredSubscriptions_WhenNoExpiredSubscriptions_ShouldReturnEarlyWithoutPublishing(bool? returnEmptyList)
+    {
+        // Arrange
+        var ct = CancellationToken.None;
+        List<SubscriptionEntity>? repoResult = returnEmptyList == true 
+            ? new List<SubscriptionEntity>() 
+            : null;
+
+        SubscriptionRepository.CancelRange(ct)
+            .Returns(Task.FromResult(repoResult));
+
+        // Act
+        await SubscriptionService.ProcessExpiredSubscriptions(ct);
+
+        // Assert
+        await SubscriptionRepository.Received(1).CancelRange(ct);
+        
+        await Mediator.DidNotReceive().Publish(Arg.Any<SubscriptionSignals.Canceled>(), Arg.Any<CancellationToken>());
+    }
+
+    [Fact]
+    public async Task ProcessExpiredSubscriptions_WhenUserIdIsNull_ShouldThrowInvalidOperationException()
+    {
+        // Arrange
+        var ct = CancellationToken.None;
+        var expiredSubscriptions = Fixture.Build<SubscriptionEntity>()
+            .With(s => s.UserId, (Guid?)null)
+            .With(s => s.Active, false)
+            .CreateMany(1)
+            .ToList();
+
+        SubscriptionRepository.CancelRange(ct)
+            .Returns(Task.FromResult<List<SubscriptionEntity>?>(expiredSubscriptions));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(async () => 
+            await SubscriptionService.ProcessExpiredSubscriptions(ct)
+        );
+        
+        
+        await Mediator.DidNotReceive().Publish(Arg.Any<SubscriptionSignals.Canceled>(), Arg.Any<CancellationToken>());
+    }
+    
+    [Fact]
     public async Task CancelSubscription_WhenValidModel_ReturnsInactiveSubscription()
     {
         //Arrange
