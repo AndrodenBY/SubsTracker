@@ -1,5 +1,5 @@
 using AutoFixture;
-using AutoMapper;
+using MapsterMapper;
 using DispatchR;
 using NSubstitute;
 using SubsTracker.BLL.Helpers.Policy;

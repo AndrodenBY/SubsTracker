@@ -14,4 +14,9 @@ public class FakeAuth0Service : IAuth0Service
     {
         return Task.CompletedTask;
     }
+
+    public Task DeleteUserProfile(string identityId, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
 }

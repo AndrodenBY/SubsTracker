@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Auth0.AuthenticationApi;
-using AutoMapper;
+using MapsterMapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

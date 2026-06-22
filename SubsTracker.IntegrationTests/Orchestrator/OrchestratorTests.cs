@@ -27,17 +27,19 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 {
     private readonly TestsWebApplicationFactory _factory;
     private readonly HttpContext _mockContext;
+    private readonly IAuth0Service _auth0Service;
     private readonly IUserService _userService;
     private readonly ResiliencePipelineProvider<string> _pipelineProvider;
-    private readonly UserGetOrchestrator _getOrchestrator;
+    private readonly UserOrchestrator _userOrchestrator;
 
     public OrchestratorTests(TestsWebApplicationFactory factory)
     {
         _factory = factory;
         _mockContext = new DefaultHttpContext();
         _userService = Substitute.For<IUserService>();
+        _auth0Service = Substitute.For<IAuth0Service>();
         _pipelineProvider = _factory.Services.GetRequiredService<ResiliencePipelineProvider<string>>();
-        _getOrchestrator = new UserGetOrchestrator(_userService, _pipelineProvider);
+        _userOrchestrator = new UserOrchestrator(_auth0Service, _userService, _pipelineProvider);
     }
     
     [Fact]
@@ -57,7 +59,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 
         var provider = new TestPipelineProvider(pipeline);
 
-        var getOrchestrator = new UserGetOrchestrator(_userService, provider);
+        var userOrchestrator = new UserOrchestrator(_auth0Service,_userService, provider);
         var internalId = Guid.NewGuid();
         var principal = CreateMockPrincipal(internalId.ToString());
         var attempts = 0;
@@ -71,7 +73,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             });
 
         // Act
-        var result = await getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
+        var result = await userOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
 
         // Assert
         result.ShouldNotBeNull();
@@ -95,7 +97,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             .Build();
 
         var provider = new TestPipelineProvider(pipeline);
-        var getOrchestrator = new UserGetOrchestrator(_userService, provider);
+        var userOrchestrator = new UserOrchestrator(_auth0Service, _userService, provider);
         var internalId = Guid.NewGuid();
         var userDto = new UserDto { Id = internalId, IdentityId = TestsAuthHandler.DefaultIdentityId, FirstName = "RandomChel", Email = "test@example.com" };
         var principal = CreateMockPrincipal(internalId.ToString());
@@ -104,7 +106,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             .Returns(userDto);
 
         // Act
-        var result = await getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
+        var result = await userOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
 
         // Assert
         result.ShouldNotBeNull();
@@ -129,7 +131,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             .Build();
 
         var provider = new TestPipelineProvider(pipeline);
-        var getOrchestrator = new UserGetOrchestrator(_userService, provider);
+        var userOrchestrator = new UserOrchestrator(_auth0Service, _userService, provider);
         var identityId = TestsAuthHandler.DefaultIdentityId;
         var userDto = new UserDto { FirstName = "RandomChel", IdentityId = identityId };
         var principal = CreateMockPrincipal(identityId);
@@ -138,7 +140,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
             .Returns(userDto);
 
         // Act
-        var result = await getOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
+        var result = await userOrchestrator.GetCurrentProfile(principal, CancellationToken.None);
 
         // Assert
         result.ShouldNotBeNull();
@@ -157,7 +159,7 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 
         // Act & Assert
         await Should.ThrowAsync<UnauthorizedAccessException>(async () => 
-            await _getOrchestrator.GetCurrentProfile(principal, CancellationToken.None));
+            await _userOrchestrator.GetCurrentProfile(principal, CancellationToken.None));
     }
     
     [Fact]
@@ -179,20 +181,20 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 
         using var scope = _factory.Services.CreateScope();
         var pipelineProvider = scope.ServiceProvider.GetRequiredService<ResiliencePipelineProvider<string>>();
-        var orchestrator = new UserUpdateOrchestrator(auth0Service, userService, pipelineProvider);
+        var userOrchestrator = new UserOrchestrator(auth0Service, userService, pipelineProvider);
 
         // Act & Assert
         await AllureApi.Step("Exhaust the MinimumThroughput (2 failures)", async () =>
         {
             await Should.ThrowAsync<TimeoutException>(async () => 
-                await orchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), TestsAuthHandler.DefaultIdentityId, validDto, CancellationToken.None));
+                await userOrchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), TestsAuthHandler.DefaultIdentityId, validDto, CancellationToken.None));
         });
         await Task.Yield();
 
         await AllureApi.Step("Subsequent call: Verify Circuit is OPEN", async () =>
         {
             await Should.ThrowAsync<BrokenCircuitException>(async () => 
-                await orchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), TestsAuthHandler.DefaultIdentityId, validDto, CancellationToken.None));
+                await userOrchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), TestsAuthHandler.DefaultIdentityId, validDto, CancellationToken.None));
         });
     }
 
@@ -209,14 +211,14 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 
         using var scope = _factory.Services.CreateScope();
         var pipelineProvider = scope.ServiceProvider.GetRequiredService<ResiliencePipelineProvider<string>>();
-        var orchestrator = new UserUpdateOrchestrator(mockAuth0, mockUser, pipelineProvider);
+        var userOrchestrator = new UserOrchestrator(mockAuth0, mockUser, pipelineProvider);
 
         // Act & Assert
         await AllureApi.Step("Verify Timeout cancellation is triggered", async () =>
         {
             
             await Should.ThrowAsync<Exception>(async () => 
-                await orchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), "id", new UpdateUserDto(), CancellationToken.None));
+                await userOrchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), "id", new UpdateUserDto(), CancellationToken.None));
         });
     }
 
@@ -234,11 +236,11 @@ public class OrchestratorTests : IClassFixture<TestsWebApplicationFactory>
 
         using var scope = _factory.Services.CreateScope();
         var pipelineProvider = scope.ServiceProvider.GetRequiredService<ResiliencePipelineProvider<string>>();
-        var orchestrator = new UserUpdateOrchestrator(mockAuth0, mockUser, pipelineProvider);
+        var userOrchestrator = new UserOrchestrator(mockAuth0, mockUser, pipelineProvider);
 
         // Act
         await Should.ThrowAsync<Exception>(async () => 
-            await orchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), "id", new UpdateUserDto(), CancellationToken.None));
+            await userOrchestrator.FullUserUpdate(_mockContext, Guid.NewGuid(), "id", new UpdateUserDto(), CancellationToken.None));
 
         // Assert
         await AllureApi.Step("Verify local database was never touched", async () =>
