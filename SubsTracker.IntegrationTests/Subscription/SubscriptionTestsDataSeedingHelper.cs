@@ -13,6 +13,36 @@ namespace SubsTracker.IntegrationTests.Subscription;
 
 public class SubscriptionTestsDataSeedingHelper(TestsWebApplicationFactory factory) : TestHelperBase(factory)
 {
+    public async Task<SubscriptionSeedEntity> AddSeedUserWithExpiredSubscriptions(int count = 2)
+    {
+        using var scope = CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<SubsDbContext>();
+
+        var user = Fixture.Build<UserEntity>()
+            .With(u => u.IdentityId, TestsAuthHandler.DefaultIdentityId)
+            .Without(u => u.Groups)
+            .Create();
+
+        var expiredSubscriptions = Enumerable.Range(0, count)
+            .Select(_ => Fixture.Build<SubscriptionEntity>()
+                .With(s => s.UserId, user.Id)
+                .With(s => s.Active, true)
+                .With(s => s.DueDate, DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2)))
+                .With(s => s.User, user)
+                .Without(s => s.History)
+                .Create())
+            .ToList();
+
+        await dbContext.Users.AddAsync(user);
+        await dbContext.Subscriptions.AddRangeAsync(expiredSubscriptions);
+        await dbContext.SaveChangesAsync();
+
+        return new SubscriptionSeedEntity
+        {
+            UserEntity = user,
+            Subscriptions = expiredSubscriptions
+        };
+    }
     
     public async Task<SubscriptionSeedEntity> AddSeedData()
     {

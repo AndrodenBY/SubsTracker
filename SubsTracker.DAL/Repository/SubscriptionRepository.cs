@@ -29,8 +29,9 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
 
     public async Task<List<SubscriptionEntity>?> CancelRange(CancellationToken cancellationToken)
     {
-        var subscriptionsToExpire = await _dbSet.Where(
-            subscription => subscription.Active == true && subscription.DueDate < DateOnly.FromDateTime(DateTime.UtcNow))
+        var subscriptionsToExpire = await _dbSet
+            .Include(subscription => subscription.User)
+            .Where(subscription => subscription.Active == true && subscription.DueDate < DateOnly.FromDateTime(DateTime.UtcNow))
             .ToListAsync(cancellationToken);
 
         var expiredSubscriptionsCount = await _dbSet
