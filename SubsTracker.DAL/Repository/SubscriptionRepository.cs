@@ -31,7 +31,7 @@ public class SubscriptionRepository(SubsDbContext context) : Repository<Subscrip
     {
         var subscriptionsToExpire = await _dbSet
             .Include(subscription => subscription.User)
-            .Where(subscription => subscription.Active == true && subscription.DueDate < DateOnly.FromDateTime(DateTime.UtcNow))
+            .Where(subscription => subscription.Active && subscription.DueDate < DateOnly.FromDateTime(DateTime.UtcNow))
             .ToListAsync(cancellationToken);
 
         var expiredSubscriptionsCount = await _dbSet

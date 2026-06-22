@@ -70,7 +70,7 @@ public static class  AuthorizationDependencies
         return services;
     } 
         
-    private static IServiceCollection AddAuthenticationScheme(this IServiceCollection services)
+    private static void AddAuthenticationScheme(this IServiceCollection services)
     {
         services.RegisterOptions<CookieOptions>(CookieOptions.SectionName)
             .ValidateOnStart()
@@ -140,7 +140,5 @@ public static class  AuthorizationDependencies
                         ValidateLifetime = true,
                     };
                 });
-
-        return services;
     }
 }
