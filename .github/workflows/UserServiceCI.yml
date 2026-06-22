@@ -30,18 +30,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Restore
-        env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json \
-            --name github \
-            --username andodenby \
-            --password $NUGET_AUTH_TOKEN \
-            --store-password-in-clear-text
-          dotnet restore SubsTracker.sln
-          dotnet nuget remove source github
-
       - name: Build
         run: dotnet build SubsTracker.sln --no-restore --configuration Release --verbosity detailed
 
@@ -68,6 +56,18 @@ jobs:
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
       
+      - name: Restore
+        env:
+          NUGET_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/androdenby/index.json \
+            --name github \
+            --username andodenby \
+            --password $NUGET_AUTH_TOKEN \
+            --store-password-in-clear-text
+          dotnet restore SubsTracker.sln
+          dotnet nuget remove source github
+
       - name: Sonar Begin
         shell: pwsh
         env:
@@ -125,7 +125,10 @@ jobs:
       - name: Sonar End
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: dotnet sonarscanner end
+        shell: pwsh
+        run: |
+            Write-Host "Token length: $($env:SONAR_TOKEN.Length)"
+            dotnet sonarscanner end
 
       - name: Get Allure history
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
