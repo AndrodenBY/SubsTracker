@@ -16,7 +16,9 @@ public class SubscriptionHistoryService(
     public async Task<PaginatedList<SubscriptionHistoryDto>> GetAllHistory(Guid subscriptionId, SubscriptionHistoryFilter? filter, PaginationParameters? paginationParameters, CancellationToken cancellationToken)  
     {
         var expression = SubscriptionHistoryFilterHelper.CreatePredicate(filter);
-        var pagedEntities = await subscriptionHistoryRepository.GetAll(expression, paginationParameters, cancellationToken);
+        var pagedEntities = 
+            await subscriptionHistoryRepository.GetAllHistoryWithSubscriptions(expression, paginationParameters, cancellationToken);
+        
         return pagedEntities.MapToPage(mapper.Map<SubscriptionHistoryDto>);
     }
 }
