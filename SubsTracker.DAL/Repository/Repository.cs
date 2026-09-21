@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using SubsTracker.DAL.Extensions;
 using SubsTracker.DAL.Interfaces;
 using SubsTracker.DAL.Interfaces.Repositories;
 using SubsTracker.Domain.Pagination;
@@ -20,22 +21,10 @@ public class Repository<TEntity>(SubsDbContext context) : IRepository<TEntity> w
             ? _dbSet.Where(predicate)
             : _dbSet;
         
-        var count = await query.CountAsync(cancellationToken);
-        query = query.OrderBy(entity => entity.Id);
-        
-        if (paginationParameters is not null)
-        {
-            query = query
-                .Skip((paginationParameters.PageNumber - 1) * paginationParameters.PageSize)
-                .Take(paginationParameters.PageSize);
-        }
-
-        var list = await query.AsNoTracking().ToListAsync(cancellationToken);
-
-        var pageNumber = paginationParameters?.PageNumber ?? 1;
-        var pageSize = paginationParameters?.PageSize ?? count;
-        
-        return list.ToPagedList(pageNumber, pageSize, count);
+        return await query
+            .AsNoTracking()
+            .OrderBy(entity => entity.Id)
+            .ToPagedListAsync(paginationParameters, cancellationToken);
     }
 
     public virtual Task<TEntity?> GetById(Guid id, CancellationToken cancellationToken)
