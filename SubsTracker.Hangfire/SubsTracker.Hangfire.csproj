@@ -13,6 +13,8 @@
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.23" />
         <PackageReference Include="Hangfire.Mongo" Version="1.16.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.8" />
+        <PackageReference Include="Serilog.AspNetCore" Version="9.0.0" />
+        <PackageReference Include="Serilog.Sinks.Network" Version="3.0.0" />
     </ItemGroup>
 
     <ItemGroup>
